@@ -7,7 +7,6 @@ import { useRouter } from 'next/navigation';
 export default function PlanPage() {
   const router = useRouter();
   
-  // 1. เก็บข้อมูลฟอร์ม
   const [formData, setFormData] = useState({
     initialAmount: '',
     targetAmount: '',
@@ -15,14 +14,23 @@ export default function PlanPage() {
     riskLevel: 'medium',
   });
 
-  // 2. สร้างตัวแปรเก็บ Error ของแต่ละช่อง (ถ้ามีค่า = มี error)
   const [errors, setErrors] = useState({
     initialAmount: '',
     targetAmount: '',
     duration: '',
   });
 
-  // ฟังก์ชันตรวจสอบความถูกต้อง (Validation)
+  // --- ฟังก์ชันช่วยแปลงตัวเลขใส่ลูกน้ำ (Comma) ---
+  const formatNumber = (value: string) => {
+    const numberOnly = value.replace(/[^0-9]/g, '');
+    return numberOnly.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+  };
+
+  // --- ฟังก์ชันดึงค่าตัวเลขจริงๆ (เอาลูกน้ำออก) ---
+  const getRawNumber = (value: string) => {
+    return value.replace(/,/g, '');
+  };
+
   const validateForm = () => {
     let isValid = true;
     const newErrors = {
@@ -31,22 +39,19 @@ export default function PlanPage() {
       duration: '',
     };
 
-    // เช็คเงินต้น
     if (!formData.initialAmount) {
       newErrors.initialAmount = 'กรุณาระบุเงินลงทุนเริ่มต้น';
       isValid = false;
-    } else if (Number(formData.initialAmount) <= 0) {
+    } else if (Number(getRawNumber(formData.initialAmount)) <= 0) {
       newErrors.initialAmount = 'เงินลงทุนต้องมากกว่า 0 บาท';
       isValid = false;
     }
 
-    // เช็คเป้าหมาย
     if (!formData.targetAmount) {
       newErrors.targetAmount = 'กรุณาระบุเป้าหมายเงินเก็บ';
       isValid = false;
     }
 
-    // เช็คระยะเวลา
     if (!formData.duration) {
       newErrors.duration = 'กรุณาระบุระยะเวลาลงทุน';
       isValid = false;
@@ -59,28 +64,30 @@ export default function PlanPage() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    // เรียกใช้ฟังก์ชันตรวจสอบก่อน
     if (validateForm()) {
-      // ถ้าผ่าน ถึงจะบันทึกและเปลี่ยนหน้า
-      localStorage.setItem('userPlan', JSON.stringify(formData));
+      const cleanData = {
+        ...formData,
+        initialAmount: getRawNumber(formData.initialAmount),
+        targetAmount: getRawNumber(formData.targetAmount),
+        duration: getRawNumber(formData.duration)
+      };
+
+      localStorage.setItem('userPlan', JSON.stringify(cleanData));
       router.push('/dashboard'); 
-    } else {
-      // ถ้าไม่ผ่าน ให้ขยับจอไปหาจุดที่ผิด (Optional)
-      // alert('กรุณากรอกข้อมูลให้ครบถ้วน');
     }
   };
 
-  // ฟังก์ชันช่วยเวลาพิมพ์ (พิมพ์ปุ๊บ ลบ Error ทิ้งปั๊บ)
   const handleChange = (field: string, value: string) => {
-    setFormData({ ...formData, [field]: value });
-    // ล้าง Error ของช่องนั้นๆ
+    const formattedValue = formatNumber(value);
+    setFormData({ ...formData, [field]: formattedValue });
     if (errors[field as keyof typeof errors]) {
       setErrors({ ...errors, [field]: '' });
     }
   };
 
   return (
-    <main className="min-h-screen bg-slate-50 py-12 px-4 sm:px-6 lg:px-8 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')]">
+    // เปลี่ยนพื้นหลังเป็นสีเหลืองอ่อน
+    <main className="min-h-screen bg-[#FFFEF5] py-12 px-4 sm:px-6 lg:px-8 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] selection:bg-yellow-400 selection:text-black">
       <div className="max-w-4xl mx-auto">
         
         <div className="text-center mb-12">
@@ -92,8 +99,8 @@ export default function PlanPage() {
           </p>
         </div>
 
-        <div className="bg-white/80 backdrop-blur-xl py-10 px-8 shadow-2xl shadow-blue-100/50 rounded-2xl border border-white/50">
-          {/* ใส่ noValidate เพื่อปิดกล่องแจ้งเตือนเดิมของ Browser ทิ้งไปซะ */}
+        {/* เปลี่ยนเงาและขอบกล่องเป็นสีเหลือง */}
+        <div className="bg-white/80 backdrop-blur-xl py-10 px-8 shadow-2xl shadow-yellow-100/50 rounded-2xl border border-yellow-100">
           <form onSubmit={handleSubmit} className="space-y-8" noValidate>
             
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -104,18 +111,19 @@ export default function PlanPage() {
                 <div className="relative">
                   <span className="absolute left-3 top-3 text-slate-400">฿</span>
                   <input
-                    type="number"
-                    className={`w-full pl-8 pr-4 py-3 rounded-lg border focus:ring-2 transition-all outline-none bg-slate-50 group-hover:bg-white text-slate-900 
+                    type="text" 
+                    inputMode="numeric"
+                    // เปลี่ยนสีตอน Focus เป็นสีเหลือง
+                    className={`w-full pl-8 pr-4 py-3 rounded-lg border focus:ring-2 transition-all outline-none bg-slate-50 group-hover:bg-white text-slate-900 font-medium
                       ${errors.initialAmount 
-                        ? 'border-red-300 focus:border-red-500 focus:ring-red-200 bg-red-50' // ถ้าผิด: สีแดง
-                        : 'border-slate-200 focus:border-transparent focus:ring-blue-500' // ถ้าถูก: สีปกติ
+                        ? 'border-red-300 focus:border-red-500 focus:ring-red-200 bg-red-50' 
+                        : 'border-slate-200 focus:border-yellow-400 focus:ring-yellow-200'
                       }`}
                     placeholder="100,000"
                     value={formData.initialAmount}
                     onChange={(e) => handleChange('initialAmount', e.target.value)}
                   />
                 </div>
-                {/* ข้อความแจ้งเตือนสีแดง (แสดงเมื่อมี Error) */}
                 {errors.initialAmount && (
                   <p className="mt-1 text-xs text-red-500 font-medium animate-pulse">⚠️ {errors.initialAmount}</p>
                 )}
@@ -127,11 +135,13 @@ export default function PlanPage() {
                 <div className="relative">
                   <span className="absolute left-3 top-3 text-slate-400">฿</span>
                   <input
-                    type="number"
-                    className={`w-full pl-8 pr-4 py-3 rounded-lg border focus:ring-2 transition-all outline-none bg-slate-50 group-hover:bg-white text-slate-900 
+                    type="text"
+                    inputMode="numeric"
+                    // เปลี่ยนสีตอน Focus เป็นสีเหลือง
+                    className={`w-full pl-8 pr-4 py-3 rounded-lg border focus:ring-2 transition-all outline-none bg-slate-50 group-hover:bg-white text-slate-900 font-medium
                       ${errors.targetAmount 
                         ? 'border-red-300 focus:border-red-500 focus:ring-red-200 bg-red-50' 
-                        : 'border-slate-200 focus:border-transparent focus:ring-green-500'
+                        : 'border-slate-200 focus:border-yellow-400 focus:ring-yellow-200'
                       }`}
                     placeholder="1,000,000"
                     value={formData.targetAmount}
@@ -147,11 +157,14 @@ export default function PlanPage() {
               <div className="group">
                 <label className="block text-sm font-semibold text-slate-700 mb-2">ระยะเวลา (ปี)</label>
                 <input
-                  type="number"
-                  className={`w-full px-4 py-3 rounded-lg border focus:ring-2 transition-all outline-none bg-slate-50 group-hover:bg-white text-slate-900 
+                  type="text"
+                  inputMode="numeric"
+                  maxLength={2}
+                  // เปลี่ยนสีตอน Focus เป็นสีเหลือง
+                  className={`w-full px-4 py-3 rounded-lg border focus:ring-2 transition-all outline-none bg-slate-50 group-hover:bg-white text-slate-900 font-medium
                     ${errors.duration 
                       ? 'border-red-300 focus:border-red-500 focus:ring-red-200 bg-red-50' 
-                      : 'border-slate-200 focus:border-transparent focus:ring-indigo-500'
+                      : 'border-slate-200 focus:border-yellow-400 focus:ring-yellow-200'
                     }`}
                   placeholder="5"
                   value={formData.duration}
@@ -163,17 +176,17 @@ export default function PlanPage() {
               </div>
             </div>
 
-            {/* ส่วนเลือกความเสี่ยง (เหมือนเดิม) */}
+            {/* ส่วนเลือกความเสี่ยง (คงสีเดิมไว้ เพราะเป็นมาตรฐานสากล เขียว/เหลือง/แดง) */}
             <div className="pt-6 border-t border-slate-100">
               <label className="block text-lg font-bold text-slate-800 mb-4">ระดับความเสี่ยงที่ยอมรับได้ (Risk Appetite)</label>
               
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {/* Low Risk */}
+                {/* Low Risk (Green) */}
                 <div 
                   onClick={() => setFormData({...formData, riskLevel: 'low'})}
-                  className={`relative p-6 rounded-xl border-2 cursor-pointer transition-all duration-300 hover:shadow-lg ${
+                  className={`relative p-6 rounded-xl border-2 cursor-pointer transition-all duration-300 hover:shadow-md ${
                     formData.riskLevel === 'low' 
-                    ? 'border-green-500 bg-green-50/50 shadow-md scale-105' 
+                    ? 'border-green-500 bg-green-50/50 shadow-sm scale-[1.02]' 
                     : 'border-slate-100 bg-white hover:border-green-200'
                   }`}
                 >
@@ -185,12 +198,12 @@ export default function PlanPage() {
                   <div className="inline-block px-2 py-1 bg-green-100 text-green-700 text-xs font-bold rounded">Beta &lt; 1</div>
                 </div>
 
-                {/* Medium Risk */}
+                {/* Medium Risk (Yellow - เข้าธีมพอดี) */}
                 <div 
                   onClick={() => setFormData({...formData, riskLevel: 'medium'})}
-                  className={`relative p-6 rounded-xl border-2 cursor-pointer transition-all duration-300 hover:shadow-lg ${
+                  className={`relative p-6 rounded-xl border-2 cursor-pointer transition-all duration-300 hover:shadow-md ${
                     formData.riskLevel === 'medium' 
-                    ? 'border-yellow-400 bg-yellow-50/50 shadow-md scale-105' 
+                    ? 'border-yellow-400 bg-yellow-50/50 shadow-sm scale-[1.02]' 
                     : 'border-slate-100 bg-white hover:border-yellow-200'
                   }`}
                 >
@@ -202,12 +215,12 @@ export default function PlanPage() {
                   <div className="inline-block px-2 py-1 bg-yellow-100 text-yellow-700 text-xs font-bold rounded">Beta ≈ 1</div>
                 </div>
 
-                {/* High Risk */}
+                {/* High Risk (Red) */}
                 <div 
                   onClick={() => setFormData({...formData, riskLevel: 'high'})}
-                  className={`relative p-6 rounded-xl border-2 cursor-pointer transition-all duration-300 hover:shadow-lg ${
+                  className={`relative p-6 rounded-xl border-2 cursor-pointer transition-all duration-300 hover:shadow-md ${
                     formData.riskLevel === 'high' 
-                    ? 'border-red-500 bg-red-50/50 shadow-md scale-105' 
+                    ? 'border-red-500 bg-red-50/50 shadow-sm scale-[1.02]' 
                     : 'border-slate-100 bg-white hover:border-red-200'
                   }`}
                 >
@@ -221,11 +234,12 @@ export default function PlanPage() {
               </div>
             </div>
 
+            {/* ปุ่ม Submit เปลี่ยนเป็นสีเหลืองสด ตัวหนังสือดำ */}
             <button
               type="submit"
-              className="w-full mt-8 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold py-4 px-8 rounded-xl shadow-lg shadow-blue-500/30 hover:shadow-blue-500/50 transform hover:-translate-y-0.5 transition-all duration-200 text-lg"
+              className="w-full mt-8 bg-yellow-400 hover:bg-yellow-300 text-slate-900 font-bold py-4 px-8 rounded-xl shadow-lg shadow-yellow-400/30 hover:shadow-yellow-400/50 transform hover:-translate-y-0.5 transition-all duration-200 text-lg"
             >
-              🚀 ประมวลผลและสร้างพอร์ตการลงทุน
+              ประมวลผลและสร้างพอร์ตการลงทุน
             </button>
 
           </form>

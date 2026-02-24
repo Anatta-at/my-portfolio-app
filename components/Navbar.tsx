@@ -43,9 +43,12 @@ export default function Navbar() {
               <span className="w-2 h-2 rounded-full bg-green-500 mr-2 animate-pulse"></span>
               System Online
             </div>
+            {/* ค้นหาส่วนของปุ่มในไฟล์ components/Navbar.tsx แล้วแก้ไขเป็นแบบนี้ */}
+            <Link href="/login">
             <button className="bg-slate-900 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-slate-800 transition-colors shadow-md">
-              เข้าสู่ระบบ
+             เข้าสู่ระบบ
             </button>
+            </Link>
           </div>
 
         </div>

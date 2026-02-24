@@ -25,9 +25,8 @@ body {
   font-family: Arial, Helvetica, sans-serif;
 }
 
-/* src/app/globals.css */
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* ถ้ามี keyframes float อะไรพวกนั้นเก็บไว้ได้ครับ แต่ media print ลบทิ้งเลย */

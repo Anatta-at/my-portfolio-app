@@ -22,36 +22,31 @@ export default function DashboardPage() {
     }
   }, []);
 
-  // --- ฟังก์ชันดาวน์โหลด PDF (เวอร์ชัน Force Widescreen) ---
   const handleDownloadPDF = async () => {
     if (!dashboardRef.current) return;
     
     setIsDownloading(true);
 
     try {
-      // 1. รอให้กราฟนิ่ง
       await new Promise(resolve => setTimeout(resolve, 500));
 
-      // 2. กำหนดความกว้างมาตรฐานที่อยากได้ (1600px กำลังสวยสำหรับ Dashboard)
       const targetWidth = 1600;
 
       const dataUrl = await toPng(dashboardRef.current, {
         cacheBust: true,
         backgroundColor: '#ffffff',
         quality: 1.0,
-        pixelRatio: 2, // ชัด x2
-        width: targetWidth, // ⭐️ บังคับความกว้างตอนแคป (ไม่สนหน้าจอจริง)
+        pixelRatio: 2,
+        width: targetWidth, 
         style: {
-          // บังคับ CSS ให้ยืดเต็มที่ตอนแคป
           width: `${targetWidth}px`,
           maxWidth: `${targetWidth}px`,
           height: 'auto',
           margin: '0',
-          padding: '40px' // เพิ่มขอบขาวรอบๆ นิดนึงให้สวย
+          padding: '40px' 
         }
       });
 
-      // 3. โหลดรูปมาวัดขนาดจริง
       const img = new Image();
       img.src = dataUrl;
       await new Promise((resolve) => { img.onload = resolve; });
@@ -59,13 +54,8 @@ export default function DashboardPage() {
       const imgWidth = img.width;
       const imgHeight = img.height;
 
-      // 4. สร้าง PDF โดยใช้หน่วย 'px' (พิกเซล) ให้เท่ารูปเป๊ะๆ
-      // 'l' = แนวนอน (Landscape), 'px' = หน่วยพิกเซล
       const pdf = new jsPDF('l', 'px', [imgWidth, imgHeight]);
-
-      // 5. แปะรูปลงไปเต็มแผ่น (0, 0 คือจุดเริ่มต้น, imgWidth/Height คือขนาด)
       pdf.addImage(dataUrl, 'PNG', 0, 0, imgWidth, imgHeight);
-      
       pdf.save(`IntelliPort_Report.pdf`);
       
     } catch (error: any) {
@@ -77,12 +67,13 @@ export default function DashboardPage() {
   };
 
   const allocationData = [
-    { name: 'หุ้นไทย (SET50)', value: 40, color: '#3b82f6' },
-    { name: 'หุ้นโลก (Global)', value: 30, color: '#8b5cf6' },
-    { name: 'ตราสารหนี้', value: 20, color: '#f59e0b' },
-    { name: 'ทองคำ', value: 10, color: '#10b981' },
+    { name: 'AOT (ท่าอากาศยานไทย)', value: 35, color: '#3b82f6' }, // สีฟ้า
+    { name: 'PTT (ปตท.)', value: 25, color: '#10b981' }, // สีเขียว
+    { name: 'CPALL (ซีพี ออลล์)', value: 20, color: '#f59e0b' }, // สีส้ม
+    { name: 'ADVANC (AIS)', value: 15, color: '#8b5cf6' }, // สีม่วง
+    { name: 'KBANK (กสิกรไทย)', value: 5, color: '#ef4444' }, // สีแดง
   ];
-
+  
   const performanceData = [
     { year: '2019', AI: 100000, SET50: 100000 },
     { year: '2020', AI: 112000, SET50: 95000 },
@@ -92,10 +83,31 @@ export default function DashboardPage() {
     { year: '2024', AI: 172000, SET50: 115000 },
   ];
 
+  // --- ฟังก์ชันคำนวณตำแหน่งตัวเลขในวงกลม (เพิ่มใหม่) ---
+  const RADIAN = Math.PI / 180;
+  const renderCustomizedLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, percent }: any) => {
+    // คำนวณจุดกึ่งกลางของวงโดนัท
+    const radius = innerRadius + (outerRadius - innerRadius) * 0.5;
+    const x = cx + radius * Math.cos(-midAngle * RADIAN);
+    const y = cy + radius * Math.sin(-midAngle * RADIAN);
+
+    return (
+      <text 
+        x={x} 
+        y={y} 
+        fill="white" 
+        textAnchor="middle" 
+        dominantBaseline="central"
+        className="text-xs font-bold shadow-sm" // ปรับขนาดตัวหนังสือตรงนี้
+      >
+        {`${(percent * 100).toFixed(0)}%`}
+      </text>
+    );
+  };
+
   return (
-    <main className="min-h-screen bg-slate-50 py-8 px-4 sm:px-6 lg:px-8">
+    <main className="min-h-screen bg-[#FFFEF5] py-8 px-4 sm:px-6 lg:px-8 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] selection:bg-yellow-400 selection:text-black">
       
-      {/* ส่วนหัวกับปุ่มกด (อยู่นอก ref เพราะเราไม่อยากปริ้นท์ปุ่มติดไปด้วย) */}
       <div className="max-w-7xl mx-auto mb-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
           <h1 className="text-3xl font-bold text-slate-900">Portfolio Dashboard</h1>
@@ -111,14 +123,12 @@ export default function DashboardPage() {
               : 'bg-white border-slate-300 text-slate-700 hover:bg-slate-50 hover:shadow-md'
           }`}
         >
-          {isDownloading ? '⏳ กำลังสร้างไฟล์...' : '⬇️ ดาวน์โหลด PDF'}
+          {isDownloading ? ' กำลังสร้างไฟล์...' : '⬇️ ดาวน์โหลด PDF'}
         </button>
       </div>
 
-      {/* พื้นที่ที่จะถูกปริ้นท์ (Capture Area) */}
       <div className="max-w-7xl mx-auto bg-white p-8 rounded-3xl shadow-sm border border-slate-200" ref={dashboardRef}> 
         
-        {/* หัวข้อใน PDF */}
         <div className="mb-8 border-b border-slate-100 pb-6">
           <h2 className="text-2xl font-bold text-slate-900">Portfolio Dashboard</h2>
           <p className="text-slate-500">ผลลัพธ์การวิเคราะห์ด้วย Genetic Algorithm สำหรับคุณ</p>
@@ -146,6 +156,8 @@ export default function DashboardPage() {
         )}
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          
+          {/* --- กราฟวงกลม (แก้ตรงนี้) --- */}
           <div className="lg:col-span-1 p-6 rounded-2xl border border-slate-100 bg-white">
             <h3 className="text-lg font-bold text-slate-900 mb-6 border-l-4 border-blue-500 pl-3">
               สัดส่วนสินทรัพย์แนะนำ
@@ -156,16 +168,29 @@ export default function DashboardPage() {
                   <Pie
                     data={allocationData}
                     innerRadius={60}
-                    outerRadius={100}
+                    outerRadius={100} // ขยายกลับมาเต็ม 100 เพราะตัวเลขอยู่ข้างในแล้ว
                     paddingAngle={5}
                     dataKey="value"
-                    label={({ name, percent }: any) => `${name} ${(percent * 100).toFixed(0)}%`}
+                    labelLine={false} // ปิดเส้นชี้
+                    label={renderCustomizedLabel} // เรียกใช้ฟังก์ชันแสดงตัวเลขข้างใน
                   >
                     {allocationData.map((entry, index) => (
                       <Cell key={`cell-${index}`} fill={entry.color} />
                     ))}
                   </Pie>
-                  <Legend verticalAlign="bottom" height={36} />
+                  
+                  <RechartsTooltip 
+                    formatter={(value: any) => `${value}%`}
+                    contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
+                  />
+                  
+                  <Legend 
+                    verticalAlign="bottom" 
+                    height={72} 
+                    align="center"
+                    iconType="circle"
+                    wrapperStyle={{ paddingTop: '20px' }}
+                  />
                 </PieChart>
               </ResponsiveContainer>
             </div>
@@ -189,12 +214,15 @@ export default function DashboardPage() {
                   <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
                   <Area type="monotone" dataKey="SET50" stroke="#cbd5e1" strokeWidth={3} fill="transparent" />
                   <Area type="monotone" dataKey="AI" stroke="#3b82f6" strokeWidth={3} fillOpacity={1} fill="url(#colorAI)" />
+                  <RechartsTooltip 
+                    contentStyle={{ backgroundColor: '#fff', borderRadius: '10px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+                  />
                 </AreaChart>
               </ResponsiveContainer>
             </div>
             <div className="mt-4 bg-slate-50 p-3 rounded-lg text-center">
               <p className="text-sm text-slate-600">
-                🚀 ระบบ AI ชนะตลาดได้เฉลี่ย <span className="text-green-600 font-bold text-lg">+15.4%</span>
+                ระบบ AI ชนะตลาดได้เฉลี่ย <span className="text-green-600 font-bold text-lg">+15.4%</span>
               </p>
             </div>
           </div>
