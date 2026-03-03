@@ -18,26 +18,36 @@ export default function RegisterPage() {
     e.preventDefault();
     setIsLoading(true);
     
+    console.log("🚀 กำลังส่งข้อมูลสมัครสมาชิก:", { username, email });
+
     try {
-      // แก้ไข Path เป็น /register ให้ตรงกับ Backend
+      // ✅ เชื่อมต่อกับ FastAPI Port 8000
       const response = await fetch("http://localhost:8000/register", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username, email, password }),
+        headers: { 
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ 
+          username: username, 
+          email: email, 
+          password: password 
+        }),
       });
 
       const data = await response.json();
 
       if (response.ok) {
-        alert("สมัครสมาชิกสำเร็จ!");
-        // เปลี่ยนจาก /dashboard เป็นหน้าวางแผนลงทุนตามที่คุณต้องการ
-        router.push("/plan"); 
+        console.log("✅ สมัครสำเร็จ:", data);
+        alert("สมัครสมาชิกสำเร็จ! กรุณาเข้าสู่ระบบ");
+        router.push("/login"); // ✅ เมื่อสมัครเสร็จ ให้ไปหน้า Login เพื่อความปลอดภัย
       } else {
+        // ✅ แสดงข้อความ Error จาก FastAPI เช่น "อีเมลนี้มีผู้ใช้งานแล้ว"
+        console.error("❌ สมัครไม่สำเร็จ:", data.detail);
         alert(data.detail || "สมัครสมาชิกไม่สำเร็จ");
       }
     } catch (error) {
-      console.error("Error:", error);
-      alert("ไม่สามารถติดต่อเซิร์ฟเวอร์ได้ กรุณาเช็คว่ารัน python3 -m uvicorn หรือยัง");
+      console.error("❌ Error:", error);
+      alert("⚠️ ไม่สามารถติดต่อเซิร์ฟเวอร์ได้ กรุณาตรวจสอบว่ารัน Python (uvicorn) ทิ้งไว้หรือยัง");
     } finally {
       setIsLoading(false);
     }
@@ -45,6 +55,7 @@ export default function RegisterPage() {
 
   return (
     <div className="relative min-h-screen flex items-center justify-center bg-white overflow-hidden font-sans">
+      {/* Background Decor */}
       <div className="absolute inset-0 z-0 pointer-events-none">
         <div className="absolute inset-0 bg-[linear-gradient(to_right,#f1f5f9_1px,transparent_1px),linear-gradient(to_bottom,#f1f5f9_1px,transparent_1px)] bg-[size:40px_40px]"></div>
       </div>
@@ -96,7 +107,7 @@ export default function RegisterPage() {
               <button 
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400"
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-sm font-bold text-blue-600"
               >
                 {showPassword ? "ซ่อน" : "ดู"}
               </button>
@@ -106,14 +117,16 @@ export default function RegisterPage() {
           <button 
             type="submit" 
             disabled={isLoading}
-            className="w-full py-3.5 bg-yellow-400 hover:bg-yellow-500 text-slate-900 font-bold rounded-xl shadow-lg transition-all disabled:opacity-50"
+            className="w-full py-3.5 bg-yellow-400 hover:bg-yellow-500 text-slate-900 font-bold rounded-xl shadow-lg transition-all disabled:opacity-50 active:scale-[0.98]"
           >
             {isLoading ? "กำลังประมวลผล..." : "สมัครสมาชิก"}
           </button>
         </form>
 
         <div className="mt-8 text-center text-sm">
-          <Link href="/login" className="text-blue-600 font-bold hover:underline">เข้าสู่ระบบ</Link>
+          <p className="text-slate-500">มีบัญชีอยู่แล้ว? 
+            <Link href="/login" className="ml-1 text-blue-600 font-bold hover:underline">เข้าสู่ระบบ</Link>
+          </p>
         </div>
       </div>
     </div>

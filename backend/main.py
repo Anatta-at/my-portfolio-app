@@ -6,85 +6,85 @@ from psycopg2.extras import RealDictCursor
 
 app = FastAPI()
 
+# ✅ ต้องมี CORS เพื่อให้ Next.js คุยกับ FastAPI ได้
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
-    allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
+# ฟังก์ชันเชื่อมต่อ Database
 def get_db_connection():
     try:
         conn = psycopg2.connect(
-            host="localhost",
+            host="127.0.0.1",
             database="intelliport_db",
             user="admin",
-            password="Heyrose05", 
+            password="Heyrose05",
             port="5432"
         )
         return conn
     except Exception as e:
-        print(f"❌ Database Connection Error: {e}")
+        print(f"❌ DB Error: {e}")
         return None
 
-# --- Models ---
-class UserRegister(BaseModel):
+# โครงสร้างข้อมูลที่รับจากหน้า Register/Login
+class RegisterData(BaseModel):
     username: str
     email: str
     password: str
 
-class UserLogin(BaseModel):
+class LoginData(BaseModel):
     email: str
     password: str
 
-# --- API: สมัครสมาชิก ---
+# --- API สมัครสมาชิก ---
 @app.post("/register")
-async def register(user: UserRegister):
+async def register(user: RegisterData):
+    print(f"🚀 [BACKEND RECEIVED]: {user}")
     conn = get_db_connection()
     if not conn:
-        raise HTTPException(status_code=500, detail="ไม่สามารถเชื่อมต่อฐานข้อมูลได้")
+        raise HTTPException(status_code=500, detail="เชื่อมต่อฐานข้อมูลล้มเหลว")
     try:
-        cursor = conn.cursor()
-        cursor.execute("SELECT setval('users_id_seq', COALESCE((SELECT MAX(id) FROM users), 0) + 1, false);")
-        cursor.execute(
-            "INSERT INTO users (username, email, password, role) VALUES (%s, %s, %s, %s)",
-            (user.username, user.email, user.password, "user")
+        cur = conn.cursor()
+        # เช็คอีเมลซ้ำ
+        cur.execute("SELECT email FROM users WHERE email = %s", (user.email,))
+        if cur.fetchone():
+            raise HTTPException(status_code=400, detail="อีเมลนี้ถูกใช้งานแล้ว")
+        
+        # บันทึกข้อมูล
+        cur.execute(
+            "INSERT INTO users (username, email, password) VALUES (%s, %s, %s)",
+            (user.username, user.email, user.password)
         )
         conn.commit()
-        cursor.close()
-        return {"message": "Registered successfully"}
-    except psycopg2.IntegrityError:
-        if conn: conn.rollback()
-        raise HTTPException(status_code=400, detail="ชื่อผู้ใช้หรืออีเมลนี้ถูกใช้งานแล้ว")
+        return {"message": "สมัครสมาชิกสำเร็จ"}
+    except Exception as e:
+        conn.rollback()
+        raise HTTPException(status_code=500, detail=str(e))
     finally:
-        if conn: conn.close()
+        conn.close()
 
-# --- API: เข้าสู่ระบบ (เพิ่มใหม่) ---
+# --- API เข้าสู่ระบบ ---
 @app.post("/login")
-async def login(user: UserLogin):
+async def login(user: LoginData):
     conn = get_db_connection()
     if not conn:
-        raise HTTPException(status_code=500, detail="เชื่อมต่อฐานข้อมูลไม่ได้")
-    try:
-        # ใช้ RealDictCursor เพื่อให้ดึงข้อมูลออกมาเป็น Dictionary ได้ง่าย
-        cursor = conn.cursor(cursor_factory=RealDictCursor)
-        cursor.execute(
-            "SELECT id, username, email, role FROM users WHERE email = %s AND password = %s",
-            (user.email, user.password)
-        )
-        account = cursor.fetchone()
-        
-        if account:
-            print(f"✅ User {account['username']} logged in!")
-            return {
-                "message": "Login successful",
-                "user": account  # ส่งข้อมูล user กลับไปให้ Frontend เก็บไว้
-            }
-        else:
-            raise HTTPException(status_code=401, detail="อีเมลหรือรหัสผ่านไม่ถูกต้อง")
-    finally:
-        if conn: conn.close()
+        raise HTTPException(status_code=500, detail="เชื่อมต่อฐานข้อมูลล้มเหลว")
+    
+    cur = conn.cursor(cursor_factory=RealDictCursor)
+    cur.execute(
+        "SELECT * FROM users WHERE email = %s AND password = %s",
+        (user.email, user.password)
+    )
+    result = cur.fetchone()
+    conn.close()
+
+    if result:
+        return {"status": "success", "message": "เข้าสู่ระบบสำเร็จ", "user": {"username": result['username'], "email": result['email']}}
+    else:
+        raise HTTPException(status_code=401, detail="อีเมลหรือรหัสผ่านไม่ถูกต้อง")
 
 if __name__ == "__main__":
     import uvicorn
