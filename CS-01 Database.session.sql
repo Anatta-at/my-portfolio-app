@@ -1,22 +1,28 @@
--- 1. สร้างตารางเก็บข้อมูลผู้ใช้งาน (เพิ่มคอลัมน์ role)
-CREATE TABLE IF NOT EXISTS users (
-    id SERIAL PRIMARY KEY,
-    username VARCHAR(100) NOT NULL,
+-- ลบตารางเก่าทิ้งก่อนเพื่อสร้างใหม่ให้ถูกต้อง (ข้อมูลเดิมจะหาย โปรดสำรองหากจำเป็น)
+DROP TABLE IF EXISTS users CASCADE;
+
+-- 1. สร้างตารางเก็บข้อมูลผู้ใช้งานใหม่
+CREATE TABLE users (
+    -- ใช้ clerk_id เป็น Primary Key แทนเลขรันอัตโนมัติ (SERIAL)
+    clerk_id VARCHAR(255) PRIMARY KEY, 
+    username VARCHAR(100),
     email VARCHAR(100) UNIQUE NOT NULL,
-    password VARCHAR(255) NOT NULL,
-    role VARCHAR(20) DEFAULT 'user', -- เพิ่มส่วนนี้เพื่อให้ INSERT ข้อ 2 ไม่พัง
+    
+    -- ข้อมูลตามขอบเขตโครงงาน 8.2.3 (เป้าหมายและการตั้งค่า)
+    investment_goal VARCHAR(255), -- เป้าหมายการลงทุน
+    budget NUMERIC(15, 2) DEFAULT 0, -- งบประมาณการลงทุน
+    risk_level VARCHAR(50),        -- ระดับความเสี่ยงที่ยอมรับได้
+    
+    role VARCHAR(20) DEFAULT 'user', -- กำหนดสิทธิ์
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- 2. สร้างบัญชีทดสอบ
-INSERT INTO users (username, email, password, role)
+-- 2. ตัวอย่างการเพิ่มข้อมูล (จำลอง clerk_id ที่ได้จากระบบ Clerk)
+INSERT INTO users (clerk_id, username, email, role, risk_level)
 VALUES 
-    ('admin_cs01', 'admin@intelliport.com', 'admin123', 'admin'),
-    ('test_user', 'user@gmail.com', '123456', 'user')
-ON CONFLICT (email) DO NOTHING;
+    ('user_2pX...', 'admin_cs01', 'admin@intelliport.com', 'admin', 'High'),
+    ('user_5qY...', 'test_user', 'user@gmail.com', 'user', 'Medium')
+ON CONFLICT (clerk_id) DO NOTHING;
 
--- 3. รีเซ็ตลำดับ ID ให้ถูกต้อง
-SELECT setval('users_id_seq', (SELECT COALESCE(MAX(id), 1) FROM users));
-
--- 4. ตรวจสอบข้อมูล
+-- 3. ตรวจสอบข้อมูล
 SELECT * FROM users;

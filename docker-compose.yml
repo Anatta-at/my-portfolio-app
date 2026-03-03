@@ -8,6 +8,8 @@ services:
     volumes:
       - ./backend:/app
     command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+    env_file:
+      - .env
 
   frontend:
     build: ./frontend
@@ -16,8 +18,15 @@ services:
     volumes:
       - ./frontend:/app
       - /app/node_modules
+    # เปลี่ยนจาก args มาใช้ environment แทนแบบนี้ครับ
     environment:
-      - NEXT_PUBLIC_API_URL=http://localhost:8000
+      - NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=${NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY}
+      - NEXT_PUBLIC_CLERK_SIGN_IN_URL=/login
+      - NEXT_PUBLIC_CLERK_SIGN_UP_URL=/register
+    env_file:
+      - .env
+    depends_on:
+      - backend
 
   db:
     image: postgres:15
