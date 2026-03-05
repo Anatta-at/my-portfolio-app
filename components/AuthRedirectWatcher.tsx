@@ -1,22 +1,20 @@
 "use client";
 
 import { useAuth } from "@clerk/nextjs";
-import { useRouter, usePathname } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { useEffect } from "react";
 
 export default function AuthRedirectWatcher() {
   const { isSignedIn, isLoaded } = useAuth();
-  const router = useRouter();
   const pathname = usePathname();
 
   useEffect(() => {
-    // ถ้าโหลด Clerk เสร็จแล้ว และผู้ใช้ล็อกอินอยู่ แต่อยู่ที่หน้าแรกหรือหน้า Login
-    // ให้ดีดไปหน้า Dashboard ทันที
+    // ถ้าสถานะโหลดเสร็จ + ล็อกอินอยู่ + อยู่ในหน้าที่ไม่ควรอยู่ (หน้าแรกหรือหน้าล็อกอิน)
     if (isLoaded && isSignedIn && (pathname === "/" || pathname === "/login" || pathname === "/register")) {
-      router.push("/dashboard");
-      router.refresh(); // บังคับให้หน้าเว็บดึงข้อมูลใหม่ (เหมือนกด F5)
+      // ใช้ window.location.href แทน router.push เพื่อป้องกันอาการค้างจากการโหลด State ซ้อนกัน
+      window.location.href = "/dashboard";
     }
-  }, [isSignedIn, isLoaded, pathname, router]);
+  }, [isSignedIn, isLoaded, pathname]);
 
-  return null; // ส่วนประกอบนี้ไม่ต้องแสดงผลอะไรบนหน้าจอ
+  return null;
 }

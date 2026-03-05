@@ -1,28 +1,26 @@
--- ลบตารางเก่าทิ้งก่อนเพื่อสร้างใหม่ให้ถูกต้อง (ข้อมูลเดิมจะหาย โปรดสำรองหากจำเป็น)
+-- 1. ลบตาราง users เก่าทิ้งไปเลย ไม่ใช้แล้ว!
 DROP TABLE IF EXISTS users CASCADE;
+DROP TABLE IF EXISTS portfolio_history CASCADE;
 
--- 1. สร้างตารางเก็บข้อมูลผู้ใช้งานใหม่
-CREATE TABLE users (
-    -- ใช้ clerk_id เป็น Primary Key แทนเลขรันอัตโนมัติ (SERIAL)
-    clerk_id VARCHAR(255) PRIMARY KEY, 
-    username VARCHAR(100),
-    email VARCHAR(100) UNIQUE NOT NULL,
+-- 2. สร้างตารางเก็บประวัติพอร์ตแบบ Standalone (อิงตาม Clerk ID อย่างเดียว)
+CREATE TABLE portfolio_history (
+    id SERIAL PRIMARY KEY,
     
-    -- ข้อมูลตามขอบเขตโครงงาน 8.2.3 (เป้าหมายและการตั้งค่า)
-    investment_goal VARCHAR(255), -- เป้าหมายการลงทุน
-    budget NUMERIC(15, 2) DEFAULT 0, -- งบประมาณการลงทุน
-    risk_level VARCHAR(50),        -- ระดับความเสี่ยงที่ยอมรับได้
+    -- รหัสจาก Clerk (เช่น user_2pX...) เอาไว้บอกว่าพอร์ตนี้เป็นของใคร
+    clerk_id VARCHAR(255) NOT NULL, 
     
-    role VARCHAR(20) DEFAULT 'user', -- กำหนดสิทธิ์
+    -- ข้อมูลตั้งต้นที่ผู้ใช้กรอก
+    target_beta NUMERIC(5, 2),
+    budget NUMERIC(15, 2),
+    duration_years INT,
+    
+    -- ผลลัพธ์จากสมองกล AI (เก็บเป็น JSON)
+    recommended_portfolio JSONB NOT NULL, 
+    expected_return NUMERIC(8, 4),
+    portfolio_volatility NUMERIC(8, 4),
+    
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- 2. ตัวอย่างการเพิ่มข้อมูล (จำลอง clerk_id ที่ได้จากระบบ Clerk)
-INSERT INTO users (clerk_id, username, email, role, risk_level)
-VALUES 
-    ('user_2pX...', 'admin_cs01', 'admin@intelliport.com', 'admin', 'High'),
-    ('user_5qY...', 'test_user', 'user@gmail.com', 'user', 'Medium')
-ON CONFLICT (clerk_id) DO NOTHING;
-
--- 3. ตรวจสอบข้อมูล
-SELECT * FROM users;
+-- 3. สร้าง Index เพื่อให้ตอนหน้าเว็บค้นหาประวัติพอร์ตของตัวเองทำได้เร็วปรู๊ดปร๊าด
+CREATE INDEX idx_portfolio_clerk_id ON portfolio_history(clerk_id);

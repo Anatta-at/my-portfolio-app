@@ -1,6 +1,20 @@
+# === Web API & Server ===
 fastapi
 uvicorn
 pydantic
 python-multipart
-requests
+starlette
+
+# === Database ===
 psycopg2-binary
+
+# === Data Science & AI Engine (The Brain) ===
+pandas
+numpy
+deap
+openpyxl
+
+# === Data Fetching & Utilities ===
+yfinance
+requests
+beautifulsoup4
