@@ -42,15 +42,15 @@ export default function RootLayout({
 
             {/* แถบโหลดด้านบนเพื่อความสวยงามและ User Experience ที่ดี [cite: 26] */}
             <NextTopLoader 
-              color="#2563eb"   
+              color="#d97706"   
               initialPosition={0.08}
               crawlSpeed={200}
-              height={3}       
+              height={2}       
               crawl={true}
               showSpinner={false} 
               easing="ease"
               speed={200}
-              shadow="0 0 10px #2563eb,0 0 5px #2563eb" 
+              shadow="0 0 8px #d97706,0 0 4px #d97706" 
             />
 
             <Navbar />

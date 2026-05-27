@@ -35,8 +35,13 @@ class BacktestEngine:
 
             # 2. คำนวณ Portfolio Performance แบบรายวัน
             daily_returns = price_data.pct_change().dropna()
-            valid_weights = np.array([weights_dict.get(t, 0) for t in valid_tickers])
-            valid_weights = valid_weights / np.sum(valid_weights) 
+            valid_weights = np.array([weights_dict.get(f"{t}.BK", weights_dict.get(t, 0)) for t in valid_tickers])
+            # ป้องกัน division by zero กรณีน้ำหนักหุ้นเป็น 0 หมด
+            sum_weights = np.sum(valid_weights)
+            if sum_weights == 0:
+                valid_weights = np.ones(len(valid_weights)) / len(valid_weights)
+            else:
+                valid_weights = valid_weights / sum_weights 
             
             port_returns = daily_returns.dot(valid_weights)
             
@@ -45,6 +50,11 @@ class BacktestEngine:
             
             total_return = (1 + port_returns).prod() - 1
             port_volatility = port_returns.std() * np.sqrt(252)
+
+            if np.isnan(total_return):
+                total_return = 0.0
+            if np.isnan(port_volatility):
+                port_volatility = 0.0
             
             # 3. ดึงและคำนวณ Benchmark (^SET.BK) เพื่อเทียบกับตลาด
             bm_data = yf.download("^SET.BK", start=start_date, end=end_date, progress=False)
@@ -59,6 +69,8 @@ class BacktestEngine:
                 bm_cum_returns = (1 + bm_returns).cumprod() * 100000
                 raw_return = (bm_price.iloc[-1] / bm_price.iloc[0]) - 1
                 bm_total_return = float(raw_return.iloc[0]) if hasattr(raw_return, "iloc") else float(raw_return)
+                if np.isnan(bm_total_return):
+                    bm_total_return = 0.0
 
             # 4. 🔥 สร้างข้อมูลรายเดือน สำหรับส่งให้กราฟ (AreaChart) บนเว็บ
             port_monthly = port_cum_returns.resample('ME').last()

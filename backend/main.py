@@ -42,6 +42,7 @@ class OptimizeRequest(BaseModel):
     user_custom_views: Optional[Dict[str, float]] = None 
     target_beta: float = 1.0
     max_stocks: int = Field(default=5, ge=3, le=25) 
+    max_weight_per_asset: Optional[float] = 0.40
     start_date: str = "2024-01-01"
     end_date: str = "2024-12-01"
     
@@ -199,7 +200,8 @@ def optimize_portfolio(req: OptimizeRequest):
             target_beta=req.target_beta, 
             max_stocks=req.max_stocks,
             actual_betas=actual_betas_series,
-            locked_stocks=req.locked_stocks
+            locked_stocks=req.locked_stocks,
+            max_weight_per_asset=req.max_weight_per_asset
         )
         
         # 7. กรองหุ้นและแปลงเป็น List Dictionary
@@ -452,10 +454,10 @@ def get_all_users():
         cursor = conn.cursor()
         
         cursor.execute("""
-            SELECT u.clerk_id, u.created_at, u.last_login_at, COUNT(p.id) as portfolio_count
+            SELECT u.clerk_id, u.created_at, u.last_login_at, COUNT(p.id) as portfolio_count, u.role
             FROM users u
             LEFT JOIN portfolios p ON u.clerk_id = p.clerk_id
-            GROUP BY u.clerk_id, u.created_at, u.last_login_at
+            GROUP BY u.clerk_id, u.created_at, u.last_login_at, u.role
             ORDER BY u.last_login_at DESC;
         """)
         rows = cursor.fetchall()
@@ -466,7 +468,8 @@ def get_all_users():
                 "clerk_id": r[0],
                 "created_at": r[1],
                 "last_login_at": r[2],
-                "portfolio_count": r[3]
+                "portfolio_count": r[3],
+                "role": r[4]
             })
             
         cursor.close()
@@ -477,12 +480,225 @@ def get_all_users():
         traceback.print_exc()
         return {"status": "error", "message": str(e)}
 
+class RoleUpdateRequest(BaseModel):
+    new_role: str
+    admin_id: str
+
+class AssetRequest(BaseModel):
+    ticker: str
+    market_cap: int
+    is_active: bool = True
+
+@app.put("/api/admin/users/{target_clerk_id}/role")
+def update_user_role(target_clerk_id: str, req: RoleUpdateRequest):
+    try:
+        if req.new_role not in ["user", "admin", "analyst"]:
+            return {"status": "error", "message": "Invalid role"}
+            
+        import os
+        db_host = os.getenv("DATABASE_HOST", "localhost")
+        conn = psycopg2.connect(
+            dbname="intelliport_db", user="admin", password="Heyrose05", host=db_host, port="5432"
+        )
+        cursor = conn.cursor()
+        
+        # Verify the requester is actually an admin
+        cursor.execute("SELECT role FROM users WHERE clerk_id = %s", (req.admin_id,))
+        admin_row = cursor.fetchone()
+        if not admin_row or admin_row[0] != "admin":
+            cursor.close()
+            conn.close()
+            return {"status": "error", "message": "Unauthorized: Only admins can change roles"}
+            
+        cursor.execute("""
+            INSERT INTO users (clerk_id, role)
+            VALUES (%s, %s)
+            ON CONFLICT (clerk_id) 
+            DO UPDATE SET role = EXCLUDED.role;
+        """, (target_clerk_id, req.new_role))
+        conn.commit()
+        
+        cursor.close()
+        conn.close()
+        return {"status": "success", "message": f"Role updated to {req.new_role}"}
+    except Exception as e:
+        return {"status": "error", "message": str(e)}
+
 @app.get("/api/admin/assets")
 def get_admin_assets():
     try:
-        tickers = SETDataFetcher.get_set50_tickers()
-        return {"status": "success", "data": tickers}
+        import os
+        db_host = os.getenv("DATABASE_HOST", "localhost")
+        conn = psycopg2.connect(
+            dbname="intelliport_db", user="admin", password="Heyrose05", host=db_host, port="5432"
+        )
+        cursor = conn.cursor()
+        cursor.execute("SELECT ticker, market_cap, is_active FROM assets ORDER BY ticker")
+        assets = []
+        for row in cursor.fetchall():
+            assets.append({
+                "ticker": row[0],
+                "market_cap": row[1],
+                "is_active": row[2]
+            })
+        cursor.close()
+        conn.close()
+        return {"status": "success", "data": assets}
     except Exception as e:
+        return {"status": "error", "message": str(e)}
+
+@app.post("/api/admin/assets")
+def add_admin_asset(req: AssetRequest):
+    try:
+        import os
+        db_host = os.getenv("DATABASE_HOST", "localhost")
+        conn = psycopg2.connect(
+            dbname="intelliport_db", user="admin", password="Heyrose05", host=db_host, port="5432"
+        )
+        cursor = conn.cursor()
+        cursor.execute("""
+            INSERT INTO assets (ticker, market_cap, is_active)
+            VALUES (%s, %s, %s)
+        """, (req.ticker, req.market_cap, req.is_active))
+        conn.commit()
+        cursor.close()
+        conn.close()
+        return {"status": "success", "message": "Asset added successfully"}
+    except Exception as e:
+        return {"status": "error", "message": str(e)}
+
+@app.put("/api/admin/assets/{ticker}")
+def update_admin_asset(ticker: str, req: AssetRequest):
+    try:
+        import os
+        db_host = os.getenv("DATABASE_HOST", "localhost")
+        conn = psycopg2.connect(
+            dbname="intelliport_db", user="admin", password="Heyrose05", host=db_host, port="5432"
+        )
+        cursor = conn.cursor()
+        cursor.execute("""
+            UPDATE assets SET market_cap = %s, is_active = %s
+            WHERE ticker = %s
+        """, (req.market_cap, req.is_active, ticker))
+        conn.commit()
+        cursor.close()
+        conn.close()
+        return {"status": "success", "message": "Asset updated successfully"}
+    except Exception as e:
+        return {"status": "error", "message": str(e)}
+
+@app.delete("/api/admin/assets/{ticker}")
+def delete_admin_asset(ticker: str):
+    try:
+        import os
+        db_host = os.getenv("DATABASE_HOST", "localhost")
+        conn = psycopg2.connect(
+            dbname="intelliport_db", user="admin", password="Heyrose05", host=db_host, port="5432"
+        )
+        cursor = conn.cursor()
+        cursor.execute("DELETE FROM assets WHERE ticker = %s", (ticker,))
+        conn.commit()
+        cursor.close()
+        conn.close()
+        return {"status": "success", "message": "Asset deleted successfully"}
+    except Exception as e:
+        return {"status": "error", "message": str(e)}
+
+@app.get("/api/users/{clerk_id}/role")
+def get_user_role(clerk_id: str):
+    try:
+        import os
+        db_host = os.getenv("DATABASE_HOST", "localhost")
+        conn = psycopg2.connect(
+            dbname="intelliport_db", user="admin", password="Heyrose05", host=db_host, port="5432"
+        )
+        cursor = conn.cursor()
+        
+        cursor.execute("SELECT role FROM users WHERE clerk_id = %s", (clerk_id,))
+        row = cursor.fetchone()
+        
+        cursor.close()
+        conn.close()
+        
+        if row:
+            return {"status": "success", "role": row[0]}
+        else:
+            return {"status": "success", "role": "user"}
+    except Exception as e:
+        return {"status": "error", "message": str(e)}
+
+# ==========================================
+# API สำหรับดึงข้อมูลภาพรวมตลาดหน้า Landing Page
+# ==========================================
+import datetime
+from datetime import timedelta
+import yfinance as yf
+
+market_highlight_cache = {
+    "timestamp": None,
+    "data": None
+}
+
+@app.get("/api/market-highlights")
+def get_market_highlights():
+    global market_highlight_cache
+    now = datetime.datetime.now()
+    
+    if market_highlight_cache["timestamp"] and market_highlight_cache["data"]:
+        if (now - market_highlight_cache["timestamp"]).total_seconds() < 3600:
+            return {"status": "success", "data": market_highlight_cache["data"], "cached": True}
+            
+    tickers_info = [
+        {"symbol": "DELTA.BK", "name": "Delta Electronics", "tickerSymbol": "DELTA"},
+        {"symbol": "SCC.BK", "name": "Siam Cement Group", "tickerSymbol": "SCC"},
+        {"symbol": "PTTEP.BK", "name": "PTT Expl. & Prod.", "tickerSymbol": "PTTEP"}
+    ]
+    
+    end_date = now.date()
+    start_date = end_date - timedelta(days=21) 
+    
+    result_data = []
+    
+    try:
+        for info in tickers_info:
+            df = yf.download(info["symbol"], start=start_date, end=end_date, progress=False)
+            if df.empty:
+                continue
+                
+            price_col = df['Adj Close'] if 'Adj Close' in df.columns else df['Close']
+            if isinstance(price_col, pd.DataFrame): price_col = price_col.iloc[:, 0]
+            
+            recent_data = price_col.dropna().tail(14)
+            if len(recent_data) < 2:
+                continue
+                
+            current_price = recent_data.iloc[-1]
+            prev_price = recent_data.iloc[-2]
+            
+            change = current_price - prev_price
+            pct_change = (change / prev_price) * 100
+            
+            chart_data = [{"date": str(date.date()), "value": float(val)} for date, val in recent_data.items()]
+            
+            result_data.append({
+                "name": info["name"],
+                "tickerSymbol": info["tickerSymbol"],
+                "value": round(float(current_price), 2),
+                "change": round(float(change), 2),
+                "percentageChange": round(float(pct_change), 2),
+                "changeType": "positive" if change >= 0 else "negative",
+                "chartData": chart_data
+            })
+            
+        if result_data:
+            market_highlight_cache["timestamp"] = now
+            market_highlight_cache["data"] = result_data
+            
+        return {"status": "success", "data": result_data, "cached": False}
+    except Exception as e:
+        print("Error fetching market highlights:", e)
+        if market_highlight_cache["data"]:
+            return {"status": "success", "data": market_highlight_cache["data"], "cached": True, "error": str(e)}
         return {"status": "error", "message": str(e)}
 
 # ==========================================

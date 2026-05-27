@@ -21,37 +21,51 @@ def get_redis_client():
         print(f"⚠️ Redis Connection Error: {e}")
         return None
 
+def get_db_connection():
+    import psycopg2
+    import os
+    db_host = os.getenv("DATABASE_HOST", "localhost")
+    return psycopg2.connect(
+        dbname="intelliport_db", user="admin", password="Heyrose05", host=db_host, port="5432"
+    )
+
 class SETDataFetcher:
     @staticmethod
     def get_set50_tickers() -> List[str]:
         """
-        ส่งคืนรายชื่อหุ้น SET50 ล่าสุดรอบ H1/2026 (Official List)
-        Inclusion: CCET, CENTEL, SAWAD
-        Exclusion: BCP, VGI
+        ดึงรายชื่อหุ้นที่ Active จาก Database
         """
-        return [
-            "ADVANC", "AOT", "AWC", "BANPU", "BBL", "BDMS", "BEM", "BH", "BJC", "BTS",
-            "CBG", "CCET", "CENTEL", "COM7", "CPALL", "CPF", "CPN", "CRC", "DELTA", "EGCO",
-            "GPSC", "GULF", "HMPRO", "IVL", "KBANK", "KKP", "KTB", "KTC", "LH", "MINT",
-            "MTC", "OR", "OSP", "PTT", "PTTEP", "PTTGC", "RATCH", "SAWAD", "SCB", "SCC",
-            "SCGP", "TCAP", "TIDLOR", "TISCO", "TLI", "TOP", "TRUE", "TTB", "TU", "WHA"
-        ]
+        try:
+            conn = get_db_connection()
+            cursor = conn.cursor()
+            cursor.execute("SELECT ticker FROM assets WHERE is_active = TRUE ORDER BY ticker")
+            tickers = [row[0] for row in cursor.fetchall()]
+            cursor.close()
+            conn.close()
+            return tickers
+        except Exception as e:
+            print(f"⚠️ Database Error in get_set50_tickers: {e}")
+            return []
 
     @staticmethod
     def get_market_caps(tickers: List[str]) -> pd.Series:
         """
-        จำลองค่า Market Capitalization สำหรับคำนวณ Market Equilibrium ใน Black-Litterman
-        หมายเหตุ: เนื่องจาก API ตลาดหลักทรัพย์มักบล็อกการดึงข้อมูลอัตโนมัติ 
-        เราจึงใช้ค่าประมาณการตามสัดส่วนความใหญ่ของหุ้นในดัชนี (H1/2026)
+        ดึงข้อมูล Market Capitalization จาก Database
         """
-        # หน่วย: ล้านบาท (ตัวเลขประมาณการเพื่อใช้ถ่วงน้ำหนัก)
-        base_caps = {
-            "DELTA": 1800000, "PTT": 1000000, "AOT": 900000, "ADVANC": 850000, "GULF": 800000,
-            "CPALL": 600000, "BDMS": 450000, "SCB": 380000, "KBANK": 350000, "BBL": 340000,
-            "PTTEP": 500000, "SCC": 300000, "CPN": 280000, "TRUE": 250000, "MINT": 180000,
-            "SAWAD": 50000, "CENTEL": 60000, "CCET": 45000 # หุ้นเข้าใหม่
-        }
-        
+        try:
+            conn = get_db_connection()
+            cursor = conn.cursor()
+            
+            # ดึงทั้งหมดที่มีในตาราง
+            cursor.execute("SELECT ticker, market_cap FROM assets")
+            base_caps = {row[0]: row[1] for row in cursor.fetchall()}
+            
+            cursor.close()
+            conn.close()
+        except Exception as e:
+            print(f"⚠️ Database Error in get_market_caps: {e}")
+            base_caps = {}
+
         # สำหรับหุ้นตัวอื่นที่ไม่ได้ระบุ ให้ใช้ค่าเฉลี่ย 100,000 ล้านบาท
         caps = {t: base_caps.get(t.replace(".BK", ""), 100000) for t in tickers}
         return pd.Series(caps)

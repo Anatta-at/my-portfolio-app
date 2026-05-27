@@ -35,14 +35,18 @@ class GeneticPortfolioOptimizer:
             creator.create("FitnessMax", base.Fitness, weights=(1.0,))
             creator.create("Individual", list, fitness=creator.FitnessMax)
 
-    def run_optimization(self, tickers, bl_returns, cov_matrix, market_caps, target_beta=1.0, max_stocks=5, actual_betas=None, locked_stocks=None):
+    def run_optimization(self, tickers, bl_returns, cov_matrix, market_caps, target_beta=1.0, max_stocks=5, actual_betas=None, locked_stocks=None, max_weight_per_asset=0.40):
         """
         ฟังก์ชันคำนวณสัดส่วนพอร์ตที่เหมาะสมที่สุดด้วย Genetic Algorithm
         :param max_stocks: จำนวนหุ้นสูงสุดในพอร์ต (รองรับขั้นต่ำ 3 ตัวตามที่คุณต้องการ)
+        :param max_weight_per_asset: จำกัดสัดส่วนน้ำหนักสูงสุดต่อหุ้น 1 ตัว (ค่าเริ่มต้น 40%)
         """
         if locked_stocks is None:
             locked_stocks = []
-        locked_indices = [tickers.index(t) for t in locked_stocks if t in tickers]
+        # Append .BK if not present to match valid_tickers format
+        locked_stocks_bk = [f"{t}.BK" if not t.endswith(".BK") else t for t in locked_stocks]
+        locked_indices = [tickers.index(t) for t in locked_stocks_bk if t in tickers]
+
 
         random.seed(42)
         np.random.seed(42)
@@ -87,8 +91,14 @@ class GeneticPortfolioOptimizer:
             # Penalty: บทลงโทษหากค่า Beta เบี่ยงเบนจากเป้าหมาย
             beta_penalty = abs(np.dot(w_normalized, asset_betas) - target_beta) * 10 
             
+            # Penalty: บทลงโทษหากมีหุ้นตัวใดตัวหนึ่งมีน้ำหนักเกินกำหนด (Max Weight Limit)
+            max_weight_penalty = 0.0
+            if np.max(w_normalized) > max_weight_per_asset:
+                # ลงโทษรุนแรงตามส่วนที่เกินมา
+                max_weight_penalty = 50.0 * (np.max(w_normalized) - max_weight_per_asset)
+
             # Fitness_penalized
-            return (sharpe - weight_penalty - beta_penalty),
+            return (sharpe - weight_penalty - beta_penalty - max_weight_penalty),
 
         toolbox.register("evaluate", evaluate)
         toolbox.register("mate", tools.cxBlend, alpha=0.5)

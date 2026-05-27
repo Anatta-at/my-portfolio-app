@@ -3,185 +3,243 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@clerk/nextjs';
 import { useRouter } from 'next/navigation';
-import { Key, Users, Database } from 'lucide-react';
 
 export const dynamic = "force-dynamic";
 
 export default function AdminPage() {
-  const { userId } = useAuth();
+  const { userId, getToken } = useAuth();
   const router = useRouter();
 
   const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(false);
-  const [adminPassword, setAdminPassword] = useState('');
-  const [passwordError, setPasswordError] = useState('');
-
+  const [accessDenied, setAccessDenied] = useState(false);
   const [activeTab, setActiveTab] = useState<'users' | 'assets'>('users');
   const [users, setUsers] = useState<any[]>([]);
-  const [assets, setAssets] = useState<string[]>([]);
+  const [assets, setAssets] = useState<any[]>([]);
+  
+  const [newAssetTicker, setNewAssetTicker] = useState('');
+  const [newAssetMarketCap, setNewAssetMarketCap] = useState('');
+  const [editingAsset, setEditingAsset] = useState<string | null>(null);
+  const [editMarketCap, setEditMarketCap] = useState('');
+  const [editIsActive, setEditIsActive] = useState(true);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const auth = localStorage.getItem('isAdmin') === 'true';
-    setIsAdminAuthenticated(auth);
-    if (auth) {
-      fetchAdminData();
-    }
-  }, []);
+    const checkRole = async () => {
+      if (!userId) {
+        setIsLoading(false);
+        setAccessDenied(true);
+        return;
+      }
+      try {
+        const res = await fetch(`http://localhost:8000/api/users/${userId}/role`);
+        const data = await res.json();
+        if (data.status === 'success' && (data.role === 'admin' || data.role === 'analyst')) {
+          setIsAdminAuthenticated(true);
+          fetchAdminData();
+        } else {
+          setAccessDenied(true);
+          setIsLoading(false);
+        }
+      } catch (err) {
+        setAccessDenied(true);
+        setIsLoading(false);
+      }
+    };
+    checkRole();
+  }, [userId]);
 
-  const handleAdminLogin = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (adminPassword === 'admin') {
-      localStorage.setItem('isAdmin', 'true');
-      setIsAdminAuthenticated(true);
-      setPasswordError('');
-      fetchAdminData();
-      // Dispatch event to update navbar immediately
-      window.dispatchEvent(new Event('admin-login'));
-    } else {
-      setPasswordError('รหัสผ่านไม่ถูกต้อง กรุณาลองใหม่อีกครั้ง');
+  const handleRoleChange = async (targetUserId: string, newRole: string) => {
+    if (!confirm(`ยืนยันการเปลี่ยนสิทธิ์เป็น ${newRole}?`)) return;
+    try {
+      const res = await fetch(`http://localhost:8000/api/admin/users/${targetUserId}/role`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ new_role: newRole, admin_id: userId })
+      });
+      const data = await res.json();
+      if (data.status === 'success') {
+        fetchAdminData();
+      } else {
+        alert(data.message || 'Failed to update role');
+      }
+    } catch (err) {
+      alert('Error updating role');
     }
   };
 
+  const handleAddAsset = async () => {
+    if (!newAssetTicker || !newAssetMarketCap) return;
+    try {
+      const res = await fetch('http://localhost:8000/api/admin/assets', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ticker: newAssetTicker.toUpperCase(), market_cap: parseInt(newAssetMarketCap), is_active: true })
+      });
+      if ((await res.json()).status === 'success') {
+        setNewAssetTicker('');
+        setNewAssetMarketCap('');
+        fetchAdminData();
+      }
+    } catch (err) { alert('Error adding asset'); }
+  };
+
+  const handleUpdateAsset = async (ticker: string) => {
+    try {
+      const res = await fetch(`http://localhost:8000/api/admin/assets/${ticker}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ticker, market_cap: parseInt(editMarketCap), is_active: editIsActive })
+      });
+      if ((await res.json()).status === 'success') {
+        setEditingAsset(null);
+        fetchAdminData();
+      }
+    } catch (err) { alert('Error updating asset'); }
+  };
+
+  const handleDeleteAsset = async (ticker: string) => {
+    if (!confirm(`ยืนยันการลบ ${ticker}?`)) return;
+    try {
+      const res = await fetch(`http://localhost:8000/api/admin/assets/${ticker}`, { method: 'DELETE' });
+      if ((await res.json()).status === 'success') fetchAdminData();
+    } catch (err) { alert('Error deleting asset'); }
+  };
+
   const handleExitAdmin = () => {
-    localStorage.removeItem('isAdmin');
-    setIsAdminAuthenticated(false);
-    setAdminPassword('');
-    window.dispatchEvent(new Event('admin-logout'));
     router.push('/dashboard');
   };
 
   const fetchAdminData = async () => {
     setIsLoading(true);
     try {
+      const token = await getToken();
       const [usersRes, assetsRes] = await Promise.all([
-        fetch('http://localhost:8000/api/admin/users'),
+        fetch('/api/admin/users', {
+          headers: { 'Authorization': `Bearer ${token}` }
+        }),
         fetch('http://localhost:8000/api/admin/assets')
       ]);
-
       const usersData = await usersRes.json();
       const assetsData = await assetsRes.json();
-
-      if (usersData.status === 'success') {
-        setUsers(usersData.data);
-      }
-      if (assetsData.status === 'success') {
-        setAssets(assetsData.data);
-      }
+      if (usersData.status === 'success') setUsers(usersData.data);
+      if (assetsData.status === 'success') setAssets(assetsData.data);
     } catch (err) {
-      console.error('Failed to fetch admin data', err);
+      console.error('Failed to fetch', err);
     } finally {
       setIsLoading(false);
     }
   };
 
-
-
-  if (!isAdminAuthenticated) {
+  if (isLoading && !isAdminAuthenticated) {
     return (
-      <main className="min-h-screen bg-[#FFFEF5] dark:bg-slate-950 flex items-center justify-center py-20 px-4 sm:px-6 lg:px-8 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] dark:bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] font-sans">
-        <div className="max-w-md w-full p-8 bg-white/80 dark:bg-slate-900/80 backdrop-blur-2xl rounded-2xl shadow-2xl border border-gray-100/50 dark:border-slate-800">
-          <div className="flex flex-col items-center mb-6">
-            <span className="text-4xl mb-3 flex justify-center text-yellow-500"><Key className="w-12 h-12" /></span>
-            <h2 className="text-2xl font-bold text-slate-900 dark:text-white">เข้าสู่ระบบผู้ดูแลระบบ (Admin)</h2>
-            <p className="text-slate-500 dark:text-slate-400 text-sm mt-1">กรุณากรอกรหัสผ่านผู้ดูแลระบบเพื่อเข้าถึงข้อมูล</p>
-          </div>
-          <form onSubmit={handleAdminLogin} className="space-y-4">
-            <div>
-              <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1">รหัสผ่าน Admin</label>
-              <input
-                type="password"
-                value={adminPassword}
-                onChange={(e) => setAdminPassword(e.target.value)}
-                className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-transparent transition-all text-slate-800 dark:text-white dark:bg-slate-800/50"
-                placeholder="ป้อนรหัสผ่าน..."
-                required
-              />
+      <main className="min-h-screen bg-[#FAFAF8] dark:bg-[#111110] flex items-center justify-center p-4">
+        <div className="w-8 h-8 border-4 border-amber-500 border-t-transparent rounded-full animate-spin"></div>
+      </main>
+    );
+  }
+
+  if (accessDenied) {
+    return (
+      <main className="min-h-screen bg-[#FAFAF8] dark:bg-[#111110] flex items-center justify-center p-4 font-sans">
+        <div className="w-full max-w-sm text-center">
+          <div className="mb-6">
+            <div className="w-16 h-16 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-500 rounded-full flex items-center justify-center mx-auto mb-4">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+              </svg>
             </div>
-            {passwordError && (
-              <p className="text-red-500 text-xs font-semibold">{passwordError}</p>
-            )}
-            <button
-              type="submit"
-              className="w-full py-3 bg-yellow-400 hover:bg-yellow-500 text-blue-950 font-bold rounded-xl transition-all shadow-md shadow-yellow-400/20"
-            >
-              ยืนยันรหัสผ่าน
-            </button>
-          </form>
+            <h1 className="text-xl font-bold text-stone-900 dark:text-stone-100">Access Denied</h1>
+            <p className="text-sm text-stone-500 mt-2">บัญชีของคุณไม่มีสิทธิ์เข้าถึงส่วนผู้ดูแลระบบ</p>
+          </div>
+          <button onClick={() => router.push('/dashboard')} className="w-full py-2.5 bg-stone-900 dark:bg-stone-100 text-white dark:text-stone-900 text-sm font-bold rounded-lg hover:bg-stone-800 dark:hover:bg-stone-200 transition-colors">
+            กลับหน้าหลัก
+          </button>
         </div>
       </main>
     );
   }
 
   return (
-    <main className="min-h-screen bg-[#FFFEF5] dark:bg-slate-950 py-12 px-4 sm:px-6 lg:px-8 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] dark:bg-[url('https://www.transparenttextures.com/patterns/cubes.png')]">
-      <div className="max-w-6xl mx-auto">
-        <div className="flex justify-between items-end mb-8">
+    <main className="min-h-screen bg-[#FAFAF8] dark:bg-[#111110] py-12 px-4 sm:px-6 lg:px-8 font-sans">
+      <div className="max-w-5xl mx-auto">
+        
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4 border-b border-stone-200 dark:border-stone-800 pb-6 mb-8">
           <div>
-            <h1 className="text-4xl font-extrabold text-slate-900 dark:text-white tracking-tight">ระบบผู้ดูแลระบบ</h1>
-            <p className="mt-2 text-lg text-slate-600 dark:text-slate-400">จัดการข้อมูลผู้ใช้งานและตั้งค่าพารามิเตอร์สินทรัพย์</p>
+            <h1 className="text-3xl font-black text-stone-900 dark:text-stone-100 tracking-tight">Admin Console</h1>
+            <p className="text-stone-500 dark:text-stone-400 text-sm mt-1">จัดการข้อมูลระบบและตั้งค่า</p>
           </div>
-          <div className="flex items-center space-x-3">
-            <button
-              onClick={handleExitAdmin}
-              className="bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/40 text-red-600 dark:text-red-400 font-bold px-4 py-2 rounded-lg text-sm transition-all border border-red-200 dark:border-red-900/50"
-            >
-              ออกจากโหมด Admin
-            </button>
-            <div className="bg-yellow-100 dark:bg-yellow-900/40 text-yellow-800 dark:text-yellow-400 px-4 py-2 rounded-lg font-bold shadow-sm">
-              Admin Mode
-            </div>
-          </div>
+          <button onClick={handleExitAdmin} className="px-4 py-2 border border-stone-300 dark:border-stone-700 text-stone-600 dark:text-stone-400 text-xs font-semibold rounded-lg hover:bg-stone-100 dark:hover:bg-stone-800 transition-colors">
+            ออกจากระบบ
+          </button>
         </div>
 
-        <div className="flex space-x-2 border-b border-slate-200 dark:border-slate-800 mb-8">
+        <div className="flex gap-6 border-b border-stone-200 dark:border-stone-800 mb-8">
           <button
             onClick={() => setActiveTab('users')}
-            className={`py-3 px-6 font-bold text-lg border-b-4 transition-colors flex items-center gap-2 ${activeTab === 'users' ? 'border-yellow-400 text-yellow-600 dark:text-yellow-400' : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'}`}
+            className={`pb-3 text-sm font-semibold transition-colors border-b-2 ${activeTab === 'users' ? 'border-amber-500 text-amber-600 dark:text-amber-500' : 'border-transparent text-stone-500 hover:text-stone-800 dark:hover:text-stone-300'}`}
           >
-            <Users className="w-5 h-5" /> ข้อมูลผู้ใช้งาน ({users.length})
+            Users ({users.length})
           </button>
           <button
             onClick={() => setActiveTab('assets')}
-            className={`py-3 px-6 font-bold text-lg border-b-4 transition-colors flex items-center gap-2 ${activeTab === 'assets' ? 'border-yellow-400 text-yellow-600 dark:text-yellow-400' : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'}`}
+            className={`pb-3 text-sm font-semibold transition-colors border-b-2 ${activeTab === 'assets' ? 'border-amber-500 text-amber-600 dark:text-amber-500' : 'border-transparent text-stone-500 hover:text-stone-800 dark:hover:text-stone-300'}`}
           >
-            <Database className="w-5 h-5" /> สินทรัพย์ SET50 ({assets.length})
+            Assets SET50
           </button>
         </div>
 
         {isLoading ? (
-          <div className="flex justify-center py-20">
-            <svg className="animate-spin h-10 w-10 text-yellow-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-            </svg>
-          </div>
+          <div className="text-sm text-stone-500 py-10 text-center">กำลังโหลดข้อมูล...</div>
         ) : (
-          <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-xl border border-slate-100 dark:border-slate-800 overflow-hidden">
+          <div className="bg-white dark:bg-[#1A1A19] rounded-lg border border-stone-200 dark:border-stone-800 shadow-sm overflow-hidden">
             {activeTab === 'users' && (
               <div className="overflow-x-auto">
-                <table className="w-full text-left border-collapse">
+                <table className="w-full text-left text-sm">
                   <thead>
-                    <tr className="bg-slate-50 dark:bg-slate-800/50 border-b border-slate-100 dark:border-slate-800 text-slate-600 dark:text-slate-300 text-sm">
-                      <th className="p-4 font-semibold">Clerk User ID</th>
-                      <th className="p-4 font-semibold">สร้างบัญชีเมื่อ</th>
-                      <th className="p-4 font-semibold">ล็อกอินล่าสุด</th>
-                      <th className="p-4 font-semibold text-center">จำนวนแผนการลงทุน</th>
+                    <tr className="bg-[#FAFAF8] dark:bg-[#111110] border-b border-stone-200 dark:border-stone-800">
+                      <th className="p-4 font-semibold text-stone-600 dark:text-stone-400">User Info</th>
+                      <th className="p-4 font-semibold text-stone-600 dark:text-stone-400">Created At</th>
+                      <th className="p-4 font-semibold text-stone-600 dark:text-stone-400">Last Login</th>
+                      <th className="p-4 font-semibold text-stone-600 dark:text-stone-400 text-center">Portfolios</th>
+                      <th className="p-4 font-semibold text-stone-600 dark:text-stone-400 text-center">Role</th>
                     </tr>
                   </thead>
-                  <tbody>
+                  <tbody className="divide-y divide-stone-100 dark:divide-stone-800">
                     {users.length > 0 ? users.map((u, i) => (
-                      <tr key={i} className="border-b border-slate-50 dark:border-slate-800/50 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
-                        <td className="p-4 text-slate-800 dark:text-slate-200 font-mono text-sm">{u.clerk_id}</td>
-                        <td className="p-4 text-slate-600 dark:text-slate-400">{new Date(u.created_at).toLocaleString('th-TH')}</td>
-                        <td className="p-4 text-slate-600 dark:text-slate-400">{new Date(u.last_login_at).toLocaleString('th-TH')}</td>
+                      <tr key={i} className="hover:bg-stone-50 dark:hover:bg-stone-800/50">
+                        <td className="p-4">
+                          <div className="flex items-center gap-3">
+                            {u.imageUrl ? (
+                              <img src={u.imageUrl} alt={u.fullName} className="w-9 h-9 rounded-full border border-stone-200 dark:border-stone-700 shadow-sm" />
+                            ) : (
+                              <div className="w-9 h-9 rounded-full bg-stone-200 dark:bg-stone-800 flex items-center justify-center text-stone-500 text-xs font-bold shadow-sm">
+                                {u.fullName?.charAt(0)?.toUpperCase() || '?'}
+                              </div>
+                            )}
+                            <div>
+                              <div className="font-bold text-sm text-stone-900 dark:text-stone-100">{u.fullName || 'Unknown User'}</div>
+                              <div className="text-xs text-stone-500 font-mono mt-0.5">{u.email || u.clerk_id}</div>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="p-4 text-stone-500 dark:text-stone-400">{new Date(u.created_at).toLocaleDateString()}</td>
+                        <td className="p-4 text-stone-500 dark:text-stone-400">{new Date(u.last_login_at).toLocaleDateString()}</td>
+                        <td className="p-4 text-center font-bold text-stone-900 dark:text-stone-100">{u.portfolio_count}</td>
                         <td className="p-4 text-center">
-                          <span className="inline-flex items-center justify-center px-3 py-1 rounded-full bg-yellow-100 dark:bg-yellow-900/40 text-yellow-800 dark:text-yellow-400 font-bold">
-                            {u.portfolio_count}
-                          </span>
+                          <select 
+                            value={u.role || 'user'} 
+                            onChange={(e) => handleRoleChange(u.clerk_id, e.target.value)}
+                            disabled={u.clerk_id === userId}
+                            className={`text-xs px-2 py-1 rounded border outline-none ${u.role === 'admin' ? 'bg-amber-100 text-amber-800 border-amber-200 dark:bg-amber-900/30 dark:text-amber-400 dark:border-amber-800' : 'bg-stone-100 text-stone-600 border-stone-200 dark:bg-stone-800 dark:text-stone-400 dark:border-stone-700'}`}
+                          >
+                            <option value="user">User</option>
+                            <option value="admin">Admin</option>
+                            <option value="analyst">Analyst</option>
+                          </select>
                         </td>
                       </tr>
                     )) : (
-                      <tr><td colSpan={4} className="p-8 text-center text-slate-500 dark:text-slate-400">ไม่พบข้อมูลผู้ใช้งาน</td></tr>
+                      <tr><td colSpan={5} className="p-8 text-center text-stone-500 text-sm">ไม่มีข้อมูล</td></tr>
                     )}
                   </tbody>
                 </table>
@@ -190,15 +248,63 @@ export default function AdminPage() {
 
             {activeTab === 'assets' && (
               <div className="p-6">
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-                  {assets.map((ticker, i) => (
-                    <div key={i} className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg hover:border-yellow-300 dark:hover:border-yellow-500 transition-colors">
-                      <span className="font-bold text-slate-800 dark:text-slate-200">{ticker}</span>
-                      <span className="text-xs text-green-600 dark:text-green-400 font-semibold bg-green-100 dark:bg-green-900/40 px-2 py-1 rounded">Active</span>
-                    </div>
-                  ))}
+                <div className="mb-6 flex flex-col sm:flex-row gap-3 p-4 bg-stone-50 dark:bg-stone-900 rounded-lg border border-stone-200 dark:border-stone-800">
+                  <input type="text" placeholder="Ticker (e.g. ADVANC)" value={newAssetTicker} onChange={e => setNewAssetTicker(e.target.value)} className="px-3 py-2 text-sm border rounded bg-white dark:bg-stone-950 dark:border-stone-800 outline-none flex-1" />
+                  <input type="number" placeholder="Market Cap" value={newAssetMarketCap} onChange={e => setNewAssetMarketCap(e.target.value)} className="px-3 py-2 text-sm border rounded bg-white dark:bg-stone-950 dark:border-stone-800 outline-none flex-1" />
+                  <button onClick={handleAddAsset} className="bg-amber-500 hover:bg-amber-600 text-white px-6 py-2 rounded text-sm font-bold transition-colors">Add Asset</button>
                 </div>
-                <p className="mt-6 text-sm text-slate-500 dark:text-slate-400">* ข้อมูลดึงมาจาก SET50 ล่าสุดโดยอัตโนมัติ น้ำหนักจำกัดสูงสุดถูกควบคุมไว้ใน Backend ไม่เกิน 25% ต่อตัว</p>
+
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left text-sm">
+                    <thead>
+                      <tr className="bg-[#FAFAF8] dark:bg-[#111110] border-b border-stone-200 dark:border-stone-800">
+                        <th className="p-4 font-semibold text-stone-600 dark:text-stone-400">Ticker</th>
+                        <th className="p-4 font-semibold text-stone-600 dark:text-stone-400">Market Cap</th>
+                        <th className="p-4 font-semibold text-stone-600 dark:text-stone-400 text-center">Status</th>
+                        <th className="p-4 font-semibold text-stone-600 dark:text-stone-400 text-right">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-stone-100 dark:divide-stone-800">
+                      {assets.map((asset: any, i) => (
+                        <tr key={i} className="hover:bg-stone-50 dark:hover:bg-stone-800/50">
+                          <td className="p-4 font-bold text-stone-900 dark:text-stone-100">{asset.ticker}</td>
+                          <td className="p-4 text-stone-600 dark:text-stone-400">
+                            {editingAsset === asset.ticker ? (
+                              <input type="number" value={editMarketCap} onChange={e => setEditMarketCap(e.target.value)} className="w-full px-2 py-1 text-sm border rounded bg-white dark:bg-stone-950 dark:border-stone-800 outline-none" />
+                            ) : (
+                              asset.market_cap.toLocaleString()
+                            )}
+                          </td>
+                          <td className="p-4 text-center">
+                            {editingAsset === asset.ticker ? (
+                              <input type="checkbox" checked={editIsActive} onChange={e => setEditIsActive(e.target.checked)} className="w-4 h-4 text-amber-500 bg-stone-100 border-stone-300 rounded focus:ring-amber-500" />
+                            ) : (
+                              <span className={`px-2 py-1 text-xs rounded ${asset.is_active ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-500' : 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-500'}`}>
+                                {asset.is_active ? 'Active' : 'Inactive'}
+                              </span>
+                            )}
+                          </td>
+                          <td className="p-4 text-right">
+                            {editingAsset === asset.ticker ? (
+                              <div className="flex justify-end gap-3">
+                                <button onClick={() => handleUpdateAsset(asset.ticker)} className="text-green-600 hover:text-green-500 font-semibold text-xs bg-green-50 dark:bg-green-900/20 px-2 py-1 rounded">Save</button>
+                                <button onClick={() => setEditingAsset(null)} className="text-stone-500 hover:text-stone-700 dark:hover:text-stone-300 font-semibold text-xs bg-stone-100 dark:bg-stone-800 px-2 py-1 rounded">Cancel</button>
+                              </div>
+                            ) : (
+                              <div className="flex justify-end gap-3">
+                                <button onClick={() => { setEditingAsset(asset.ticker); setEditMarketCap(asset.market_cap); setEditIsActive(asset.is_active); }} className="text-amber-500 hover:text-amber-600 font-semibold text-xs bg-amber-50 dark:bg-amber-900/20 px-2 py-1 rounded">Edit</button>
+                                <button onClick={() => handleDeleteAsset(asset.ticker)} className="text-red-500 hover:text-red-600 font-semibold text-xs bg-red-50 dark:bg-red-900/20 px-2 py-1 rounded">Delete</button>
+                              </div>
+                            )}
+                          </td>
+                        </tr>
+                      ))}
+                      {assets.length === 0 && (
+                        <tr><td colSpan={4} className="p-8 text-center text-stone-500 text-sm">ไม่มีข้อมูลสินทรัพย์</td></tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
               </div>
             )}
           </div>

@@ -7,6 +7,7 @@ DROP TABLE IF EXISTS users CASCADE;
 -- 2. ตาราง Users: เก็บข้อมูลอ้างอิงผู้ใช้จาก Clerk
 CREATE TABLE users (
     clerk_id VARCHAR(255) PRIMARY KEY,
+    role VARCHAR(20) DEFAULT 'user',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     last_login_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
