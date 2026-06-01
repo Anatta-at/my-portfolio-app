@@ -118,11 +118,7 @@ def save_portfolio_to_db(clerk_id: str, name: str, beta: float, budget: float, t
         import os
         db_host = os.getenv("DATABASE_HOST", "localhost")
         conn = psycopg2.connect(
-            dbname="intelliport_db",
-            user="admin",            # เปลี่ยนเป็น user ของคุณ
-            password="Heyrose05",     # เปลี่ยนเป็นรหัสผ่านของคุณ
-            host=db_host,        # ใช้ db_host เพื่อให้รันใน docker ได้
-            port="5432"
+            os.getenv("DATABASE_URL", f"postgresql://admin:Heyrose05@{os.getenv('DATABASE_HOST', 'localhost')}:5432/intelliport_db")
         )
         cursor = conn.cursor()
 
@@ -303,6 +299,7 @@ def get_user_portfolios(clerk_id: str):
         db_host = os.getenv("DATABASE_HOST", "localhost")
         conn = psycopg2.connect(
             os.getenv("DATABASE_URL", f"postgresql://admin:Heyrose05@{os.getenv('DATABASE_HOST', 'localhost')}:5432/intelliport_db")
+        )}:5432/intelliport_db")
         )
         cursor = conn.cursor()
         
@@ -365,6 +362,7 @@ def get_portfolio_details(portfolio_id: int):
         db_host = os.getenv("DATABASE_HOST", "localhost")
         conn = psycopg2.connect(
             os.getenv("DATABASE_URL", f"postgresql://admin:Heyrose05@{os.getenv('DATABASE_HOST', 'localhost')}:5432/intelliport_db")
+        )}:5432/intelliport_db")
         )
         cursor = conn.cursor()
         
@@ -480,6 +478,7 @@ def get_all_users():
         db_host = os.getenv("DATABASE_HOST", "localhost")
         conn = psycopg2.connect(
             os.getenv("DATABASE_URL", f"postgresql://admin:Heyrose05@{os.getenv('DATABASE_HOST', 'localhost')}:5432/intelliport_db")
+        )}:5432/intelliport_db")
         )
         cursor = conn.cursor()
         
@@ -529,6 +528,7 @@ def sync_users_data(req: SyncUsersRequest):
         db_host = os.getenv("DATABASE_HOST", "localhost")
         conn = psycopg2.connect(
             os.getenv("DATABASE_URL", f"postgresql://admin:Heyrose05@{os.getenv('DATABASE_HOST', 'localhost')}:5432/intelliport_db")
+        )}:5432/intelliport_db")
         )
         cursor = conn.cursor()
         
@@ -557,6 +557,7 @@ def update_user_role(target_clerk_id: str, req: RoleUpdateRequest):
         db_host = os.getenv("DATABASE_HOST", "localhost")
         conn = psycopg2.connect(
             os.getenv("DATABASE_URL", f"postgresql://admin:Heyrose05@{os.getenv('DATABASE_HOST', 'localhost')}:5432/intelliport_db")
+        )}:5432/intelliport_db")
         )
         cursor = conn.cursor()
         
@@ -589,6 +590,7 @@ def get_admin_assets():
         db_host = os.getenv("DATABASE_HOST", "localhost")
         conn = psycopg2.connect(
             os.getenv("DATABASE_URL", f"postgresql://admin:Heyrose05@{os.getenv('DATABASE_HOST', 'localhost')}:5432/intelliport_db")
+        )}:5432/intelliport_db")
         )
         cursor = conn.cursor()
         cursor.execute("SELECT ticker, market_cap, is_active FROM assets ORDER BY ticker")
@@ -612,6 +614,7 @@ def add_admin_asset(req: AssetRequest):
         db_host = os.getenv("DATABASE_HOST", "localhost")
         conn = psycopg2.connect(
             os.getenv("DATABASE_URL", f"postgresql://admin:Heyrose05@{os.getenv('DATABASE_HOST', 'localhost')}:5432/intelliport_db")
+        )}:5432/intelliport_db")
         )
         cursor = conn.cursor()
         cursor.execute("""
@@ -632,6 +635,7 @@ def update_admin_asset(ticker: str, req: AssetRequest):
         db_host = os.getenv("DATABASE_HOST", "localhost")
         conn = psycopg2.connect(
             os.getenv("DATABASE_URL", f"postgresql://admin:Heyrose05@{os.getenv('DATABASE_HOST', 'localhost')}:5432/intelliport_db")
+        )}:5432/intelliport_db")
         )
         cursor = conn.cursor()
         cursor.execute("""
@@ -652,6 +656,7 @@ def delete_admin_asset(ticker: str):
         db_host = os.getenv("DATABASE_HOST", "localhost")
         conn = psycopg2.connect(
             os.getenv("DATABASE_URL", f"postgresql://admin:Heyrose05@{os.getenv('DATABASE_HOST', 'localhost')}:5432/intelliport_db")
+        )}:5432/intelliport_db")
         )
         cursor = conn.cursor()
         cursor.execute("DELETE FROM assets WHERE ticker = %s", (ticker,))
@@ -669,6 +674,7 @@ def get_user_role(clerk_id: str):
         db_host = os.getenv("DATABASE_HOST", "localhost")
         conn = psycopg2.connect(
             os.getenv("DATABASE_URL", f"postgresql://admin:Heyrose05@{os.getenv('DATABASE_HOST', 'localhost')}:5432/intelliport_db")
+        )}:5432/intelliport_db")
         )
         cursor = conn.cursor()
         
