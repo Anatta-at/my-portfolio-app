@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <title>ER Diagram — IntelliPortfolio System (Chen Notation)</title>
+    <script src="https://cdn.jsdelivr.net/npm/plantuml-encoder@1.4.0/dist/plantuml-encoder.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;700&display=swap');
+        
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: 'Sarabun', sans-serif;
+            background: #fff;
+            color: #1a1a1a;
+            line-height: 1.6;
+            padding: 40px 60px;
+        }
+
+        h1 {
+            font-size: 28px;
+            font-weight: 700;
+            text-align: center;
+            margin-bottom: 6px;
+            color: #111;
+        }
+        
+        .subtitle {
+            text-align: center;
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 40px;
+        }
+
+        .diagram-container {
+            text-align: center;
+            margin: 20px 0 40px 0;
+            overflow-x: auto;
+            padding: 20px;
+        }
+        
+        .diagram-container img {
+            max-width: 100%;
+            height: auto;
+        }
+
+        .print-btn {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: #333;
+            color: white;
+            border: none;
+            padding: 14px 28px;
+            font-size: 16px;
+            font-weight: 700;
+            border-radius: 12px;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            z-index: 1000;
+            font-family: 'Sarabun', sans-serif;
+        }
+        
+        .print-btn:hover { background: #111; }
+        
+        @media print {
+            body { padding: 20px 30px; font-size: 11px; }
+            h1 { font-size: 22px; }
+            .print-btn { display: none; }
+            .diagram-container { margin: 10px 0 20px 0; padding: 10px; }
+        }
+    </style>
+</head>
+<body>
+
+<button class="print-btn" onclick="window.print()">📄 Save as PDF</button>
+
+<h1>Entity-Relationship Diagram (ERD)</h1>
+<p class="subtitle">Chen Notation (รูปแบบขาแมงมุม) — ขาวดำ</p>
+
+<div class="diagram-container">
+    <img id="img_diagram" alt="Chen ER Diagram" />
+</div>
+
+<script>
+const erDiagram = `
+@startuml
+skinparam monochrome true
+skinparam shadowing false
+skinparam defaultFontName "Tahoma"
+skinparam defaultFontSize 14
+skinparam nodesep 40
+skinparam ranksep 50
+
+skinparam usecase {
+    BackgroundColor White
+    BorderColor Black
+    FontSize 13
+}
+
+skinparam rectangle {
+    BackgroundColor White
+    BorderColor Black
+    FontSize 16
+    FontStyle bold
+}
+
+skinparam hexagon {
+    BackgroundColor White
+    BorderColor Black
+    FontSize 14
+}
+
+' Entities
+rectangle "Users" as Users
+rectangle "Portfolios" as Portfolios
+rectangle "PortfolioAssets" as PortfolioAssets
+rectangle "StockViews" as StockViews
+rectangle "Assets" as Assets
+
+' Relationships
+hexagon "Owns" as Owns
+hexagon "Contains" as Contains
+hexagon "Views" as ViewsDetails
+hexagon "Defines" as Defines
+
+' Relationship Links (Force layout matching the image)
+Users "1" -right- Owns
+Owns -right- "*" Portfolios
+
+Portfolios "1" -down- Contains
+Contains -down- "*" PortfolioAssets
+
+PortfolioAssets "*" -right- ViewsDetails
+ViewsDetails -right- "1" Assets
+
+StockViews "*" -up- Defines
+Defines -up- "1" Assets
+
+' Users Attributes (Fan UP)
+usecase "<u>clerk_id</u>" as u_id
+usecase "role" as u_role
+usecase "created_at" as u_created
+usecase "last_login" as u_last_login
+
+Users -up- u_id
+Users -up- u_role
+Users -up- u_created
+Users -up- u_last_login
+
+' Portfolios Attributes (Fan UP)
+usecase "<u>id</u>" as p_id
+usecase "clerk_id" as p_clerk_id
+usecase "name" as p_name
+usecase "beta" as p_target_beta
+usecase "budget" as p_budget
+usecase "target_amt" as p_target_amount
+usecase "duration" as p_duration
+usecase "exp_return" as p_expected_return
+usecase "volatility" as p_volatility
+usecase "success_prob" as p_success
+usecase "created_at" as p_created_at
+
+Portfolios -up- p_id
+Portfolios -up- p_clerk_id
+Portfolios -up- p_name
+Portfolios -up- p_target_beta
+Portfolios -up- p_budget
+Portfolios -up- p_target_amount
+Portfolios -up- p_duration
+Portfolios -up- p_expected_return
+Portfolios -up- p_volatility
+Portfolios -up- p_success
+Portfolios -up- p_created_at
+
+' PortfolioAssets Attributes (Fan DOWN)
+usecase "<u>id</u>" as pa_id
+usecase "port_id" as pa_portfolio_id
+usecase "ticker" as pa_ticker
+usecase "weight" as pa_weight
+usecase "beta" as pa_beta
+usecase "created_at" as pa_created_at
+
+PortfolioAssets -down- pa_id
+PortfolioAssets -down- pa_portfolio_id
+PortfolioAssets -down- pa_ticker
+PortfolioAssets -down- pa_weight
+PortfolioAssets -down- pa_beta
+PortfolioAssets -down- pa_created_at
+
+' Assets Attributes (Fan UP)
+usecase "<u>ticker</u>" as a_ticker
+usecase "market_cap" as a_market_cap
+usecase "is_active" as a_is_active
+
+Assets -up- a_ticker
+Assets -up- a_market_cap
+Assets -up- a_is_active
+
+' StockViews Attributes (Fan DOWN)
+usecase "<u>id</u>" as sv_id
+usecase "ticker" as sv_ticker
+usecase "exp_return" as sv_expected_return
+usecase "variance" as sv_variance
+usecase "updated_at" as sv_updated_at
+
+StockViews -down- sv_id
+StockViews -down- sv_ticker
+StockViews -down- sv_expected_return
+StockViews -down- sv_variance
+StockViews -down- sv_updated_at
+
+@enduml
+`;
+
+const encoded = plantumlEncoder.encode(erDiagram);
+document.getElementById("img_diagram").src = "https://www.plantuml.com/plantuml/svg/" + encoded;
+</script>
+
+</body>
+</html>

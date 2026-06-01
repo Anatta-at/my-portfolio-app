@@ -1,4 +1,4 @@
-# pyrefly: ignore [missing-import]
+# pyright: ignore [reportMissingImports, reportMissingModuleSource]
 import yfinance as yf
 import pandas as pd
 import numpy as np
@@ -26,8 +26,8 @@ def get_db_connection():
     import os
     db_host = os.getenv("DATABASE_HOST", "localhost")
     return psycopg2.connect(
-        dbname="intelliport_db", user="admin", password="Heyrose05", host=db_host, port="5432"
-    )
+            dbname="intelliport_db", user="admin", password="Heyrose05", host=db_host, port="5432"
+        )
 
 class SETDataFetcher:
     @staticmethod

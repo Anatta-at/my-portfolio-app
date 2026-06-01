@@ -1,11 +1,11 @@
 # backend/main.py
+# pyright: ignore [reportMissingImports, reportMissingModuleSource]
 import json
 import psycopg2
-# pyrefly: ignore [missing-import]
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
-from typing import Dict, Optional, List
+from typing import Dict, Optional, List, Any
 import pandas as pd
 
 # ==========================================
@@ -51,6 +51,17 @@ class OptimizeRequest(BaseModel):
     target_amount: Optional[float] = None
     duration_years: Optional[int] = 5
     locked_stocks: Optional[List[str]] = []
+
+class TemplateRequest(BaseModel):
+    user_id: str
+    portfolio_name: str
+    target_beta: float
+    budget: float
+    target_amount: Optional[float] = None
+    duration_years: int
+    expected_return: float
+    portfolio_volatility: float
+    portfolio_data: list
 
 # ==========================================
 # ==========================================
@@ -134,7 +145,8 @@ def save_portfolio_to_db(clerk_id: str, name: str, beta: float, budget: float, t
             RETURNING id;
         """, (clerk_id, name, beta, budget, target_amount, duration, float(exp_ret), float(port_vol), success_prob))
         
-        portfolio_id = cursor.fetchone()[0]
+        result = cursor.fetchone()
+        portfolio_id = result[0] if result else None
 
         # 3. บันทึกข้อมูลหุ้นรายตัวในพอร์ต (portfolio_assets)
         asset_query = """
@@ -201,7 +213,7 @@ def optimize_portfolio(req: OptimizeRequest):
             max_stocks=req.max_stocks,
             actual_betas=actual_betas_series,
             locked_stocks=req.locked_stocks,
-            max_weight_per_asset=req.max_weight_per_asset
+            max_weight_per_asset=req.max_weight_per_asset or 0.40
         )
         
         # 7. กรองหุ้นและแปลงเป็น List Dictionary
@@ -211,12 +223,12 @@ def optimize_portfolio(req: OptimizeRequest):
 
         # 🌟 7.5 บันทึกข้อมูลลง PostgreSQL ทันทีที่คำนวณเสร็จ! 🌟
         port_id = save_portfolio_to_db(
-            clerk_id=req.user_id,
-            name=req.portfolio_name,
+            clerk_id=req.user_id or "",
+            name=req.portfolio_name or "My Portfolio",
             beta=req.target_beta,
-            budget=req.budget,
+            budget=req.budget or 100000.0,
             target_amount=req.target_amount,
-            duration=req.duration_years,
+            duration=req.duration_years or 5,
             portfolio_data=portfolio_records,
             exp_ret=final_ret,
             port_vol=final_vol
@@ -226,8 +238,8 @@ def optimize_portfolio(req: OptimizeRequest):
         bt_engine = BacktestEngine()
         bt_results = bt_engine.run_backtest(weights_dict, req.start_date, req.end_date)
         
-        success_prob = calculate_success_probability(req.budget, req.target_amount, req.duration_years, final_ret, final_vol)
-        forecast_range = calculate_forecast_range(req.budget, req.duration_years, final_ret, final_vol)
+        success_prob = calculate_success_probability(req.budget or 100000.0, req.target_amount, req.duration_years or 5, final_ret, final_vol)
+        forecast_range = calculate_forecast_range(req.budget or 100000.0, req.duration_years or 5, final_ret, final_vol)
         
         # 9. ส่งผลลัพธ์กลับไปให้หน้า Dashboard
         return {
@@ -256,6 +268,32 @@ def optimize_portfolio(req: OptimizeRequest):
         return {"status": "error", "message": str(e)}
 
 # ==========================================
+# 🌟 API สำหรับบันทึกพอร์ตสำเร็จรูป (Template) 🌟
+# ==========================================
+@app.post("/api/portfolios/template")
+def create_template_portfolio(req: TemplateRequest):
+    try:
+        port_id = save_portfolio_to_db(
+            clerk_id=req.user_id,
+            name=req.portfolio_name,
+            beta=req.target_beta,
+            budget=req.budget,
+            target_amount=req.target_amount,
+            duration=req.duration_years,
+            portfolio_data=req.portfolio_data,
+            exp_ret=req.expected_return,
+            port_vol=req.portfolio_volatility
+        )
+        if port_id:
+            return {"status": "success", "portfolio_id": port_id}
+        else:
+            return {"status": "error", "message": "Failed to save template to database"}
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return {"status": "error", "message": str(e)}
+
+# ==========================================
 # 🌟 API สำหรับดึงประวัติพอร์ตการลงทุนทั้งหมด 🌟
 # ==========================================
 @app.get("/api/portfolios")
@@ -264,11 +302,7 @@ def get_user_portfolios(clerk_id: str):
         import os
         db_host = os.getenv("DATABASE_HOST", "localhost")
         conn = psycopg2.connect(
-            dbname="intelliport_db",
-            user="admin",
-            password="Heyrose05",
-            host=db_host,
-            port="5432"
+            dbname="intelliport_db", user="admin", password="Heyrose05", host=db_host, port="5432"
         )
         cursor = conn.cursor()
         
@@ -330,11 +364,7 @@ def get_portfolio_details(portfolio_id: int):
         import os
         db_host = os.getenv("DATABASE_HOST", "localhost")
         conn = psycopg2.connect(
-            dbname="intelliport_db",
-            user="admin",
-            password="Heyrose05",
-            host=db_host,
-            port="5432"
+            dbname="intelliport_db", user="admin", password="Heyrose05", host=db_host, port="5432"
         )
         cursor = conn.cursor()
         
@@ -484,10 +514,38 @@ class RoleUpdateRequest(BaseModel):
     new_role: str
     admin_id: str
 
+class SyncUsersRequest(BaseModel):
+    users: List[Dict[str, Any]]
+
 class AssetRequest(BaseModel):
     ticker: str
     market_cap: int
     is_active: bool = True
+
+@app.post("/api/admin/users/sync")
+def sync_users_data(req: SyncUsersRequest):
+    try:
+        import os
+        db_host = os.getenv("DATABASE_HOST", "localhost")
+        conn = psycopg2.connect(
+            dbname="intelliport_db", user="admin", password="Heyrose05", host=db_host, port="5432"
+        )
+        cursor = conn.cursor()
+        
+        for u in req.users:
+            cursor.execute("""
+                UPDATE users SET email = %s, full_name = %s 
+                WHERE clerk_id = %s;
+            """, (u.get("email"), u.get("full_name"), u.get("clerk_id")))
+        
+        conn.commit()
+        cursor.close()
+        conn.close()
+        return {"status": "success", "message": "Users synced successfully"}
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return {"status": "error", "message": str(e)}
 
 @app.put("/api/admin/users/{target_clerk_id}/role")
 def update_user_role(target_clerk_id: str, req: RoleUpdateRequest):
@@ -632,9 +690,10 @@ def get_user_role(clerk_id: str):
 # ==========================================
 import datetime
 from datetime import timedelta
+# pyright: ignore [reportMissingImports, reportMissingModuleSource]
 import yfinance as yf
 
-market_highlight_cache = {
+market_highlight_cache: Dict[str, Any] = {
     "timestamp": None,
     "data": None
 }
@@ -705,5 +764,6 @@ def get_market_highlights():
 # RUN SERVER
 # ==========================================
 if __name__ == "__main__":
+    # pyright: ignore [reportMissingImports, reportMissingModuleSource]
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8000)
