@@ -1,14 +1,8 @@
 {
-  "experimentalServices": {
-    "frontend": {
-      "routePrefix": "/",
-      "framework": "nextjs"
-    },
-    "backend": {
-      "root": "backend",
-      "routePrefix": "/_backend",
-      "builder": "@vercel/python",
-      "entrypoint": "main.py"
+  "rewrites": [
+    {
+      "source": "/_backend/:path*",
+      "destination": "/api/index.py"
     }
-  }
+  ]
 }
