@@ -31,7 +31,7 @@ export default function AdminPage() {
         return;
       }
       try {
-        const res = await fetch(`http://localhost:8000/api/users/${userId}/role`);
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/users/${userId}/role`);
         const data = await res.json();
         if (data.status === 'success' && (data.role === 'admin' || data.role === 'analyst')) {
           setIsAdminAuthenticated(true);
@@ -51,7 +51,7 @@ export default function AdminPage() {
   const handleRoleChange = async (targetUserId: string, newRole: string) => {
     if (!confirm(`ยืนยันการเปลี่ยนสิทธิ์เป็น ${newRole}?`)) return;
     try {
-      const res = await fetch(`http://localhost:8000/api/admin/users/${targetUserId}/role`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/admin/users/${targetUserId}/role`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ new_role: newRole, admin_id: userId })
@@ -70,7 +70,7 @@ export default function AdminPage() {
   const handleAddAsset = async () => {
     if (!newAssetTicker || !newAssetMarketCap) return;
     try {
-      const res = await fetch('http://localhost:8000/api/admin/assets', {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/admin/assets`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ ticker: newAssetTicker.toUpperCase(), market_cap: parseInt(newAssetMarketCap), is_active: true })
@@ -85,7 +85,7 @@ export default function AdminPage() {
 
   const handleUpdateAsset = async (ticker: string) => {
     try {
-      const res = await fetch(`http://localhost:8000/api/admin/assets/${ticker}`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/admin/assets/${ticker}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ ticker, market_cap: parseInt(editMarketCap), is_active: editIsActive })
@@ -100,7 +100,7 @@ export default function AdminPage() {
   const handleDeleteAsset = async (ticker: string) => {
     if (!confirm(`ยืนยันการลบ ${ticker}?`)) return;
     try {
-      const res = await fetch(`http://localhost:8000/api/admin/assets/${ticker}`, { method: 'DELETE' });
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/admin/assets/${ticker}`, { method: 'DELETE' });
       if ((await res.json()).status === 'success') fetchAdminData();
     } catch (err) { alert('Error deleting asset'); }
   };
@@ -117,7 +117,7 @@ export default function AdminPage() {
         fetch('/api/admin/users', {
           headers: { 'Authorization': `Bearer ${token}` }
         }),
-        fetch('http://localhost:8000/api/admin/assets')
+        fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/admin/assets`)
       ]);
       const usersData = await usersRes.json();
       const assetsData = await assetsRes.json();

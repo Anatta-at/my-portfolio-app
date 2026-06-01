@@ -33,7 +33,7 @@ export default function PortfolioDetailPage() {
     async function fetchPortfolio() {
       setIsLoading(true);
       try {
-        const res = await fetch(`http://localhost:8000/api/portfolios/${id}`);
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/portfolios/${id}`);
         if (!res.ok) throw new Error('ไม่สามารถโหลดข้อมูลพอร์ตได้');
         const data = await res.json();
         

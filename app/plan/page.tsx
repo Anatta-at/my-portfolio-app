@@ -24,7 +24,7 @@ export default function PlanPage() {
   const [stockSearch, setStockSearch] = useState('');
 
   useEffect(() => {
-    fetch('http://localhost:8000/api/admin/assets')
+    fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/admin/assets`)
       .then(res => res.json())
       .then(data => {
         if (data.status === 'success') {
@@ -135,7 +135,7 @@ export default function PlanPage() {
       const startDate = new Date();
       startDate.setFullYear(endDate.getFullYear() - finalDuration);
       try {
-        const response = await fetch('http://localhost:8000/api/optimize', {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/optimize`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -256,7 +256,7 @@ export default function PlanPage() {
 
     setIsLoading(true);
     try {
-      const response = await fetch('http://localhost:8000/api/portfolios/template', {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/portfolios/template`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

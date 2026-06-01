@@ -67,7 +67,7 @@ function MarketHighlights() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch('http://localhost:8000/api/market-highlights')
+    fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/market-highlights`)
       .then(res => res.json())
       .then(json => {
         if (json.status === 'success') {

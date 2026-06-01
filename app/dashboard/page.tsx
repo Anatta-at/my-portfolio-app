@@ -32,7 +32,7 @@ export default function HistoryPage() {
     async function fetchHistory() {
       setIsLoading(true);
       try {
-        const res = await fetch(`http://localhost:8000/api/portfolios?clerk_id=${userId}`);
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/portfolios?clerk_id=${userId}`);
         if (!res.ok) throw new Error('ไม่สามารถเชื่อมต่อระบบประวัติพอร์ตลงทุนได้');
         const data = await res.json();
         
@@ -90,7 +90,7 @@ export default function HistoryPage() {
     
     setIsDeleting(true);
     try {
-      const res = await fetch('http://localhost:8000/api/portfolios', {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/portfolios`, {
         method: 'DELETE',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ portfolio_ids: Array.from(selectedIds), clerk_id: userId })

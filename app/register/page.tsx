@@ -20,17 +20,21 @@ export default function RegisterPage() {
         </div>
 
         {/* Card */}
-        <div className="bg-white dark:bg-[#1A1A19] p-6 rounded-lg border border-stone-200 dark:border-stone-800 shadow-sm">
+        <div className="flex justify-center w-full">
           <SignUp 
             appearance={{
               elements: {
-                formButtonPrimary: "bg-amber-600 hover:bg-amber-700 text-white font-bold rounded-lg",
-                card: "shadow-none bg-transparent border-none p-0",
-                headerTitle: "hidden", 
-                headerSubtitle: "hidden",
-                socialButtonsBlockButton: "rounded-lg border-stone-200 dark:border-stone-700",
-                formFieldInput: "rounded-lg border-stone-200 dark:border-stone-700",
-                footerActionLink: "text-amber-600 dark:text-amber-500 font-semibold hover:text-amber-700"
+                formButtonPrimary: "bg-amber-600 hover:bg-amber-700 text-white font-bold",
+                card: "shadow-sm border border-stone-200 dark:border-stone-800 rounded-lg dark:bg-[#1A1A19]",
+                headerTitle: "text-stone-900 dark:text-stone-100 font-bold",
+                headerSubtitle: "text-stone-500 dark:text-stone-400",
+                socialButtonsBlockButton: "border-stone-200 dark:border-stone-700 text-stone-700 dark:text-stone-300 hover:bg-stone-50 dark:hover:bg-stone-800",
+                dividerLine: "bg-stone-200 dark:bg-stone-700",
+                dividerText: "text-stone-500 dark:text-stone-400",
+                formFieldLabel: "text-stone-700 dark:text-stone-300 font-semibold",
+                formFieldInput: "bg-stone-50 dark:bg-[#111110] border-stone-200 dark:border-stone-700 text-stone-900 dark:text-stone-100",
+                footerActionText: "text-stone-500 dark:text-stone-400",
+                footerActionLink: "text-amber-600 hover:text-amber-700 dark:text-amber-500 dark:hover:text-amber-400",
               }
             }}
             routing="path"

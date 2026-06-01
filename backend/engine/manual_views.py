@@ -7,13 +7,8 @@ class ManualViewProvider:
     @staticmethod
     def get_db_connection():
         try:
-            db_host = os.getenv("DATABASE_HOST", "localhost")
             return psycopg2.connect(
-                host=db_host,
-                database="intelliport_db",
-                user="admin",
-                password="Heyrose05",
-                port="5432"
+                os.getenv("DATABASE_URL", f"postgresql://admin:Heyrose05@{os.getenv('DATABASE_HOST', 'localhost')}:5432/intelliport_db")
             )
         except Exception as e:
             print(f"❌ DB Error in ManualViewProvider: {e}")

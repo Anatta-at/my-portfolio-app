@@ -51,8 +51,12 @@ class GeneticPortfolioOptimizer:
         random.seed(42)
         np.random.seed(42)
         
-        cov = cov_matrix.values if hasattr(cov_matrix, "values") else cov_matrix
-        asset_betas = actual_betas.values if hasattr(actual_betas, "values") else actual_betas
+        cov = getattr(cov_matrix, "values", cov_matrix)
+        
+        if actual_betas is None:
+            asset_betas = np.ones(len(tickers))
+        else:
+            asset_betas = getattr(actual_betas, "values", actual_betas)
 
         toolbox = base.Toolbox()
         toolbox.register("attr", random.random)
