@@ -25,6 +25,27 @@ export default function AdminPage() {
   const [editIsActive, setEditIsActive] = useState(true);
   const [isLoading, setIsLoading] = useState(true);
 
+  const fetchAdminData = useCallback(async () => {
+    setIsLoading(true);
+    try {
+      const token = await getToken();
+      const [usersRes, assetsRes] = await Promise.all([
+        fetch('/api/admin/users', {
+          headers: { 'Authorization': `Bearer ${token}` }
+        }),
+        fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/admin/assets`)
+      ]);
+      const usersData = await usersRes.json();
+      const assetsData = await assetsRes.json();
+      if (usersData.status === 'success') setUsers(usersData.data);
+      if (assetsData.status === 'success') setAssets(assetsData.data);
+    } catch (err) {
+      console.error('Failed to fetch', err);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [getToken]);
+
   useEffect(() => {
     const checkRole = async () => {
       if (!userId) {
@@ -111,26 +132,6 @@ export default function AdminPage() {
     router.push('/dashboard');
   };
 
-  const fetchAdminData = useCallback(async () => {
-    setIsLoading(true);
-    try {
-      const token = await getToken();
-      const [usersRes, assetsRes] = await Promise.all([
-        fetch('/api/admin/users', {
-          headers: { 'Authorization': `Bearer ${token}` }
-        }),
-        fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/admin/assets`)
-      ]);
-      const usersData = await usersRes.json();
-      const assetsData = await assetsRes.json();
-      if (usersData.status === 'success') setUsers(usersData.data);
-      if (assetsData.status === 'success') setAssets(assetsData.data);
-    } catch (err) {
-      console.error('Failed to fetch', err);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [getToken]);
 
   if (isLoading && !isAdminAuthenticated) {
     return (
