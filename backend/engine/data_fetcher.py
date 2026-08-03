@@ -30,6 +30,22 @@ def get_db_connection():
         )
 
 class SETDataFetcher:
+    SET50_SECTORS = {
+        'AOT': 'Industrials', 'AWC': 'Consumer Cyclical', 'BANPU': 'Energy', 'BBL': 'Financial Services', 
+        'BDMS': 'Healthcare', 'BEM': 'Industrials', 'BH': 'Healthcare', 'BJC': 'Industrials', 
+        'BTS': 'Industrials', 'CBG': 'Consumer Defensive', 'CCET': 'Technology', 'CENTEL': 'Consumer Cyclical', 
+        'COM7': 'Consumer Cyclical', 'CPALL': 'Consumer Defensive', 'CPF': 'Consumer Defensive', 
+        'CPN': 'Real Estate', 'CRC': 'Consumer Cyclical', 'DELTA': 'Industrials', 'EGCO': 'Utilities', 
+        'GPSC': 'Utilities', 'GULF': 'Utilities', 'HMPRO': 'Consumer Cyclical', 'IVL': 'Basic Materials', 
+        'KBANK': 'Financial Services', 'KKP': 'Financial Services', 'KTB': 'Financial Services', 
+        'KTC': 'Financial Services', 'LH': 'Real Estate', 'MINT': 'Consumer Cyclical', 'MTC': 'Financial Services', 
+        'OR': 'Energy', 'OSP': 'Consumer Defensive', 'PTT': 'Energy', 'PTTEP': 'Energy', 
+        'PTTGC': 'Basic Materials', 'RATCH': 'Utilities', 'SAWAD': 'Financial Services', 'SCB': 'Financial Services', 
+        'SCC': 'Industrials', 'SCGP': 'Consumer Cyclical', 'TCAP': 'Financial Services', 'TIDLOR': 'Financial Services', 
+        'TISCO': 'Financial Services', 'TLI': 'Financial Services', 'TOP': 'Energy', 'TRUE': 'Communication Services', 
+        'TTB': 'Financial Services', 'TU': 'Consumer Defensive', 'WHA': 'Real Estate', 'ADVANC': 'Communication Services'
+    }
+
     @staticmethod
     def get_set50_tickers() -> List[str]:
         """
@@ -46,6 +62,22 @@ class SETDataFetcher:
         except Exception as e:
             print(f"⚠️ Database Error in get_set50_tickers: {e}")
             return []
+
+    @staticmethod
+    def filter_by_sector(tickers: List[str], preferred_sectors: List[str]) -> List[str]:
+        """
+        กรองหุ้นเฉพาะที่อยู่ในหมวดหมู่ที่ต้องการ
+        """
+        if not preferred_sectors:
+            return tickers
+            
+        filtered = []
+        for t in tickers:
+            base_t = t.replace(".BK", "")
+            sector = SETDataFetcher.SET50_SECTORS.get(base_t)
+            if sector in preferred_sectors:
+                filtered.append(t)
+        return filtered if len(filtered) >= 3 else tickers  # ขั้นต่ำต้องมีอย่างน้อย 3 ตัวตามข้อกำหนดพอร์ต
 
     @staticmethod
     def get_market_caps(tickers: List[str]) -> pd.Series:
@@ -84,10 +116,10 @@ class YahooFinanceFetcher:
         
         r = get_redis_client()
         if r:
-            cached_data = r.get(cache_key)
+            cached_data = r.get(cache_key)  # type: ignore
             if cached_data:
                 print("⚡ ข้อมูลราคาหุ้นถูกดึงมาจาก Redis Cache (ไม่ต้องรอโหลด API)")
-                return pickle.loads(cached_data)
+                return pickle.loads(cached_data)  # type: ignore
 
         # เพิ่ม .BK สำหรับหุ้นไทย และดึงดัชนีตลาด (^SET.BK)
         yf_tickers = [f"{t}.BK" for t in tickers]

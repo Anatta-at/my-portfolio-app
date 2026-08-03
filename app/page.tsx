@@ -2,7 +2,7 @@
 'use client';
 import Link from "next/link";
 import { useState, useEffect } from "react";
-import { Brain, Shield, BarChart3, ArrowRight, ArrowUpRight, TrendingUp, Target, Database } from "lucide-react";
+import { Brain, Shield, BarChart3, ArrowRight, ArrowUpRight, TrendingUp, Target } from "lucide-react";
 import { AreaChart, Area, XAxis, YAxis, ResponsiveContainer } from "recharts";
 
 const features = [
@@ -63,6 +63,7 @@ const features = [
 ];
 
 function MarketHighlights() {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [data, setData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 

@@ -37,8 +37,7 @@ export default function RegisterPage() {
                 footerActionLink: "text-amber-600 hover:text-amber-700 dark:text-amber-500 dark:hover:text-amber-400",
               }
             }}
-            routing="path"
-            path="/register"
+            routing="hash"
             signInUrl="/login"
             forceRedirectUrl="/dashboard"
           />

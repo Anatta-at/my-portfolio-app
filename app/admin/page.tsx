@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@clerk/nextjs';
 import { useRouter } from 'next/navigation';
 
@@ -13,7 +13,9 @@ export default function AdminPage() {
   const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(false);
   const [accessDenied, setAccessDenied] = useState(false);
   const [activeTab, setActiveTab] = useState<'users' | 'assets'>('users');
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [users, setUsers] = useState<any[]>([]);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [assets, setAssets] = useState<any[]>([]);
   
   const [newAssetTicker, setNewAssetTicker] = useState('');
@@ -40,13 +42,13 @@ export default function AdminPage() {
           setAccessDenied(true);
           setIsLoading(false);
         }
-      } catch (err) {
+      } catch {
         setAccessDenied(true);
         setIsLoading(false);
       }
     };
     checkRole();
-  }, [userId]);
+  }, [userId, fetchAdminData]);
 
   const handleRoleChange = async (targetUserId: string, newRole: string) => {
     if (!confirm(`ยืนยันการเปลี่ยนสิทธิ์เป็น ${newRole}?`)) return;
@@ -62,7 +64,7 @@ export default function AdminPage() {
       } else {
         alert(data.message || 'Failed to update role');
       }
-    } catch (err) {
+    } catch {
       alert('Error updating role');
     }
   };
@@ -80,7 +82,7 @@ export default function AdminPage() {
         setNewAssetMarketCap('');
         fetchAdminData();
       }
-    } catch (err) { alert('Error adding asset'); }
+    } catch { alert('Error adding asset'); }
   };
 
   const handleUpdateAsset = async (ticker: string) => {
@@ -94,7 +96,7 @@ export default function AdminPage() {
         setEditingAsset(null);
         fetchAdminData();
       }
-    } catch (err) { alert('Error updating asset'); }
+    } catch { alert('Error updating asset'); }
   };
 
   const handleDeleteAsset = async (ticker: string) => {
@@ -102,14 +104,14 @@ export default function AdminPage() {
     try {
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/admin/assets/${ticker}`, { method: 'DELETE' });
       if ((await res.json()).status === 'success') fetchAdminData();
-    } catch (err) { alert('Error deleting asset'); }
+    } catch { alert('Error deleting asset'); }
   };
 
   const handleExitAdmin = () => {
     router.push('/dashboard');
   };
 
-  const fetchAdminData = async () => {
+  const fetchAdminData = useCallback(async () => {
     setIsLoading(true);
     try {
       const token = await getToken();
@@ -128,7 +130,7 @@ export default function AdminPage() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [getToken]);
 
   if (isLoading && !isAdminAuthenticated) {
     return (
@@ -210,6 +212,7 @@ export default function AdminPage() {
                         <td className="p-4">
                           <div className="flex items-center gap-3">
                             {u.imageUrl ? (
+                              // eslint-disable-next-line @next/next/no-img-element
                               <img src={u.imageUrl} alt={u.fullName} className="w-9 h-9 rounded-full border border-stone-200 dark:border-stone-700 shadow-sm" />
                             ) : (
                               <div className="w-9 h-9 rounded-full bg-stone-200 dark:bg-stone-800 flex items-center justify-center text-stone-500 text-xs font-bold shadow-sm">
@@ -265,6 +268,7 @@ export default function AdminPage() {
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-stone-100 dark:divide-stone-800">
+                      {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
                       {assets.map((asset: any, i) => (
                         <tr key={i} className="hover:bg-stone-50 dark:hover:bg-stone-800/50">
                           <td className="p-4 font-bold text-stone-900 dark:text-stone-100">{asset.ticker}</td>

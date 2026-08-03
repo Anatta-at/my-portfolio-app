@@ -9,6 +9,7 @@ import { Plus, ChevronLeft, ChevronRight, MoreHorizontal, ArrowRight, Trash2, Tr
 export default function HistoryPage() {
   const { userId, isLoaded } = useAuth();
   const router = useRouter();
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [portfolios, setPortfolios] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -41,8 +42,12 @@ export default function HistoryPage() {
         } else {
           setError(data.message || 'เกิดข้อผิดพลาดในการโหลดข้อมูลประวัติ');
         }
-      } catch (err: any) {
-        setError(err.message || 'เกิดข้อผิดพลาดในการเชื่อมต่อเซิร์ฟเวอร์');
+      } catch (err) {
+        if (err instanceof Error) {
+          setError(err.message || 'เกิดข้อผิดพลาดในการเชื่อมต่อเซิร์ฟเวอร์');
+        } else {
+          setError('เกิดข้อผิดพลาดในการเชื่อมต่อเซิร์ฟเวอร์');
+        }
       } finally {
         setIsLoading(false);
       }
@@ -104,7 +109,7 @@ export default function HistoryPage() {
       } else {
         alert(data.message || 'ลบข้อมูลไม่สำเร็จ');
       }
-    } catch (err) {
+    } catch {
       alert('เกิดข้อผิดพลาดในการเชื่อมต่อเซิร์ฟเวอร์');
     } finally {
       setIsDeleting(false);

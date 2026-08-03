@@ -22,12 +22,26 @@ export default function PlanPage() {
   const [availableStocks, setAvailableStocks] = useState<string[]>([]);
   const [lockedStocks, setLockedStocks] = useState<string[]>([]);
   const [stockSearch, setStockSearch] = useState('');
+  const [selectedSectors, setSelectedSectors] = useState<string[]>([]);
+
+  const availableSectors = [
+    { id: 'Energy', label: 'พลังงาน' },
+    { id: 'Financial Services', label: 'ธนาคาร/การเงิน' },
+    { id: 'Industrials', label: 'อุตสาหกรรม' },
+    { id: 'Healthcare', label: 'การแพทย์' },
+    { id: 'Consumer Defensive', label: 'สินค้าจำเป็น' },
+    { id: 'Consumer Cyclical', label: 'สินค้าฟุ่มเฟือย' },
+    { id: 'Utilities', label: 'สาธารณูปโภค' },
+    { id: 'Real Estate', label: 'อสังหาฯ' },
+    { id: 'Communication Services', label: 'สื่อสาร' },
+  ];
 
   useEffect(() => {
     fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/admin/assets`)
       .then(res => res.json())
       .then(data => {
         if (data.status === 'success') {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           setAvailableStocks(data.data.filter((a: any) => a.is_active).map((a: any) => a.ticker.replace('.BK', '')));
         }
       })
@@ -142,7 +156,8 @@ export default function PlanPage() {
             user_id: userId, portfolio_name: formData.portfolioName, target_beta: targetBeta, max_stocks: Number(numStocks),
             max_weight_per_asset: maxWeight / 100,
             start_date: startDate.toISOString().split('T')[0], end_date: endDate.toISOString().split('T')[0],
-            locked_stocks: lockedStocks, budget: finalBudget, target_amount: finalTarget, duration_years: finalDuration
+            locked_stocks: lockedStocks, budget: finalBudget, target_amount: finalTarget, duration_years: finalDuration,
+            sectors: selectedSectors.length > 0 ? selectedSectors : undefined
           })
         });
         if (!response.ok) throw new Error('การตอบสนองจากเซิร์ฟเวอร์ผิดพลาด');
@@ -420,6 +435,19 @@ export default function PlanPage() {
                       </div>
                     </div>
                   )}
+                  {selectedSectors.length > 0 && (
+                    <div className="border-t border-stone-100 dark:border-stone-800 pt-3">
+                      <span className="text-stone-500 text-sm">หมวดหมู่:</span>
+                      <div className="flex flex-wrap gap-1 mt-1">
+                        {selectedSectors.map(s => {
+                          const secLabel = availableSectors.find(a => a.id === s)?.label;
+                          return (
+                            <span key={s} className="text-[10px] px-1.5 py-0.5 bg-indigo-50 dark:bg-indigo-900/20 text-indigo-700 dark:text-indigo-400 rounded font-semibold">{secLabel}</span>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -532,6 +560,35 @@ export default function PlanPage() {
                   <div className="flex justify-between text-[10px] text-stone-400 dark:text-stone-500 mt-1 font-medium">
                     <span>กระจายความเสี่ยง (20%)</span>
                     <span>เทหมดหน้าตัก (100%)</span>
+                  </div>
+                </div>
+
+                {/* หมวดหมู่ (Sectors) */}
+                <div className="pt-2">
+                  <label className="block text-sm font-semibold text-stone-700 dark:text-stone-300 mb-2">
+                    หมวดหมู่หุ้นที่สนใจ <span className="text-stone-400 font-normal">(ไม่บังคับ, ค่าเริ่มต้นคือทั้งหมด)</span>
+                  </label>
+                  <div className="flex flex-wrap gap-2">
+                    {availableSectors.map(sector => (
+                      <button
+                        key={sector.id}
+                        type="button"
+                        onClick={() => {
+                          if (selectedSectors.includes(sector.id)) {
+                            setSelectedSectors(selectedSectors.filter(s => s !== sector.id));
+                          } else {
+                            setSelectedSectors([...selectedSectors, sector.id]);
+                          }
+                        }}
+                        className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-all border ${
+                          selectedSectors.includes(sector.id)
+                            ? 'bg-indigo-50 border-indigo-200 text-indigo-700 dark:bg-indigo-500/20 dark:border-indigo-500/30 dark:text-indigo-300'
+                            : 'bg-white border-stone-200 text-stone-500 hover:border-stone-300 hover:text-stone-700 dark:bg-[#1A1A19] dark:border-stone-700 dark:text-stone-400 dark:hover:border-stone-600 dark:hover:text-stone-300'
+                        }`}
+                      >
+                        {sector.label}
+                      </button>
+                    ))}
                   </div>
                 </div>
 

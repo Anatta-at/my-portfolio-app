@@ -7,6 +7,7 @@ import Navbar from "@/components/Navbar";
 import NextTopLoader from 'nextjs-toploader';
 import AuthRedirectWatcher from "@/components/AuthRedirectWatcher";
 import { ThemeProvider } from "@/components/ThemeProvider";
+import UserSync from "@/components/UserSync";
 
 // 1. กำหนดฟอนต์ Prompt สำหรับใช้ในโปรเจค (ตามที่ระบุในแผนงานพัฒนา UI) [cite: 115, 131]
 const prompt = Prompt({ 
@@ -39,6 +40,7 @@ export default function RootLayout({
           <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
             {/* ส่วนประกอบสำหรับจัดการการเปลี่ยนหน้าอัตโนมัติหลัง Log-in [cite: 86, 107] */}
             <AuthRedirectWatcher /> 
+            <UserSync />
 
             {/* แถบโหลดด้านบนเพื่อความสวยงามและ User Experience ที่ดี [cite: 26] */}
             <NextTopLoader 

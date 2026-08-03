@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { SignedIn, SignedOut, UserButton, useAuth } from "@clerk/nextjs";
 import { ThemeToggle } from "./ThemeToggle";
@@ -8,7 +8,7 @@ import { ThemeToggle } from "./ThemeToggle";
 export default function Navbar() {
   const { isSignedIn, isLoaded } = useAuth();
   const [isAdmin, setIsAdmin] = useState(false);
-  const [prevSignedIn, setPrevSignedIn] = useState<boolean | null>(null);
+  const prevSignedIn = useRef<boolean | null>(null);
 
   useEffect(() => {
     const checkAdmin = () => {
@@ -29,14 +29,15 @@ export default function Navbar() {
 
   useEffect(() => {
     if (isLoaded) {
-      if (prevSignedIn === true && isSignedIn === false) {
+      if (prevSignedIn.current === true && isSignedIn === false) {
         localStorage.removeItem('isAdmin');
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setIsAdmin(false);
         window.dispatchEvent(new Event('admin-logout'));
       }
-      setPrevSignedIn(isSignedIn);
+      prevSignedIn.current = isSignedIn ?? null;
     }
-  }, [isSignedIn, isLoaded, prevSignedIn]);
+  }, [isSignedIn, isLoaded]);
 
   return (
     <nav className="fixed top-0 left-0 w-full z-50 bg-[#FAFAF8]/90 dark:bg-[#111110]/90 backdrop-blur-md border-b border-stone-200 dark:border-stone-800 transition-all duration-300">

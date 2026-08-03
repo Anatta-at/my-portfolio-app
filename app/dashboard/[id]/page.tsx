@@ -1,71 +1,102 @@
 'use client';
 
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, useMemo } from 'react';
 import { useParams } from 'next/navigation';
-import { 
+import {
   PieChart, Pie, Cell, ResponsiveContainer, Tooltip as RechartsTooltip, Legend,
-  AreaChart, Area, XAxis, YAxis, CartesianGrid 
+  AreaChart, Area, XAxis, YAxis, CartesianGrid
 } from 'recharts';
 import { toPng } from 'html-to-image';
 import jsPDF from 'jspdf';
 import Link from 'next/link';
 import { ArrowLeft, Download } from 'lucide-react';
 
+// Warm minimal palette for charts
+// ชุดสีที่มองเห็นชัดเจนและตัดกัน (Vibrant & High Contrast)
+const COLORS = [
+  '#2563eb', // blue-600
+  '#059669', // emerald-600
+  '#d97706', // amber-600
+  '#dc2626', // red-600
+  '#7c3aed', // violet-600
+  '#db2777', // pink-600
+  '#0891b2', // cyan-600
+  '#65a30d', // lime-600
+  '#ea580c', // orange-600
+  '#4f46e5', // indigo-600
+];
+
 export default function PortfolioDetailPage() {
   const params = useParams();
   const id = params?.id;
-  
+
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [portfolioData, setPortfolioData] = useState<any>(null);
-  
+
   const [allocationData, setAllocationData] = useState<any[]>([]);
   const [performanceData, setPerformanceData] = useState<any[]>([]);
+  const [tableView, setTableView] = useState<'year' | 'month'>('year');
+
+  const displayTableData = useMemo(() => {
+    if (tableView === 'month') return performanceData;
+    
+    // Group by year, taking the last available month for that year
+    const yearlyMap = new Map();
+    performanceData.forEach(row => {
+      const year = row.year.substring(0, 4);
+      yearlyMap.set(year, { ...row, year: year });
+    });
+    return Array.from(yearlyMap.values());
+  }, [performanceData, tableView]);
+
   const [isDownloading, setIsDownloading] = useState(false);
   const dashboardRef = useRef<HTMLDivElement>(null);
 
-  // Warm minimal palette for charts
-  const COLORS = ['#d97706', '#059669', '#7c3aed', '#0891b2', '#dc2626', '#0d9488', '#ea580c', '#4f46e5'];
-
   useEffect(() => {
     if (!id) return;
-    
+
     async function fetchPortfolio() {
       setIsLoading(true);
       try {
         const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/portfolios/${id}`);
         if (!res.ok) throw new Error('ไม่สามารถโหลดข้อมูลพอร์ตได้');
         const data = await res.json();
-        
+
         if (data.status === 'success') {
           setPortfolioData(data);
-          
+
           if (data.portfolio && Array.isArray(data.portfolio)) {
             const initialBudget = data.metadata?.budget || 100000;
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             const mappedAllocation = data.portfolio.map((stock: any, index: number) => ({
-              name: stock.Ticker.replace('.BK', ''), 
-              value: Number((stock.Weight * 100).toFixed(2)), 
+              name: stock.Ticker.replace('.BK', ''),
+              value: Number((stock.Weight * 100).toFixed(2)),
               amount: Math.round(stock.Weight * initialBudget),
               color: COLORS[index % COLORS.length]
             }));
             setAllocationData(mappedAllocation);
           }
-          
+
           if (data.backtest && data.backtest.chart_data && Array.isArray(data.backtest.chart_data)) {
             const initialBudget = data.metadata.budget || 100000;
             const ratio = initialBudget / 100000;
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             const mappedPerformance = data.backtest.chart_data.map((bt: any) => ({
-              year: bt.date, 
-              AI: Math.round(bt.AI * ratio),        
-              SET50: Math.round(bt.SET50 * ratio)   
+              year: bt.date,
+              AI: Math.round(bt.AI * ratio),
+              SET50: Math.round(bt.SET50 * ratio)
             }));
             setPerformanceData(mappedPerformance);
           }
-        } else {
-          setError(data.message || 'เกิดข้อผิดพลาดในการโหลดข้อมูล');
         }
-      } catch (err: any) {
-        setError(err.message || 'การเชื่อมต่อผิดพลาด');
+      } catch (err) {
+        if (err instanceof Error) {
+          setError(err.message || 'การเชื่อมต่อผิดพลาด');
+        } else {
+          setError('การเชื่อมต่อผิดพลาด');
+        }
       } finally {
         setIsLoading(false);
       }
@@ -89,13 +120,14 @@ export default function PortfolioDetailPage() {
       const pdf = new jsPDF('l', 'px', [img.width, img.height]);
       pdf.addImage(dataUrl, 'PNG', 0, 0, img.width, img.height);
       pdf.save(`Portfolio_Report_${id}.pdf`);
-    } catch (error: any) {
+    } catch (error) {
       console.error(error);
     } finally {
       setIsDownloading(false);
     }
   };
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const renderCustomizedLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, percent }: any) => {
     const radius = innerRadius + (outerRadius - innerRadius) * 0.5;
     const x = cx + radius * Math.cos(-midAngle * (Math.PI / 180));
@@ -132,7 +164,7 @@ export default function PortfolioDetailPage() {
         <Link href="/dashboard" className="inline-flex items-center text-xs font-semibold text-stone-500 hover:text-stone-900 dark:text-stone-400 dark:hover:text-stone-100 mb-6 uppercase tracking-wider">
           <ArrowLeft className="w-3.5 h-3.5 mr-1" /> กลับไปประวัติ
         </Link>
-        
+
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4 border-b border-stone-200 dark:border-stone-800 pb-6">
           <div>
             <h1 className="text-3xl font-black text-stone-900 dark:text-stone-100 tracking-tight">{meta.name}</h1>
@@ -142,7 +174,7 @@ export default function PortfolioDetailPage() {
               <span>{new Date(meta.created_at).toLocaleDateString('th-TH')}</span>
             </div>
           </div>
-          <button 
+          <button
             onClick={handleDownloadPDF} disabled={isDownloading}
             className="px-4 py-2 bg-white dark:bg-[#1A1A19] border border-stone-200 dark:border-stone-700 rounded-lg text-sm font-semibold text-stone-700 dark:text-stone-300 hover:bg-stone-50 dark:hover:bg-stone-800 transition-colors flex items-center"
           >
@@ -151,63 +183,61 @@ export default function PortfolioDetailPage() {
         </div>
       </div>
 
-      <div className="max-w-5xl mx-auto" ref={dashboardRef}> 
-        
+      <div className="max-w-5xl mx-auto" ref={dashboardRef}>
+
         {/* Bento Grid Stats */}
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 mb-6">
-           <div className="bg-white dark:bg-[#1A1A19] p-4 rounded-xl border border-stone-200 dark:border-stone-700 shadow-sm flex flex-col justify-center">
-              <div className="text-[10px] text-stone-500 font-bold mb-1.5">เงินลงทุนตั้งต้น</div>
-              <div className="text-lg font-black text-stone-900 dark:text-stone-100">฿{Number(meta.budget).toLocaleString()}</div>
-           </div>
-           
-           <div className="bg-white dark:bg-[#1A1A19] p-4 rounded-xl border border-stone-200 dark:border-stone-700 shadow-sm flex flex-col justify-center">
-              <div className="text-[10px] text-stone-500 font-bold mb-1.5">เป้าหมายเงินออม</div>
-              <div className="text-lg font-black text-indigo-600 dark:text-indigo-400">{meta.target_amount ? `฿${Number(meta.target_amount).toLocaleString()}` : '—'}</div>
-           </div>
+          <div className="bg-white dark:bg-[#1A1A19] p-4 rounded-xl border border-stone-200 dark:border-stone-700 shadow-sm flex flex-col justify-center">
+            <div className="text-[10px] text-stone-500 font-bold mb-1.5">เงินลงทุนตั้งต้น</div>
+            <div className="text-lg font-black text-stone-900 dark:text-stone-100">฿{Number(meta.budget).toLocaleString()}</div>
+          </div>
 
-           <div className="bg-white dark:bg-[#1A1A19] p-4 rounded-xl border border-stone-200 dark:border-stone-700 shadow-sm flex flex-col justify-center">
-              <div className="text-[10px] text-stone-500 font-bold mb-1.5">คาดการณ์เมื่อครบ {meta.duration_years} ปี</div>
-              <div className="text-[13px] xl:text-[14px] font-black text-stone-900 dark:text-stone-100">
-                {meta.forecast_lower && meta.forecast_upper 
-                  ? `฿${Math.round(meta.forecast_lower).toLocaleString()} - ฿${Math.round(meta.forecast_upper).toLocaleString()}`
-                  : (meta.forecast_lower ? `฿${Math.round(meta.forecast_lower).toLocaleString()}` : '—')}
-              </div>
-           </div>
+          <div className="bg-white dark:bg-[#1A1A19] p-4 rounded-xl border border-stone-200 dark:border-stone-700 shadow-sm flex flex-col justify-center">
+            <div className="text-[10px] text-stone-500 font-bold mb-1.5">เป้าหมายเงินออม</div>
+            <div className="text-lg font-black text-indigo-600 dark:text-indigo-400">{meta.target_amount ? `฿${Number(meta.target_amount).toLocaleString()}` : '—'}</div>
+          </div>
 
-           <div className="bg-white dark:bg-[#1A1A19] p-4 rounded-xl border border-stone-200 dark:border-stone-700 shadow-sm flex flex-col justify-center">
-              <div className="text-[10px] text-stone-500 font-bold mb-1.5">โอกาสสำเร็จ</div>
-              <div className={`text-lg font-black ${
-                meta.success_probability 
-                  ? (meta.success_probability < 0.5 ? 'text-rose-600 dark:text-rose-500' : meta.success_probability < 0.8 ? 'text-amber-500' : 'text-emerald-600 dark:text-emerald-500')
-                  : 'text-stone-900 dark:text-stone-100'
+          <div className="bg-white dark:bg-[#1A1A19] p-4 rounded-xl border border-stone-200 dark:border-stone-700 shadow-sm flex flex-col justify-center">
+            <div className="text-[10px] text-stone-500 font-bold mb-1.5">คาดการณ์เมื่อครบ {meta.duration_years} ปี</div>
+            <div className="text-[13px] xl:text-[14px] font-black text-stone-900 dark:text-stone-100">
+              {meta.forecast_lower && meta.forecast_upper
+                ? `฿${Math.round(meta.forecast_lower).toLocaleString()} - ฿${Math.round(meta.forecast_upper).toLocaleString()}`
+                : (meta.forecast_lower ? `฿${Math.round(meta.forecast_lower).toLocaleString()}` : '—')}
+            </div>
+          </div>
+
+          <div className="bg-white dark:bg-[#1A1A19] p-4 rounded-xl border border-stone-200 dark:border-stone-700 shadow-sm flex flex-col justify-center">
+            <div className="text-[10px] text-stone-500 font-bold mb-1.5">โอกาสสำเร็จ</div>
+            <div className={`text-lg font-black ${meta.success_probability
+              ? (meta.success_probability < 0.5 ? 'text-rose-600 dark:text-rose-500' : meta.success_probability < 0.8 ? 'text-amber-500' : 'text-emerald-600 dark:text-emerald-500')
+              : 'text-stone-900 dark:text-stone-100'
               }`}>
-                {meta.success_probability ? `${Math.round(meta.success_probability * 100)}%` : '—'}
-              </div>
-           </div>
+              {meta.success_probability ? `${Math.round(meta.success_probability * 100)}%` : '—'}
+            </div>
+          </div>
 
-           <div className="bg-white dark:bg-[#1A1A19] p-4 rounded-xl border border-stone-200 dark:border-stone-700 shadow-sm flex flex-col justify-center">
-              <div className="text-[10px] text-stone-500 font-bold mb-1.5">ผลตอบแทนคาดหวังรายปี</div>
-              <div className="text-lg font-black text-emerald-600 dark:text-emerald-500">{(meta.expected_return * 100).toFixed(2)}%</div>
-           </div>
+          <div className="bg-white dark:bg-[#1A1A19] p-4 rounded-xl border border-stone-200 dark:border-stone-700 shadow-sm flex flex-col justify-center">
+            <div className="text-[10px] text-stone-500 font-bold mb-1.5">ผลตอบแทนคาดหวังรายปี</div>
+            <div className="text-lg font-black text-emerald-600 dark:text-emerald-500">{(meta.expected_return * 100).toFixed(2)}%</div>
+          </div>
 
-           <div className="bg-white dark:bg-[#1A1A19] p-4 rounded-xl border border-stone-200 dark:border-stone-700 shadow-sm flex flex-col justify-center relative">
-              <div className="text-[10px] text-stone-500 font-bold mb-1.5">ระดับความเสี่ยง</div>
-              <div className="text-lg font-black text-stone-900 dark:text-stone-100">
-                {meta.target_beta < 0.9 ? 'Conservative' : meta.target_beta > 1.1 ? 'Aggressive' : 'Moderate'}
-              </div>
-              <div className={`absolute top-4 right-3 text-[9px] font-bold px-1.5 py-0.5 rounded-sm ${
-                meta.target_beta < 0.9 ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-400' :
-                meta.target_beta > 1.1 ? 'bg-rose-100 text-rose-700 dark:bg-rose-500/20 dark:text-rose-400' :
+          <div className="bg-white dark:bg-[#1A1A19] p-4 rounded-xl border border-stone-200 dark:border-stone-700 shadow-sm flex flex-col justify-center relative">
+            <div className="text-[10px] text-stone-500 font-bold mb-1.5">ระดับความเสี่ยง</div>
+            <div className="text-lg font-black text-stone-900 dark:text-stone-100">
+              {meta.target_beta < 0.9 ? 'Conservative' : meta.target_beta > 1.1 ? 'Aggressive' : 'Moderate'}
+            </div>
+            <div className={`absolute top-4 right-3 text-[9px] font-bold px-1.5 py-0.5 rounded-sm ${meta.target_beta < 0.9 ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-400' :
+              meta.target_beta > 1.1 ? 'bg-rose-100 text-rose-700 dark:bg-rose-500/20 dark:text-rose-400' :
                 'bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-400'
               }`}>
-                Beta {meta.target_beta}
-              </div>
-           </div>
+              Beta {meta.target_beta}
+            </div>
+          </div>
         </div>
 
         {/* Charts Layout */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          
+
           {/* Allocation */}
           <div className="lg:col-span-1 bg-white dark:bg-[#1A1A19] p-6 rounded-lg border border-stone-200 dark:border-stone-800">
             <h3 className="text-sm font-bold text-stone-900 dark:text-stone-100 mb-6 uppercase tracking-wider">Asset Allocation</h3>
@@ -248,7 +278,7 @@ export default function PortfolioDetailPage() {
                 </PieChart>
               </ResponsiveContainer>
             </div>
-            
+
             <div className="mt-6 pt-4 border-t border-stone-100 dark:border-stone-800">
               <div className="flex justify-between items-center text-sm mb-2">
                 <span className="text-stone-500">ความเสี่ยง (Beta)</span>
@@ -261,27 +291,81 @@ export default function PortfolioDetailPage() {
             </div>
           </div>
 
-          {/* Backtest */}
+          {/* Performance Analysis (Historical Backtest) */}
           <div className="lg:col-span-2 bg-white dark:bg-[#1A1A19] p-6 rounded-lg border border-stone-200 dark:border-stone-800">
-            <h3 className="text-sm font-bold text-stone-900 dark:text-stone-100 mb-6 uppercase tracking-wider">Historical Backtest</h3>
+            <h3 className="text-sm font-bold text-stone-900 dark:text-stone-100 mb-6 uppercase tracking-wider">
+              Historical Backtest
+            </h3>
+
             <div className="h-[300px] w-full">
               <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={performanceData} margin={{ top: 5, right: 0, left: -20, bottom: 0 }}>
+                <AreaChart data={performanceData} margin={{ top: 5, right: 10, left: 10, bottom: 0 }}>
                   <defs>
                     <linearGradient id="colorAI" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#d97706" stopOpacity={0.2}/>
-                      <stop offset="95%" stopColor="#d97706" stopOpacity={0}/>
+                      <stop offset="5%" stopColor="#059669" stopOpacity={0.2} />
+                      <stop offset="95%" stopColor="#059669" stopOpacity={0} />
                     </linearGradient>
                   </defs>
-                  <XAxis dataKey="year" stroke="#a8a29e" fontSize={11} tickLine={false} axisLine={false} dy={10} />
-                  <YAxis stroke="#a8a29e" fontSize={11} tickLine={false} axisLine={false} tickFormatter={(value) => `${(value/1000).toFixed(0)}k`} />
+                  <XAxis dataKey="year" stroke="#78716c" fontSize={11} tickLine={false} axisLine={false} dy={10} />
+                  <YAxis stroke="#78716c" fontSize={11} tickLine={false} axisLine={false} tickFormatter={(value) => `${(value / 1000).toFixed(0)}k`} width={50} />
                   <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e7e5e4" />
-                  <Area type="monotone" dataKey="SET50" stroke="#d6d3d1" strokeWidth={2} fill="transparent" name="SET50 Index" />
-                  <Area type="monotone" dataKey="AI" stroke="#d97706" strokeWidth={2} fillOpacity={1} fill="url(#colorAI)" name="AI Portfolio" />
-                  <RechartsTooltip contentStyle={{ backgroundColor: '#fff', borderRadius: '6px', border: '1px solid #e5e7eb', fontSize: '12px', boxShadow: '0 2px 4px rgba(0,0,0,0.05)' }} />
+                  <Area type="monotone" dataKey="SET50" stroke="currentColor" className="text-stone-400 dark:text-stone-200" strokeWidth={2} strokeDasharray="4 4" fill="transparent" name="SET50 Index" />
+                  <Area type="monotone" dataKey="AI" stroke="#059669" strokeWidth={2} fillOpacity={1} fill="url(#colorAI)" name="AI Portfolio" />
+                  <RechartsTooltip contentStyle={{ backgroundColor: '#fff', borderRadius: '6px', border: '1px solid #e7e5e4', fontSize: '12px', boxShadow: '0 2px 4px rgba(0,0,0,0.05)', color: '#1c1917' }} />
                   <Legend verticalAlign="top" height={30} iconType="circle" iconSize={8} wrapperStyle={{ fontSize: '12px' }} />
                 </AreaChart>
               </ResponsiveContainer>
+            </div>
+
+            {/* Comparison Table */}
+            <div className="mt-8">
+              <div className="flex justify-between items-center mb-4">
+                <h4 className="text-sm font-semibold text-stone-800 dark:text-stone-200">
+                  ตารางผลตอบแทน (Portfolio vs SET50)
+                </h4>
+                <div className="flex bg-stone-100 dark:bg-stone-800 rounded-lg p-1">
+                  <button
+                    onClick={() => setTableView('year')}
+                    className={`px-3 py-1.5 text-xs font-semibold rounded-md transition-all ${
+                      tableView === 'year' 
+                        ? 'bg-white dark:bg-stone-700 text-stone-900 dark:text-white shadow-sm' 
+                        : 'text-stone-500 hover:text-stone-700 dark:hover:text-stone-300'
+                    }`}
+                  >
+                    รายปี (Yearly)
+                  </button>
+                  <button
+                    onClick={() => setTableView('month')}
+                    className={`px-3 py-1.5 text-xs font-semibold rounded-md transition-all ${
+                      tableView === 'month' 
+                        ? 'bg-white dark:bg-stone-700 text-stone-900 dark:text-white shadow-sm' 
+                        : 'text-stone-500 hover:text-stone-700 dark:hover:text-stone-300'
+                    }`}
+                  >
+                    รายเดือน (Monthly)
+                  </button>
+                </div>
+              </div>
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm text-left">
+                  <thead className="text-xs text-stone-500 uppercase bg-stone-50 dark:bg-stone-800/50 dark:text-stone-400">
+                    <tr>
+                      <th className="px-4 py-3 font-semibold rounded-tl-md">ช่วงเวลา (Period)</th>
+                      <th className="px-4 py-3 font-semibold">พอร์ตของเรา (Portfolio)</th>
+                      <th className="px-4 py-3 font-semibold rounded-tr-md">SET50 (Benchmark)</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {displayTableData.map((row, idx) => (
+                      <tr key={idx} className="border-b border-stone-100 dark:border-stone-800 last:border-0 hover:bg-stone-50/50 dark:hover:bg-stone-800/30 transition-colors">
+                        <td className="px-4 py-3 font-medium text-stone-900 dark:text-stone-100">{row.year}</td>
+                        <td className="px-4 py-3 text-emerald-600 dark:text-emerald-500 font-semibold">฿{row.AI.toLocaleString(undefined, { maximumFractionDigits: 0 })}</td>
+                        <td className="px-4 py-3 text-stone-600 dark:text-stone-400 font-medium">฿{row.SET50.toLocaleString(undefined, { maximumFractionDigits: 0 })}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </div>
           </div>
 

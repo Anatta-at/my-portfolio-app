@@ -29,7 +29,9 @@ export async function GET(req: Request) {
     const clerkUsers = Array.isArray(clerkUsersResponse) ? clerkUsersResponse : clerkUsersResponse.data;
 
     // 3. Merge data using Clerk users as the base
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const mergedUsers = clerkUsers.map((cUser: any) => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const dbUser = dbData.data.find((u: any) => u.clerk_id === cUser.id);
       
       let email = '';

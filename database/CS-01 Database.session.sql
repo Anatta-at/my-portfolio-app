@@ -1,7 +1,6 @@
 -- 1. ล้างตารางเก่าเพื่อโครงสร้างใหม่ที่ถูกต้อง (ระวัง! ข้อมูลเก่าจะหายไป)
 DROP TABLE IF EXISTS portfolio_assets CASCADE;
 DROP TABLE IF EXISTS portfolios CASCADE;
-DROP TABLE IF EXISTS stock_views CASCADE;
 DROP TABLE IF EXISTS users CASCADE;
 
 -- 2. ตาราง Users: เก็บข้อมูลอ้างอิงผู้ใช้จาก Clerk
@@ -12,15 +11,6 @@ CREATE TABLE users (
     role VARCHAR(20) DEFAULT 'user',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     last_login_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-
--- 3. ตาราง Stock Views: เก็บมุมมองผลตอบแทนล่วงหน้า (ใช้ใน Black-Litterman Model)
-CREATE TABLE stock_views (
-    id SERIAL PRIMARY KEY,
-    ticker VARCHAR(50) UNIQUE NOT NULL,
-    expected_return NUMERIC(8, 4) NOT NULL,
-    variance NUMERIC(8, 4) DEFAULT 0.02,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 -- 4. ตาราง Portfolios: เก็บข้อมูลพอร์ตโฟลิโอหลักที่ AI สร้างขึ้น

@@ -14,7 +14,6 @@ import pandas as pd
 from engine.data_fetcher import YahooFinanceFetcher, SETDataFetcher
 from engine.core_optimizer import BlackLittermanEngine, GeneticPortfolioOptimizer
 from analysis.backtester import BacktestEngine
-from engine.manual_views import ManualViewProvider
 
 # ==========================================
 # INITIALIZE APP
@@ -51,6 +50,7 @@ class OptimizeRequest(BaseModel):
     target_amount: Optional[float] = None
     duration_years: Optional[int] = 5
     locked_stocks: Optional[List[str]] = []
+    sectors: Optional[List[str]] = []
 
 class TemplateRequest(BaseModel):
     user_id: str
@@ -62,6 +62,11 @@ class TemplateRequest(BaseModel):
     expected_return: float
     portfolio_volatility: float
     portfolio_data: list
+
+class SyncUserRequest(BaseModel):
+    clerk_id: str
+    email: Optional[str] = None
+    full_name: Optional[str] = None
 
 # ==========================================
 # ==========================================
@@ -172,6 +177,42 @@ def save_portfolio_to_db(clerk_id: str, name: str, beta: float, budget: float, t
         return None
 
 # ==========================================
+# API สำหรับจัดการข้อมูล User Sync
+# ==========================================
+@app.post("/api/users/sync")
+def sync_user(req: SyncUserRequest):
+    if not req.clerk_id:
+        return {"status": "error", "message": "Missing clerk_id"}
+    try:
+        import os
+        import psycopg2
+        db_host = os.getenv("DATABASE_HOST", "localhost")
+        conn = psycopg2.connect(
+            dbname="intelliport_db",
+            user="admin",            
+            password="Heyrose05",     
+            host=db_host,        
+            port="5432"
+        )
+        cursor = conn.cursor()
+        cursor.execute("""
+            INSERT INTO users (clerk_id, email, full_name) 
+            VALUES (%s, %s, %s) 
+            ON CONFLICT (clerk_id) 
+            DO UPDATE SET 
+                email = EXCLUDED.email,
+                full_name = EXCLUDED.full_name,
+                last_login_at = CURRENT_TIMESTAMP;
+        """, (req.clerk_id, req.email, req.full_name))
+        conn.commit()
+        cursor.close()
+        conn.close()
+        return {"status": "success"}
+    except Exception as e:
+        print(f"❌ DB Error in sync_user: {e}")
+        return {"status": "error", "message": str(e)}
+
+# ==========================================
 # API สำหรับคำนวณและจัดพอร์ตการลงทุน
 # ==========================================
 @app.post("/api/optimize")
@@ -179,6 +220,13 @@ def optimize_portfolio(req: OptimizeRequest):
     try:
         # 1. ดึงรายชื่อหุ้น SET50 ล่าสุด
         tickers = SETDataFetcher.get_set50_tickers()
+        
+        # 1.5 กรองหุ้นตาม Sector (ถ้ามีส่งมา)
+        if req.sectors:
+            tickers = SETDataFetcher.filter_by_sector(tickers, req.sectors)
+            # ถ้ากรองแล้วเหลือน้อยกว่า max_stocks ให้ปรับ max_stocks ลงมา
+            if len(tickers) < req.max_stocks:
+                req.max_stocks = max(3, len(tickers))
         
         # 2. ดึงข้อมูลราคาจาก Yahoo Finance และคำนวณ Beta/Covariance
         cov_matrix, calc_betas = YahooFinanceFetcher.get_market_data_with_beta(tickers)
@@ -190,7 +238,7 @@ def optimize_portfolio(req: OptimizeRequest):
         actual_betas_series = pd.Series({t: round(calc_betas.get(t, 1.0), 2) for t in valid_tickers})
 
         # 4. เตรียมมุมมองนักวิเคราะห์ (Views)
-        views_data = ManualViewProvider.get_all_views(valid_tickers)
+        views_data = {}
 
         if req.user_custom_views:
             for symbol, val in req.user_custom_views.items():
