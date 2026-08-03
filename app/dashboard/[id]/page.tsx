@@ -35,7 +35,9 @@ export default function PortfolioDetailPage() {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [portfolioData, setPortfolioData] = useState<any>(null);
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [allocationData, setAllocationData] = useState<any[]>([]);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [performanceData, setPerformanceData] = useState<any[]>([]);
   const [tableView, setTableView] = useState<'year' | 'month'>('year');
 
