@@ -25,9 +25,17 @@ def get_db_connection():
     import psycopg2
     import os
     db_host = os.getenv("DATABASE_HOST", "localhost")
+    import os
+    db_url = os.getenv("DATABASE_URL")
+    if db_url:
+        return psycopg2.connect(db_url)
     return psycopg2.connect(
-            dbname="intelliport_db", user="admin", password="Heyrose05", host=db_host, port="5432"
-        )
+        dbname="intelliport_db",
+        user="admin",
+        password="Heyrose05",
+        host=os.getenv("DATABASE_HOST", "localhost"),
+        port="5432"
+    )
 
 class SETDataFetcher:
     SET50_SECTORS = {

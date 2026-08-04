@@ -18,6 +18,22 @@ from analysis.backtester import BacktestEngine
 # ==========================================
 # INITIALIZE APP
 # ==========================================
+
+def get_db_connection():
+    import os, psycopg2
+    db_url = os.getenv("DATABASE_URL")
+    if db_url:
+        return psycopg2.connect(db_url)
+    
+    db_host = os.getenv("DATABASE_HOST", "localhost")
+    return psycopg2.connect(
+        dbname="intelliport_db",
+        user="admin",
+        password="Heyrose05",
+        host=db_host,
+        port="5432"
+    )
+
 app = FastAPI(
     title="Intelliportfolio Pro (Core Engine)", 
     description="Portfolio Optimization API (Auth managed by Clerk)",
@@ -128,15 +144,7 @@ def save_portfolio_to_db(clerk_id: str, name: str, beta: float, budget: float, t
         return
 
     try:
-        import os
-        db_host = os.getenv("DATABASE_HOST", "localhost")
-        conn = psycopg2.connect(
-            dbname="intelliport_db",
-            user="admin",            # เปลี่ยนเป็น user ของคุณ
-            password="Heyrose05",     # เปลี่ยนเป็นรหัสผ่านของคุณ
-            host=db_host,        # ใช้ db_host เพื่อให้รันใน docker ได้
-            port="5432"
-        )
+        conn = get_db_connection()
         cursor = conn.cursor()
 
         # 1. Upsert User (สร้าง user ใหม่ถ้ายังไม่มี หรืออัปเดตเวลาเข้าใช้งาน)
@@ -355,11 +363,7 @@ def create_template_portfolio(req: TemplateRequest):
 @app.get("/api/portfolios")
 def get_user_portfolios(clerk_id: str):
     try:
-        import os
-        db_host = os.getenv("DATABASE_HOST", "localhost")
-        conn = psycopg2.connect(
-            dbname="intelliport_db", user="admin", password="Heyrose05", host=db_host, port="5432"
-        )
+        conn = get_db_connection()
         cursor = conn.cursor()
         
         cursor.execute("""
@@ -417,11 +421,7 @@ def get_user_portfolios(clerk_id: str):
 @app.post("/api/portfolios/delete")
 def delete_portfolios(req: DeletePortfoliosRequest):
     try:
-        import os
-        db_host = os.getenv("DATABASE_HOST", "localhost")
-        conn = psycopg2.connect(
-            dbname="intelliport_db", user="admin", password="Heyrose05", host=db_host, port="5432"
-        )
+        conn = get_db_connection()
         cursor = conn.cursor()
         
         # Verify ownership and delete
@@ -438,11 +438,7 @@ def delete_portfolios(req: DeletePortfoliosRequest):
 @app.get("/api/portfolios/{portfolio_id}")
 def get_portfolio_details(portfolio_id: int):
     try:
-        import os
-        db_host = os.getenv("DATABASE_HOST", "localhost")
-        conn = psycopg2.connect(
-            dbname="intelliport_db", user="admin", password="Heyrose05", host=db_host, port="5432"
-        )
+        conn = get_db_connection()
         cursor = conn.cursor()
         
         # 1. ดึงรายละเอียดพอร์ต
@@ -553,11 +549,7 @@ def get_portfolio_details(portfolio_id: int):
 @app.get("/api/admin/users")
 def get_all_users():
     try:
-        import os
-        db_host = os.getenv("DATABASE_HOST", "localhost")
-        conn = psycopg2.connect(
-            dbname="intelliport_db", user="admin", password="Heyrose05", host=db_host, port="5432"
-        )
+        conn = get_db_connection()
         cursor = conn.cursor()
         
         cursor.execute("""
@@ -602,11 +594,7 @@ class AssetRequest(BaseModel):
 @app.post("/api/admin/users/sync")
 def sync_users_data(req: SyncUsersRequest):
     try:
-        import os
-        db_host = os.getenv("DATABASE_HOST", "localhost")
-        conn = psycopg2.connect(
-            dbname="intelliport_db", user="admin", password="Heyrose05", host=db_host, port="5432"
-        )
+        conn = get_db_connection()
         cursor = conn.cursor()
         
         for u in req.users:
@@ -630,11 +618,7 @@ def update_user_role(target_clerk_id: str, req: RoleUpdateRequest):
         if req.new_role not in ["user", "admin"]:
             return {"status": "error", "message": "Invalid role"}
             
-        import os
-        db_host = os.getenv("DATABASE_HOST", "localhost")
-        conn = psycopg2.connect(
-            dbname="intelliport_db", user="admin", password="Heyrose05", host=db_host, port="5432"
-        )
+        conn = get_db_connection()
         cursor = conn.cursor()
         
         # Verify the requester is actually an admin
@@ -662,11 +646,7 @@ def update_user_role(target_clerk_id: str, req: RoleUpdateRequest):
 @app.get("/api/admin/assets")
 def get_admin_assets():
     try:
-        import os
-        db_host = os.getenv("DATABASE_HOST", "localhost")
-        conn = psycopg2.connect(
-            dbname="intelliport_db", user="admin", password="Heyrose05", host=db_host, port="5432"
-        )
+        conn = get_db_connection()
         cursor = conn.cursor()
         cursor.execute("SELECT ticker, market_cap, is_active FROM assets ORDER BY ticker")
         assets = []
@@ -686,11 +666,7 @@ def get_admin_assets():
 def add_admin_asset(req: AssetRequest):
     conn = None
     try:
-        import os
-        db_host = os.getenv("DATABASE_HOST", "localhost")
-        conn = psycopg2.connect(
-            dbname="intelliport_db", user="admin", password="Heyrose05", host=db_host, port="5432"
-        )
+        conn = get_db_connection()
         cursor = conn.cursor()
         cursor.execute("""
             INSERT INTO assets (ticker, market_cap, is_active)
@@ -709,11 +685,7 @@ def add_admin_asset(req: AssetRequest):
 def update_admin_asset(ticker: str, req: AssetRequest):
     conn = None
     try:
-        import os
-        db_host = os.getenv("DATABASE_HOST", "localhost")
-        conn = psycopg2.connect(
-            dbname="intelliport_db", user="admin", password="Heyrose05", host=db_host, port="5432"
-        )
+        conn = get_db_connection()
         cursor = conn.cursor()
         cursor.execute("""
             UPDATE assets SET market_cap = %s, is_active = %s
@@ -732,11 +704,7 @@ def update_admin_asset(ticker: str, req: AssetRequest):
 def delete_admin_asset(ticker: str):
     conn = None
     try:
-        import os
-        db_host = os.getenv("DATABASE_HOST", "localhost")
-        conn = psycopg2.connect(
-            dbname="intelliport_db", user="admin", password="Heyrose05", host=db_host, port="5432"
-        )
+        conn = get_db_connection()
         cursor = conn.cursor()
         cursor.execute("DELETE FROM assets WHERE ticker = %s", (ticker,))
         conn.commit()
@@ -751,11 +719,7 @@ def delete_admin_asset(ticker: str):
 @app.get("/api/users/{clerk_id}/role")
 def get_user_role(clerk_id: str):
     try:
-        import os
-        db_host = os.getenv("DATABASE_HOST", "localhost")
-        conn = psycopg2.connect(
-            dbname="intelliport_db", user="admin", password="Heyrose05", host=db_host, port="5432"
-        )
+        conn = get_db_connection()
         cursor = conn.cursor()
         
         cursor.execute("SELECT role FROM users WHERE clerk_id = %s", (clerk_id,))
