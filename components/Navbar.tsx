@@ -1,43 +1,38 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { SignedIn, SignedOut, UserButton, useAuth } from "@clerk/nextjs";
 import { ThemeToggle } from "./ThemeToggle";
 
 export default function Navbar() {
-  const { isSignedIn, isLoaded } = useAuth();
+  const { userId, isSignedIn, isLoaded } = useAuth();
   const [isAdmin, setIsAdmin] = useState(false);
-  const prevSignedIn = useRef<boolean | null>(null);
 
   useEffect(() => {
-    const checkAdmin = () => {
-      if (typeof window !== 'undefined') {
-        setIsAdmin(localStorage.getItem('isAdmin') === 'true');
-      }
-    };
-    checkAdmin();
-    window.addEventListener('storage', checkAdmin);
-    window.addEventListener('admin-login', checkAdmin);
-    window.addEventListener('admin-logout', checkAdmin);
-    return () => {
-      window.removeEventListener('storage', checkAdmin);
-      window.removeEventListener('admin-login', checkAdmin);
-      window.removeEventListener('admin-logout', checkAdmin);
-    };
-  }, []);
-
-  useEffect(() => {
-    if (isLoaded) {
-      if (prevSignedIn.current === true && isSignedIn === false) {
-        localStorage.removeItem('isAdmin');
-        // eslint-disable-next-line react-hooks/set-state-in-effect
+    const checkAdmin = async () => {
+      if (isSignedIn && userId) {
+        try {
+          const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+          const res = await fetch(`${apiUrl}/api/users/${userId}/role`);
+          const data = await res.json();
+          if (data.status === 'success' && data.role === 'admin') {
+            setIsAdmin(true);
+          } else {
+            setIsAdmin(false);
+          }
+        } catch {
+          setIsAdmin(false);
+        }
+      } else {
         setIsAdmin(false);
-        window.dispatchEvent(new Event('admin-logout'));
       }
-      prevSignedIn.current = isSignedIn ?? null;
+    };
+    
+    if (isLoaded) {
+      checkAdmin();
     }
-  }, [isSignedIn, isLoaded]);
+  }, [isSignedIn, userId, isLoaded]);
 
   return (
     <nav className="fixed top-0 left-0 w-full z-50 bg-[#FAFAF8]/90 dark:bg-[#111110]/90 backdrop-blur-md border-b border-stone-200 dark:border-stone-800 transition-all duration-300">

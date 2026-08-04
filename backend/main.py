@@ -63,6 +63,10 @@ class TemplateRequest(BaseModel):
     portfolio_volatility: float
     portfolio_data: list
 
+class DeletePortfoliosRequest(BaseModel):
+    portfolio_ids: List[int]
+    clerk_id: str
+
 class SyncUserRequest(BaseModel):
     clerk_id: str
     email: Optional[str] = None
@@ -82,7 +86,11 @@ def calculate_success_probability(budget: float, target_amount: Optional[float],
         terminal_value = budget * math.exp(expected_return * duration_years)
         return 1.0 if terminal_value >= target_amount else 0.0
     
-    t = float(duration_years)
+    t = max(float(duration_years), 0.0)
+    if t == 0.0:
+        terminal_value = budget * math.exp(expected_return * t)
+        return 1.0 if terminal_value >= target_amount else 0.0
+        
     mu = float(expected_return)
     sigma = float(portfolio_volatility)
     
@@ -99,7 +107,7 @@ def calculate_forecast_range(budget: float, duration_years: int, expected_return
     import math
     if budget <= 0:
         return {"lower": 0.0, "upper": 0.0}
-    t = float(duration_years)
+    t = max(float(duration_years), 0.0)
     mu = float(expected_return)
     sigma = float(portfolio_volatility)
     
@@ -406,6 +414,27 @@ def get_user_portfolios(clerk_id: str):
 # ==========================================
 # 🌟 API สำหรับดึงข้อมูลรายละเอียดพอร์ตและประมวลผล Backtest 🌟
 # ==========================================
+@app.post("/api/portfolios/delete")
+def delete_portfolios(req: DeletePortfoliosRequest):
+    try:
+        import os
+        db_host = os.getenv("DATABASE_HOST", "localhost")
+        conn = psycopg2.connect(
+            dbname="intelliport_db", user="admin", password="Heyrose05", host=db_host, port="5432"
+        )
+        cursor = conn.cursor()
+        
+        # Verify ownership and delete
+        for pid in req.portfolio_ids:
+            cursor.execute("DELETE FROM portfolios WHERE id = %s AND clerk_id = %s", (pid, req.clerk_id))
+            
+        conn.commit()
+        cursor.close()
+        conn.close()
+        return {"status": "success", "message": "Portfolios deleted successfully"}
+    except Exception as e:
+        return {"status": "error", "message": str(e)}
+
 @app.get("/api/portfolios/{portfolio_id}")
 def get_portfolio_details(portfolio_id: int):
     try:
@@ -598,7 +627,7 @@ def sync_users_data(req: SyncUsersRequest):
 @app.put("/api/admin/users/{target_clerk_id}/role")
 def update_user_role(target_clerk_id: str, req: RoleUpdateRequest):
     try:
-        if req.new_role not in ["user", "admin", "analyst"]:
+        if req.new_role not in ["user", "admin"]:
             return {"status": "error", "message": "Invalid role"}
             
         import os
@@ -655,6 +684,7 @@ def get_admin_assets():
 
 @app.post("/api/admin/assets")
 def add_admin_asset(req: AssetRequest):
+    conn = None
     try:
         import os
         db_host = os.getenv("DATABASE_HOST", "localhost")
@@ -668,13 +698,16 @@ def add_admin_asset(req: AssetRequest):
         """, (req.ticker, req.market_cap, req.is_active))
         conn.commit()
         cursor.close()
-        conn.close()
         return {"status": "success", "message": "Asset added successfully"}
     except Exception as e:
         return {"status": "error", "message": str(e)}
+    finally:
+        if conn:
+            conn.close()
 
 @app.put("/api/admin/assets/{ticker}")
 def update_admin_asset(ticker: str, req: AssetRequest):
+    conn = None
     try:
         import os
         db_host = os.getenv("DATABASE_HOST", "localhost")
@@ -688,13 +721,16 @@ def update_admin_asset(ticker: str, req: AssetRequest):
         """, (req.market_cap, req.is_active, ticker))
         conn.commit()
         cursor.close()
-        conn.close()
         return {"status": "success", "message": "Asset updated successfully"}
     except Exception as e:
         return {"status": "error", "message": str(e)}
+    finally:
+        if conn:
+            conn.close()
 
 @app.delete("/api/admin/assets/{ticker}")
 def delete_admin_asset(ticker: str):
+    conn = None
     try:
         import os
         db_host = os.getenv("DATABASE_HOST", "localhost")
@@ -705,10 +741,12 @@ def delete_admin_asset(ticker: str):
         cursor.execute("DELETE FROM assets WHERE ticker = %s", (ticker,))
         conn.commit()
         cursor.close()
-        conn.close()
         return {"status": "success", "message": "Asset deleted successfully"}
     except Exception as e:
         return {"status": "error", "message": str(e)}
+    finally:
+        if conn:
+            conn.close()
 
 @app.get("/api/users/{clerk_id}/role")
 def get_user_role(clerk_id: str):

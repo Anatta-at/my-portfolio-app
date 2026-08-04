@@ -49,8 +49,8 @@ class GeneticPortfolioOptimizer:
         if locked_stocks is None:
             locked_stocks = []
         # Append .BK if not present to match valid_tickers format
-        locked_stocks_bk = [f"{t}.BK" if not t.endswith(".BK") else t for t in locked_stocks]
-        locked_indices = [tickers.index(t) for t in locked_stocks_bk if t in tickers]
+        locked_stocks_clean = [t.replace(".BK", "") for t in locked_stocks]
+        locked_indices = [tickers.index(t) for t in locked_stocks_clean if t in tickers]
 
 
         random.seed(42)

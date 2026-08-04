@@ -95,8 +95,8 @@ export default function HistoryPage() {
     
     setIsDeleting(true);
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/portfolios`, {
-        method: 'DELETE',
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/portfolios/delete`, {
+        method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ portfolio_ids: Array.from(selectedIds), clerk_id: userId })
       });

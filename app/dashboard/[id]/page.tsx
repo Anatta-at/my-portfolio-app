@@ -9,7 +9,7 @@ import {
 import { toPng } from 'html-to-image';
 import jsPDF from 'jspdf';
 import Link from 'next/link';
-import { ArrowLeft, Download } from 'lucide-react';
+import { ArrowLeft, Download, X } from 'lucide-react';
 
 // Warm minimal palette for charts
 // ชุดสีที่มองเห็นชัดเจนและตัดกัน (Vibrant & High Contrast)
@@ -54,7 +54,29 @@ export default function PortfolioDetailPage() {
   }, [performanceData, tableView]);
 
   const [isDownloading, setIsDownloading] = useState(false);
+  const [isForecastModalOpen, setIsForecastModalOpen] = useState(false);
   const dashboardRef = useRef<HTMLDivElement>(null);
+
+  const yearlyForecast = useMemo(() => {
+    if (!portfolioData?.metadata) return [];
+    const meta = portfolioData.metadata;
+    const budget = meta.budget;
+    const mu = meta.expected_return;
+    const sigma = meta.portfolio_volatility;
+    const duration = meta.duration_years || 5;
+
+    const data = [];
+    for (let t = 1; t <= duration; t++) {
+      const expected = budget * Math.exp(mu * t);
+      const m = Math.log(budget) + (mu - 0.5 * Math.pow(sigma, 2)) * t;
+      const s = sigma * Math.sqrt(t);
+      const lower = Math.exp(m - s);
+      const upper = Math.exp(m + s);
+
+      data.push({ year: t, expected, lower, upper });
+    }
+    return data;
+  }, [portfolioData]);
 
   useEffect(() => {
     if (!id) return;
@@ -193,14 +215,18 @@ export default function PortfolioDetailPage() {
             <div className="text-[10px] text-stone-500 font-bold mb-1.5">เงินลงทุนตั้งต้น</div>
             <div className="text-lg font-black text-stone-900 dark:text-stone-100">฿{Number(meta.budget).toLocaleString()}</div>
           </div>
-
           <div className="bg-white dark:bg-[#1A1A19] p-4 rounded-xl border border-stone-200 dark:border-stone-700 shadow-sm flex flex-col justify-center">
             <div className="text-[10px] text-stone-500 font-bold mb-1.5">เป้าหมายเงินออม</div>
             <div className="text-lg font-black text-indigo-600 dark:text-indigo-400">{meta.target_amount ? `฿${Number(meta.target_amount).toLocaleString()}` : '—'}</div>
           </div>
-
-          <div className="bg-white dark:bg-[#1A1A19] p-4 rounded-xl border border-stone-200 dark:border-stone-700 shadow-sm flex flex-col justify-center">
-            <div className="text-[10px] text-stone-500 font-bold mb-1.5">คาดการณ์เมื่อครบ {meta.duration_years} ปี</div>
+          <div 
+            className="bg-white dark:bg-[#1A1A19] p-4 rounded-xl border border-stone-200 dark:border-stone-700 shadow-sm flex flex-col justify-center cursor-pointer hover:bg-stone-50 dark:hover:bg-[#222221] transition-colors group relative overflow-hidden"
+            onClick={() => setIsForecastModalOpen(true)}
+          >
+            <div className="flex justify-between items-start mb-1.5">
+              <div className="text-[10px] text-stone-500 font-bold">คาดการณ์เมื่อครบ {meta.duration_years} ปี</div>
+              <div className="text-[9px] bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 px-1.5 py-0.5 rounded font-bold">ดูรายละเอียด</div>
+            </div>
             <div className="text-[13px] xl:text-[14px] font-black text-stone-900 dark:text-stone-100">
               {meta.forecast_lower && meta.forecast_upper
                 ? `฿${Math.round(meta.forecast_lower).toLocaleString()} - ฿${Math.round(meta.forecast_upper).toLocaleString()}`
@@ -373,6 +399,54 @@ export default function PortfolioDetailPage() {
 
         </div>
       </div>
+      {/* Forecast Modal */}
+      {isForecastModalOpen && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-[#1A1A19] w-full max-w-2xl rounded-2xl shadow-xl border border-stone-200 dark:border-stone-800 flex flex-col max-h-[85vh]">
+            <div className="flex justify-between items-center p-5 sm:p-6 border-b border-stone-100 dark:border-stone-800">
+              <h2 className="text-lg font-black text-stone-900 dark:text-stone-100">
+                รายละเอียดคาดการณ์ผลตอบแทน (รายปี)
+              </h2>
+              <button onClick={() => setIsForecastModalOpen(false)} className="text-stone-400 hover:text-stone-600 dark:hover:text-stone-200 transition-colors bg-stone-100 dark:bg-stone-800 hover:bg-stone-200 dark:hover:bg-stone-700 p-1.5 rounded-lg">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="overflow-y-auto p-5 sm:p-6">
+              <div className="bg-amber-50 dark:bg-amber-900/10 text-amber-700 dark:text-amber-400 p-4 rounded-xl text-xs mb-6 border border-amber-200/50 dark:border-amber-800/50 leading-relaxed">
+                <strong className="font-bold">หมายเหตุ:</strong> การคาดการณ์นี้ใช้แบบจำลอง Geometric Brownian Motion (GBM) ที่ระดับความเชื่อมั่น 68% (1 Standard Deviation) ผลลัพธ์ในอนาคตอาจมีความคลาดเคลื่อนจากที่แสดง
+              </div>
+              
+              <div className="overflow-x-auto rounded-xl border border-stone-200 dark:border-stone-800">
+                <table className="w-full text-sm text-left">
+                  <thead className="bg-stone-50 dark:bg-[#111110] text-stone-500 font-bold border-b border-stone-200 dark:border-stone-800">
+                    <tr>
+                      <th className="py-3 px-4 w-20 text-center">ปีที่</th>
+                      <th className="py-3 px-4 text-right">คาดการณ์ต่ำสุด</th>
+                      <th className="py-3 px-4 text-right text-stone-900 dark:text-stone-100">ค่าเฉลี่ยที่คาดหวัง</th>
+                      <th className="py-3 px-4 text-right">คาดการณ์สูงสุด</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {yearlyForecast.map((row, idx) => (
+                      <tr key={row.year} className={`border-b border-stone-100 dark:border-stone-800/50 hover:bg-stone-50/50 dark:hover:bg-[#151514] ${idx === yearlyForecast.length - 1 ? 'bg-amber-50/30 dark:bg-amber-900/10' : ''}`}>
+                        <td className="py-3 px-4 text-center font-bold text-stone-900 dark:text-stone-100">{row.year}</td>
+                        <td className="py-3 px-4 text-right font-medium text-rose-600 dark:text-rose-500">฿{Math.round(row.lower).toLocaleString()}</td>
+                        <td className="py-3 px-4 text-right font-bold text-stone-900 dark:text-stone-100">฿{Math.round(row.expected).toLocaleString()}</td>
+                        <td className="py-3 px-4 text-right font-medium text-emerald-600 dark:text-emerald-500">฿{Math.round(row.upper).toLocaleString()}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+            <div className="p-5 sm:p-6 border-t border-stone-100 dark:border-stone-800 flex justify-end">
+              <button onClick={() => setIsForecastModalOpen(false)} className="px-5 py-2.5 bg-stone-900 dark:bg-stone-100 hover:bg-stone-800 dark:hover:bg-white text-white dark:text-stone-900 font-bold rounded-lg transition-colors">
+                ปิดหน้าต่าง
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </main>
   );
 }

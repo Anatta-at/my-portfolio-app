@@ -56,7 +56,7 @@ export default function AdminPage() {
       try {
         const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/users/${userId}/role`);
         const data = await res.json();
-        if (data.status === 'success' && (data.role === 'admin' || data.role === 'analyst')) {
+        if (data.status === 'success' && data.role === 'admin') {
           setIsAdminAuthenticated(true);
           fetchAdminData();
         } else {
@@ -98,10 +98,13 @@ export default function AdminPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ ticker: newAssetTicker.toUpperCase(), market_cap: parseInt(newAssetMarketCap), is_active: true })
       });
-      if ((await res.json()).status === 'success') {
+      const resJson = await res.json();
+      if (resJson.status === 'success') {
         setNewAssetTicker('');
         setNewAssetMarketCap('');
         fetchAdminData();
+      } else {
+        alert('Failed to add asset: ' + resJson.message);
       }
     } catch { alert('Error adding asset'); }
   };
@@ -230,15 +233,14 @@ export default function AdminPage() {
                         <td className="p-4 text-stone-500 dark:text-stone-400">{new Date(u.last_login_at).toLocaleDateString()}</td>
                         <td className="p-4 text-center font-bold text-stone-900 dark:text-stone-100">{u.portfolio_count}</td>
                         <td className="p-4 text-center">
-                          <select 
-                            value={u.role || 'user'} 
+                          <select
+                            value={u.role || 'user'}
                             onChange={(e) => handleRoleChange(u.clerk_id, e.target.value)}
                             disabled={u.clerk_id === userId}
                             className={`text-xs px-2 py-1 rounded border outline-none ${u.role === 'admin' ? 'bg-amber-100 text-amber-800 border-amber-200 dark:bg-amber-900/30 dark:text-amber-400 dark:border-amber-800' : 'bg-stone-100 text-stone-600 border-stone-200 dark:bg-stone-800 dark:text-stone-400 dark:border-stone-700'}`}
                           >
                             <option value="user">User</option>
                             <option value="admin">Admin</option>
-                            <option value="analyst">Analyst</option>
                           </select>
                         </td>
                       </tr>
