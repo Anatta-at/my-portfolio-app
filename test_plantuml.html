@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <script src="https://cdn.jsdelivr.net/npm/plantuml-encoder@1.4.0/dist/plantuml-encoder.min.js"></script>
+</head>
+<body>
+    <img id="img1" />
+    <script>
+const uml = `
+@startuml
+skinparam defaultFontName "Sarabun"
+skinparam swimlaneWidth same
+|Admin / User|
+start
+:กรอก User name, \npassword;
+:Submit;
+|ระบบเว็บไซต์ : หน้าเข้าสู่ระบบ|
+:ตรวจสอบความถูกต้อง\nของข้อมูล Username,\npassword;
+|ฐานข้อมูล : เก็บข้อมูลผู้ใช้|
+:ข้อมูลตรงกับข้อมูลที่\nบันทึกไว้ในฐานข้อมูล;
+|Admin / User|
+:Login สำเร็จ;
+stop
+@enduml
+`;
+        const encoded = plantumlEncoder.encode(uml);
+        document.getElementById("img1").src = "https://www.plantuml.com/plantuml/svg/" + encoded;
+    </script>
+</body>
+</html>

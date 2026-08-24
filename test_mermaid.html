@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <title>Test Mermaid</title>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
+    <style>
+        body { font-family: sans-serif; padding: 20px; }
+        .mermaid { text-align: center; }
+    </style>
+</head>
+<body>
+    <div class="mermaid">
+    flowchart LR
+        subgraph UserLane [Admin / User]
+            direction TB
+            Start(( )) --> Input[กรอก User name,\npassword]
+            Input --> Submit[Submit]
+            Success[Login สำเร็จ] --> Stop((( )))
+        end
+        subgraph SystemLane [ระบบ : หน้าเข้าสู่ระบบ]
+            direction TB
+            Validate[ตรวจสอบความถูกต้อง\nของข้อมูล Username,\npassword]
+        end
+        subgraph DBLane [ฐานข้อมูล : เก็บข้อมูลผู้ใช้]
+            direction TB
+            CheckDB[ข้อมูลตรงกับข้อมูลที่\nบันทึกไว้ในฐานข้อมูล]
+        end
+
+        Submit --> Validate
+        Validate --> CheckDB
+        CheckDB --> Success
+
+        style UserLane fill:none,stroke:#000,stroke-width:1px
+        style SystemLane fill:none,stroke:#000,stroke-width:1px
+        style DBLane fill:none,stroke:#000,stroke-width:1px
+    </div>
+    <script>
+        mermaid.initialize({ startOnLoad: true, theme: 'default' });
+    </script>
+</body>
+</html>

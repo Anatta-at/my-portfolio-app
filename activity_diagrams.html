@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <title>Activity Diagrams — IntelliPortfolio System (PlantUML Swimlane)</title>
+    <script src="https://cdn.jsdelivr.net/npm/plantuml-encoder@1.4.0/dist/plantuml-encoder.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;700&display=swap');
+        
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: 'Sarabun', sans-serif;
+            background: #fff;
+            color: #1a1a1a;
+            line-height: 1.6;
+            padding: 40px 60px;
+        }
+
+        h1 {
+            font-size: 28px;
+            font-weight: 700;
+            text-align: center;
+            margin-bottom: 6px;
+            color: #111;
+        }
+        
+        .subtitle {
+            text-align: center;
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 40px;
+        }
+
+        h2 {
+            font-size: 20px;
+            font-weight: 700;
+            color: #b45309;
+            margin-top: 50px;
+            margin-bottom: 8px;
+            padding-bottom: 6px;
+            border-bottom: 2px solid #f59e0b;
+            page-break-before: always;
+        }
+
+        h2:first-of-type {
+            page-break-before: auto;
+        }
+
+        .diagram-container {
+            text-align: center;
+            margin: 20px 0 40px 0;
+            overflow-x: auto;
+            background: #fafafa;
+            border: 1px solid #eaeaea;
+            padding: 20px;
+            border-radius: 8px;
+        }
+        
+        .diagram-container img {
+            max-width: 100%;
+            height: auto;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        }
+
+        .note-box {
+            background: #fffbeb;
+            border-left: 4px solid #f59e0b;
+            padding: 12px 16px;
+            margin: 16px 0;
+            font-size: 13px;
+            color: #92400e;
+            border-radius: 0 8px 8px 0;
+        }
+        
+        .print-btn {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: #f59e0b;
+            color: white;
+            border: none;
+            padding: 14px 28px;
+            font-size: 16px;
+            font-weight: 700;
+            border-radius: 12px;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(245,158,11,0.4);
+            z-index: 1000;
+            font-family: 'Sarabun', sans-serif;
+        }
+        
+        .print-btn:hover { background: #d97706; }
+        
+        @media print {
+            body { padding: 20px 30px; font-size: 11px; }
+            h1 { font-size: 22px; }
+            h2 { font-size: 16px; margin-top: 10px; }
+            .print-btn { display: none; }
+            .diagram-container { margin: 10px 0 20px 0; border: none; box-shadow: none; background: transparent; }
+            .diagram-container img { box-shadow: none; }
+            .note-box { padding: 8px 12px; font-size: 11px; }
+        }
+    </style>
+</head>
+<body>
+
+<button class="print-btn" onclick="window.print()">📄 Save as PDF</button>
+
+<h1>Activity Diagrams</h1>
+<p class="subtitle">IntelliPortfolio — AI-Powered Portfolio Optimization System</p>
+
+<div class="note-box">
+    เอกสารนี้แสดง <b>Activity Diagram แบบช่อง (Swimlanes)</b> ตรงตามแบบฟอร์มมาตรฐาน
+</div>
+
+<!-- ==================== SECTION 1 ==================== -->
+<h2>1. การเข้าสู่ระบบ (Authentication)</h2>
+<div class="diagram-container">
+    <img id="img_diagram1" alt="Diagram 1" />
+</div>
+
+<!-- ==================== SECTION 2 ==================== -->
+<h2>2. กระบวนการสร้างพอร์ตด้วย AI (Portfolio Optimization)</h2>
+<div class="diagram-container">
+    <img id="img_diagram2" alt="Diagram 2" />
+</div>
+
+<!-- ==================== SECTION 3 ==================== -->
+<h2>3. การจัดการสินทรัพย์ (Asset Management)</h2>
+<div class="diagram-container">
+    <img id="img_diagram3" alt="Diagram 3" />
+</div>
+
+<!-- ==================== SECTION 4 ==================== -->
+<h2>4. การจัดการสิทธิ์ผู้ใช้งาน (User Role Management)</h2>
+<div class="diagram-container">
+    <img id="img_diagram4" alt="Diagram 4" />
+</div>
+
+<script>
+const skinParams = `
+skinparam defaultFontName "Sarabun"
+skinparam swimlaneWidth same
+skinparam ActivityBackgroundColor #ffffff
+skinparam ActivityBorderColor #333333
+skinparam ActivityDiamondBackgroundColor #ffffff
+skinparam ActivityDiamondBorderColor #333333
+skinparam ArrowColor #333333
+`;
+
+const diagram1 = `
+@startuml
+${skinParams}
+|Admin / User|
+start
+:เข้าเว็บไซต์หน้า /dashboard;
+:กรอก Email, password;
+:Submit;
+|ระบบเว็บไซต์ : หน้าเข้าสู่ระบบ|
+:ตรวจสอบความถูกต้อง\nของข้อมูล Email, password;
+|ฐานข้อมูล : ระบบตรวจสอบสิทธิ์|
+if (ข้อมูลถูกต้องหรือไม่?) then (ถูกต้อง)
+  |ระบบเว็บไซต์ : หน้าเข้าสู่ระบบ|
+  :สร้าง Session & Token;
+  |Admin / User|
+  :Login สำเร็จ;
+  stop
+else (ไม่ถูกต้อง)
+  |ระบบเว็บไซต์ : หน้าเข้าสู่ระบบ|
+  :แสดงข้อความแจ้งเตือน "ไม่ถูกต้อง";
+  |Admin / User|
+  :เข้าเว็บไซต์หน้า /dashboard;
+  detach
+endif
+@enduml
+`;
+
+const diagram2 = `
+@startuml
+${skinParams}
+|User|
+start
+:กรอกข้อมูลการลงทุน (เป้าหมาย, งบประมาณ);
+:Submit (กด Optimize);
+|ระบบเว็บไซต์ : AI Engine|
+:รับค่าและตรวจสอบพารามิเตอร์;
+|ฐานข้อมูล : ข้อมูลหุ้น|
+:ดึงรายชื่อหุ้น SET50 ที่เปิดใช้งาน;
+:ดึงข้อมูลราคาหุ้นและมุมมองนักวิเคราะห์ (Views);
+|ระบบเว็บไซต์ : AI Engine|
+:คำนวณ Black-Litterman Model (Prior + Views);
+:รัน Genetic Algorithm เพื่อค้นหาสัดส่วนพอร์ต;
+:คำนวณความน่าจะเป็นของเป้าหมาย (Monte Carlo);
+|ฐานข้อมูล : ข้อมูลหุ้น|
+:บันทึกสัดส่วนพอร์ตและข้อมูลเป้าหมายลง Database;
+|ระบบเว็บไซต์ : AI Engine|
+:ทำ Backtest ย้อนหลัง;
+:สร้างผลลัพธ์ (JSON Response);
+|User|
+:แสดงผลลัพธ์พอร์ตการลงทุน;
+stop
+@enduml
+`;
+
+const diagram3 = `
+@startuml
+${skinParams}
+|Admin|
+start
+:เข้าหน้า Asset Management;
+|ระบบเว็บไซต์ : Admin API|
+:ตรวจสอบสิทธิ์การเข้าถึง;
+|ฐานข้อมูล : Assets|
+:ดึงข้อมูลสินทรัพย์ทั้งหมด;
+|Admin|
+:ระบบแสดงตารางสินทรัพย์;
+:เลือกการจัดการ (เพิ่ม/แก้ไข/ลบ);
+
+if (เพิ่มสินทรัพย์ใหม่?) then (เพิ่ม)
+  :กรอก Ticker และ Market Cap;
+  :กดยืนยันการเพิ่ม;
+  |ระบบเว็บไซต์ : Admin API|
+  :ตรวจสอบความถูกต้องข้อมูล;
+  |ฐานข้อมูล : Assets|
+  :บันทึกข้อมูลสินทรัพย์ใหม่ลง Database;
+elseif (แก้ไขสินทรัพย์?) then (แก้ไข)
+  |Admin|
+  :แก้ไข Market Cap / เปิด-ปิดสถานะ;
+  :กดยืนยันการแก้ไข;
+  |ระบบเว็บไซต์ : Admin API|
+  :ตรวจสอบความถูกต้องข้อมูล;
+  |ฐานข้อมูล : Assets|
+  :อัปเดตข้อมูลสินทรัพย์ลง Database;
+else (ลบสินทรัพย์)
+  |Admin|
+  :กดปุ่มลบสินทรัพย์;
+  :กดยืนยันการลบ;
+  |ระบบเว็บไซต์ : Admin API|
+  :ตรวจสอบสิทธิ์ก่อนการลบ;
+  |ฐานข้อมูล : Assets|
+  :ลบข้อมูลสินทรัพย์ออกจาก Database;
+endif
+
+|ระบบเว็บไซต์ : Admin API|
+:รีโหลดข้อมูลตารางใหม่;
+|Admin|
+:แสดงข้อมูลที่อัปเดตแล้ว;
+stop
+@enduml
+`;
+
+const diagram4 = `
+@startuml
+${skinParams}
+|Admin|
+start
+:เข้าหน้า User Management;
+|ระบบเว็บไซต์ : Admin API|
+:ดึงรายชื่อผู้ใช้จากระบบ Auth (Clerk);
+|ฐานข้อมูล : ข้อมูลผู้ใช้|
+:ดึงข้อมูลสิทธิ์และประวัติจาก Database;
+|ระบบเว็บไซต์ : Admin API|
+:ผสานข้อมูลผู้ใช้จาก 2 แหล่งเข้าด้วยกัน;
+|Admin|
+:ระบบแสดงตารางผู้ใช้งาน;
+:เลือกเปลี่ยนสิทธิ์ (Role) จาก Dropdown;
+:กดยืนยันการเปลี่ยนสิทธิ์;
+|ระบบเว็บไซต์ : Admin API|
+:ตรวจสอบว่าผู้ร้องขอเป็น Admin หรือไม่;
+if (เป็น Admin?) then (ใช่)
+  |ฐานข้อมูล : ข้อมูลผู้ใช้|
+  :อัปเดตสิทธิ์ใหม่ลงใน Database;
+  |ระบบเว็บไซต์ : Admin API|
+  :คืนค่าสถานะสำเร็จ;
+  |Admin|
+  :ตารางอัปเดตสิทธิ์สำเร็จ;
+  stop
+else (ไม่ใช่)
+  |ระบบเว็บไซต์ : Admin API|
+  :คืนค่าข้อผิดพลาด (Access Denied);
+  |Admin|
+  :แสดงข้อความแจ้งเตือน;
+  stop
+endif
+@enduml
+`;
+
+function encodeAndSetSrc(id, pumlText) {
+    const encoded = plantumlEncoder.encode(pumlText);
+    document.getElementById(id).src = "https://www.plantuml.com/plantuml/svg/" + encoded;
+}
+
+encodeAndSetSrc("img_diagram1", diagram1);
+encodeAndSetSrc("img_diagram2", diagram2);
+encodeAndSetSrc("img_diagram3", diagram3);
+encodeAndSetSrc("img_diagram4", diagram4);
+
+</script>
+
+</body>
+</html>

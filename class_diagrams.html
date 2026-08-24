@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <title>Class Diagrams — IntelliPortfolio System</title>
+    <script src="https://cdn.jsdelivr.net/npm/plantuml-encoder@1.4.0/dist/plantuml-encoder.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;700&display=swap');
+        
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: 'Sarabun', sans-serif;
+            background: #fff;
+            color: #1a1a1a;
+            line-height: 1.6;
+            padding: 40px 60px;
+        }
+
+        h1 {
+            font-size: 28px;
+            font-weight: 700;
+            text-align: center;
+            margin-bottom: 6px;
+            color: #111;
+        }
+        
+        .subtitle {
+            text-align: center;
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 40px;
+        }
+
+        h2 {
+            font-size: 20px;
+            font-weight: 700;
+            color: #333;
+            margin-top: 50px;
+            margin-bottom: 8px;
+            padding-bottom: 6px;
+            border-bottom: 2px solid #333;
+            page-break-before: always;
+        }
+
+        h2:first-of-type {
+            page-break-before: auto;
+        }
+
+        .diagram-container {
+            text-align: center;
+            margin: 20px 0 40px 0;
+            overflow-x: auto;
+            padding: 20px;
+        }
+        
+        .diagram-container img {
+            max-width: 100%;
+            height: auto;
+        }
+
+        .print-btn {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: #333;
+            color: white;
+            border: none;
+            padding: 14px 28px;
+            font-size: 16px;
+            font-weight: 700;
+            border-radius: 12px;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            z-index: 1000;
+            font-family: 'Sarabun', sans-serif;
+        }
+        
+        .print-btn:hover { background: #111; }
+        
+        @media print {
+            body { padding: 20px 30px; font-size: 11px; }
+            h1 { font-size: 22px; }
+            h2 { font-size: 16px; margin-top: 10px; }
+            .print-btn { display: none; }
+            .diagram-container { margin: 10px 0 20px 0; padding: 10px; }
+        }
+    </style>
+</head>
+<body>
+
+<button class="print-btn" onclick="window.print()">📄 Save as PDF</button>
+
+<h1>Class Diagrams</h1>
+<p class="subtitle">IntelliPortfolio — AI-Powered Portfolio Optimization System</p>
+
+<!-- ==================== SECTION 1 ==================== -->
+<h2>1. Database Entity Classes</h2>
+<div class="diagram-container">
+    <img id="img_diagram1" alt="Database Entity Class Diagram" />
+</div>
+
+<!-- ==================== SECTION 2 ==================== -->
+<h2>2. Backend Engine Classes</h2>
+<div class="diagram-container">
+    <img id="img_diagram2" alt="Engine Class Diagram" />
+</div>
+
+<!-- ==================== SECTION 3 ==================== -->
+<h2>3. API Request / Response Models</h2>
+<div class="diagram-container">
+    <img id="img_diagram3" alt="API Models Class Diagram" />
+</div>
+
+<!-- ==================== SECTION 4 ==================== -->
+<h2>4. Full System Class Diagram</h2>
+<div class="diagram-container">
+    <img id="img_diagram4" alt="Full System Class Diagram" />
+</div>
+
+<script>
+const skin = `
+skinparam monochrome true
+skinparam shadowing false
+skinparam classAttributeIconSize 0
+skinparam classFontSize 14
+skinparam classAttributeFontSize 12
+skinparam classStereotypeFontSize 11
+skinparam defaultFontName "Tahoma"
+skinparam class {
+    BackgroundColor White
+    BorderColor Black
+    ArrowColor Black
+}
+skinparam note {
+    BackgroundColor White
+    BorderColor Black
+}
+`;
+
+// ==================== DIAGRAM 1: Database Entities ====================
+const diagram1 = `
+@startuml
+${skin}
+
+class Users {
+    - clerk_id : String <<PK>>
+    - role : String
+    - created_at : DateTime
+    - last_login_at : DateTime
+    ..
+    + getRole() : String
+    + updateLastLogin() : void
+}
+
+class Portfolios {
+    - id : int <<PK>>
+    - clerk_id : String <<FK>>
+    - name : String
+    - target_beta : float
+    - budget : float
+    - target_amount : float
+    - duration_years : int
+    - expected_return : float
+    - portfolio_volatility : float
+    - success_probability : float
+    - created_at : DateTime
+    ..
+    + getMetadata() : Dict
+    + toDict() : Dict
+}
+
+class PortfolioAssets {
+    - id : int <<PK>>
+    - portfolio_id : int <<FK>>
+    - ticker : String
+    - weight : float
+    - beta : float
+    - created_at : DateTime
+    ..
+    + toDict() : Dict
+}
+
+class StockViews {
+    - id : int <<PK>>
+    - ticker : String
+    - expected_return : float
+    - variance : float
+    - updated_at : DateTime
+    ..
+    + toDict() : Dict
+}
+
+class Assets {
+    - ticker : String <<PK>>
+    - market_cap : int
+    - is_active : bool
+    ..
+    + toDict() : Dict
+}
+
+Users "1" o-- "*" Portfolios : owns >
+Portfolios "1" *-- "*" PortfolioAssets : contains >
+StockViews "*" -- "*" PortfolioAssets : references >
+
+@enduml
+`;
+
+// ==================== DIAGRAM 2: Engine Classes ====================
+const diagram2 = `
+@startuml
+skinparam monochrome true
+skinparam shadowing false
+skinparam classAttributeIconSize 0
+skinparam classFontSize 16
+skinparam classAttributeFontSize 14
+skinparam classStereotypeFontSize 13
+skinparam defaultFontName "Tahoma"
+skinparam class {
+    BackgroundColor White
+    BorderColor Black
+    ArrowColor Black
+}
+skinparam note {
+    BackgroundColor White
+    BorderColor Black
+}
+top to bottom direction
+
+interface DataFetcher <<interface>> {
+    + fetch_data(tickers : List) : object
+}
+
+class SETDataFetcher {
+    ..
+    + fetch_data(tickers : List) : object
+    + get_set50_tickers() : List
+    + get_market_caps(tickers : List) : Series
+}
+
+class YahooFinanceFetcher {
+    ..
+    + fetch_data(tickers : List) : object
+    + get_market_data_with_beta(tickers : List,\n    period : String) : Tuple
+}
+
+class BlackLittermanEngine {
+    ..
+    + calculate_posterior(market_caps : Series,\n    cov_matrix : DataFrame,\n    views_data : Dict) : Tuple
+}
+
+class GeneticPortfolioOptimizer {
+    - rf : float
+    ..
+    + run_optimization(tickers : List,\n    bl_returns : ndarray,\n    cov_matrix : DataFrame,\n    market_caps : Series,\n    target_beta : float,\n    max_stocks : int,\n    actual_betas : Series,\n    locked_stocks : List,\n    max_weight_per_asset : float) : Tuple
+    - evaluate(individual : List) : float
+}
+
+class ManualViewProvider {
+    ..
+    + get_db_connection() : Connection
+    + get_view(ticker : String) : float
+    + get_all_views(tickers : List) : Dict
+}
+
+class BacktestEngine {
+    ..
+    + run_backtest(weights_dict : Dict,\n    start_date : String,\n    end_date : String) : Dict
+    - _default_empty_result(msg : String) : Dict
+}
+
+class AuthService {
+    ..
+    + register(clerk_id : String) : void
+    + login(clerk_id : String) : void
+    + logout(clerk_id : String) : void
+    + getUserRole(clerk_id : String) : String
+}
+
+class PortfolioService {
+    ..
+    + createPortfolio(clerk_id : String,\n    data : Dict) : int
+    + getPortfolio(portfolio_id : int) : Dict
+    + deletePortfolio(portfolio_id : int) : void
+    + getUserPortfolios(clerk_id : String) : List
+}
+
+class AssetService {
+    ..
+    + addAsset(ticker : String,\n    market_cap : int) : void
+    + updateAsset(ticker : String,\n    market_cap : int,\n    is_active : bool) : void
+    + deleteAsset(ticker : String) : void
+    + getAllAssets() : List
+}
+
+class RedisCache {
+    ..
+    + get(key : String) : bytes
+    + setex(key : String,\n    ttl : int,\n    value : bytes) : void
+}
+
+class PostgreSQL {
+    ..
+    + connect() : Connection
+    + execute(query : String) : void
+    + fetchall() : List
+}
+
+DataFetcher <|.. SETDataFetcher
+DataFetcher <|.. YahooFinanceFetcher
+
+SETDataFetcher --> PostgreSQL
+ManualViewProvider --> PostgreSQL
+YahooFinanceFetcher --> RedisCache
+GeneticPortfolioOptimizer --> BlackLittermanEngine
+BacktestEngine --> YahooFinanceFetcher
+
+AuthService --> PostgreSQL
+PortfolioService --> PostgreSQL
+AssetService --> PostgreSQL
+
+SETDataFetcher -[hidden]right- YahooFinanceFetcher
+AuthService -[hidden]right- PortfolioService
+PortfolioService -[hidden]right- AssetService
+BlackLittermanEngine -[hidden]right- GeneticPortfolioOptimizer
+
+@enduml
+`;
+
+// ==================== DIAGRAM 3: API Models ====================
+const diagram3 = `
+@startuml
+${skin}
+
+class OptimizeRequest {
+    - user_id : String
+    - portfolio_name : String
+    - user_custom_views : Dict
+    - target_beta : float
+    - max_stocks : int
+    - max_weight_per_asset : float
+    - start_date : String
+    - end_date : String
+    - budget : float
+    - target_amount : float
+    - duration_years : int
+    - locked_stocks : List
+}
+
+class RoleUpdateRequest {
+    - new_role : String
+    - admin_id : String
+}
+
+class AssetRequest {
+    - ticker : String
+    - market_cap : int
+    - is_active : bool
+}
+
+class FastAPIApp {
+    ..
+    + optimize_portfolio(req : OptimizeRequest) : JSON
+    + get_user_portfolios(clerk_id : String) : JSON
+    + get_portfolio_details(id : int) : JSON
+    + get_market_highlights() : JSON
+    + get_user_role(clerk_id : String) : JSON
+    + get_all_users() : JSON
+    + update_user_role(id : String, req : RoleUpdateRequest) : JSON
+    + get_admin_assets() : JSON
+    + add_admin_asset(req : AssetRequest) : JSON
+    + update_admin_asset(ticker : String, req : AssetRequest) : JSON
+    + delete_admin_asset(ticker : String) : JSON
+}
+
+class UtilityFunctions {
+    ..
+    + calculate_success_probability(budget : float, target : float, duration : int, ret : float, vol : float) : float
+    + calculate_forecast_range(budget : float, duration : int, ret : float, vol : float) : Dict
+    + save_portfolio_to_db(clerk_id : String, name : String, beta : float, budget : float, target : float, duration : int, data : List, ret : float, vol : float) : int
+}
+
+class AdminUsersRoute {
+    ..
+    + GET() : NextResponse
+    - mergeClerkAndDBUsers() : List
+}
+
+FastAPIApp --> OptimizeRequest : receives >
+FastAPIApp --> RoleUpdateRequest : receives >
+FastAPIApp --> AssetRequest : receives >
+FastAPIApp --> UtilityFunctions : uses >
+AdminUsersRoute --> FastAPIApp : proxies >
+
+@enduml
+`;
+
+// ==================== DIAGRAM 4: Full System ====================
+const diagram4 = `
+@startuml
+${skin}
+
+interface DataFetcher <<interface>> {
+    + fetch_data(tickers : List) : object
+}
+
+class Users {
+    - clerk_id : String
+    - role : String
+    - created_at : DateTime
+    - last_login_at : DateTime
+    ..
+    + getRole() : String
+    + updateLastLogin() : void
+}
+
+class Admin {
+    ..
+    + manageUsers() : void
+    + manageAssets() : void
+    + changeRole() : void
+}
+
+class Portfolios {
+    - id : int
+    - clerk_id : String
+    - name : String
+    - target_beta : float
+    - budget : float
+    - target_amount : float
+    - duration_years : int
+    - expected_return : float
+    - portfolio_volatility : float
+    - success_probability : float
+    - created_at : DateTime
+    ..
+    + getMetadata() : Dict
+    + toDict() : Dict
+}
+
+class PortfolioAssets {
+    - id : int
+    - portfolio_id : int
+    - ticker : String
+    - weight : float
+    - beta : float
+    ..
+    + toDict() : Dict
+}
+
+class Assets {
+    - ticker : String
+    - market_cap : int
+    - is_active : bool
+    ..
+    + toDict() : Dict
+}
+
+class StockViews {
+    - id : int
+    - ticker : String
+    - expected_return : float
+    - variance : float
+    ..
+    + toDict() : Dict
+}
+
+class AuthService {
+    ..
+    + register(clerk_id : String) : void
+    + login(clerk_id : String) : void
+    + logout(clerk_id : String) : void
+    + getUserRole(clerk_id : String) : String
+}
+
+class PortfolioService {
+    ..
+    + createPortfolio(clerk_id : String, data : Dict) : int
+    + getPortfolio(portfolio_id : int) : Dict
+    + deletePortfolio(portfolio_id : int) : void
+    + getUserPortfolios(clerk_id : String) : List
+}
+
+class AssetService {
+    ..
+    + addAsset(ticker : String, market_cap : int) : void
+    + updateAsset(ticker : String, market_cap : int, is_active : bool) : void
+    + deleteAsset(ticker : String) : void
+    + getAllAssets() : List
+}
+
+class BlackLittermanEngine {
+    ..
+    + calculate_posterior() : Tuple
+}
+
+class GeneticPortfolioOptimizer {
+    - rf : float
+    ..
+    + run_optimization() : Tuple
+    - evaluate() : float
+}
+
+class BacktestEngine {
+    ..
+    + run_backtest() : Dict
+    - _default_empty_result() : Dict
+}
+
+class SETDataFetcher {
+    ..
+    + fetch_data(tickers : List) : object
+    + get_set50_tickers() : List
+    + get_market_caps() : Series
+}
+
+class YahooFinanceFetcher {
+    ..
+    + fetch_data(tickers : List) : object
+    + get_market_data_with_beta() : Tuple
+}
+
+class ManualViewProvider {
+    ..
+    + get_all_views() : Dict
+}
+
+Users <|-- Admin
+DataFetcher <|.. SETDataFetcher
+DataFetcher <|.. YahooFinanceFetcher
+
+Users "1" o-- "*" Portfolios
+Portfolios "1" *-- "*" PortfolioAssets
+Admin "1" -- "*" Assets : manages >
+
+AuthService --> Users : manages >
+PortfolioService --> Portfolios : manages >
+PortfolioService --> PortfolioAssets : manages >
+AssetService --> Assets : manages >
+
+SETDataFetcher --> Assets : reads >
+ManualViewProvider --> StockViews : reads >
+BlackLittermanEngine <-- GeneticPortfolioOptimizer : uses
+GeneticPortfolioOptimizer --> SETDataFetcher : uses >
+GeneticPortfolioOptimizer --> YahooFinanceFetcher : uses >
+BacktestEngine --> YahooFinanceFetcher : uses >
+
+PortfolioService --> BlackLittermanEngine : delegates >
+PortfolioService --> GeneticPortfolioOptimizer : delegates >
+PortfolioService --> BacktestEngine : delegates >
+
+@enduml
+`;
+
+function encodeAndSetSrc(id, pumlText) {
+    const encoded = plantumlEncoder.encode(pumlText);
+    document.getElementById(id).src = "https://www.plantuml.com/plantuml/svg/" + encoded;
+}
+
+encodeAndSetSrc("img_diagram1", diagram1);
+encodeAndSetSrc("img_diagram2", diagram2);
+encodeAndSetSrc("img_diagram3", diagram3);
+encodeAndSetSrc("img_diagram4", diagram4);
+
+</script>
+
+</body>
+</html>

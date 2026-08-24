@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <title>Activity Diagrams — IntelliPortfolio</title>
+    <script src="https://cdn.jsdelivr.net/npm/plantuml-encoder@1.4.0/dist/plantuml-encoder.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;700&display=swap');
+        
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: 'Sarabun', sans-serif;
+            background: #f4f7f6;
+            color: #1a1a1a;
+            line-height: 1.6;
+            padding: 40px 60px;
+        }
+
+        h1 {
+            font-size: 28px;
+            font-weight: 700;
+            text-align: center;
+            margin-bottom: 6px;
+            color: #111;
+        }
+        
+        .subtitle {
+            text-align: center;
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 40px;
+        }
+
+        .diagram-section {
+            background: #fff;
+            padding: 30px;
+            margin-bottom: 40px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            text-align: center;
+        }
+
+        .diagram-section h2 {
+            font-size: 20px;
+            margin-bottom: 20px;
+            color: #333;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 10px;
+            display: inline-block;
+        }
+
+        /* The SVG container will hold the injected SVG */
+        .svg-container {
+            display: flex;
+            justify-content: center;
+        }
+
+        .puml-img {
+            max-width: 100%;
+            height: auto;
+            border: 2px solid black; /* Outer table border */
+            border-radius: 2px;
+            background: #fff;
+        }
+
+        /* Force fonts inside the SVG */
+        .puml-img text {
+            font-family: 'Sarabun', sans-serif !important;
+        }
+
+        .print-btn {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: #333;
+            color: white;
+            border: none;
+            padding: 14px 28px;
+            font-size: 16px;
+            font-weight: 700;
+            border-radius: 12px;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            z-index: 1000;
+            font-family: 'Sarabun', sans-serif;
+        }
+        
+        .print-btn:hover { background: #111; }
+        
+        @media print {
+            body { padding: 0; background: #fff; }
+            .diagram-section { box-shadow: none; margin-bottom: 20px; padding: 10px 0; break-inside: avoid; }
+            .print-btn { display: none; }
+        }
+    </style>
+</head>
+<body>
+
+<button class="print-btn" onclick="window.print()">📄 Save as PDF</button>
+
+<h1>Activity Diagrams (Detailed Flows)</h1>
+<p class="subtitle">ระบบ IntelliPortfolio (ขาวดำ, 3 ช่อง, มีเส้นตารางปิดหัว-ท้าย)</p>
+
+<div class="diagram-section">
+    <h2>1. กระบวนการเข้าสู่ระบบ (Authentication Flow)</h2>
+    <div id="container_diagram1" class="svg-container">กำลังโหลด...</div>
+</div>
+
+<div class="diagram-section">
+    <h2>2. กระบวนการสร้างพอร์ตโฟลิโออัจฉริยะ (Portfolio Optimization Flow)</h2>
+    <div id="container_diagram2" class="svg-container">กำลังโหลด...</div>
+</div>
+
+<div class="diagram-section">
+    <h2>3. กระบวนการเพิ่มมุมมองส่วนตัว (Black-Litterman Views Flow)</h2>
+    <div id="container_diagram3" class="svg-container">กำลังโหลด...</div>
+</div>
+
+<script>
+const skin = `
+skinparam monochrome true
+skinparam shadowing false
+skinparam defaultFontName "Sarabun"
+skinparam defaultFontSize 16
+
+skinparam activity {
+    BackgroundColor White
+    BorderColor Black
+    FontSize 15
+}
+skinparam swimlane {
+    BorderColor Black
+    BorderThickness 2
+    TitleFontSize 18
+}
+`;
+
+const diagram1 = `
+@startuml
+${skin}
+
+|User (ผู้ใช้งาน)|
+|Frontend (หน้าเว็บไซต์)|
+|Backend & Database|
+
+|User (ผู้ใช้งาน)|
+start
+:กดปุ่ม "เข้าสู่ระบบ / สมัครสมาชิก";
+|Frontend (หน้าเว็บไซต์)|
+:แสดงหน้าต่าง Clerk Authentication;
+|User (ผู้ใช้งาน)|
+:กรอกข้อมูล Email/Password หรือเลือก Social Login;
+|Frontend (หน้าเว็บไซต์)|
+:ส่งข้อมูลยืนยันตัวตนผ่าน Clerk API;
+|Backend & Database|
+:ตรวจสอบสิทธิ์ผู้ใช้งาน;
+if (เป็นผู้ใช้ใหม่?) then (ใช่)
+  :สร้างบัญชีใหม่ในฐานข้อมูล (Users Table);
+else (ไม่ใช่)
+  :อัปเดตข้อมูลการเข้าสู่ระบบ (last_login_at);
+endif
+:สร้าง Session Token;
+|Frontend (หน้าเว็บไซต์)|
+:รับ Token และบันทึกลง Local Storage;
+:เปลี่ยนหน้าไปยัง Dashboard;
+|User (ผู้ใช้งาน)|
+:ดูภาพรวมพอร์ตโฟลิโอของตนเอง;
+stop
+@enduml
+`;
+
+const diagram2 = `
+@startuml
+${skin}
+
+|User (ผู้ใช้งาน)|
+|Frontend (หน้าเว็บไซต์)|
+|Backend & Database|
+
+|User (ผู้ใช้งาน)|
+start
+:เข้าสู่หน้า "สร้างพอร์ตโฟลิโอ";
+:กรอกข้อมูล: งบประมาณ, ระดับความเสี่ยง, ระยะเวลา;
+:กดปุ่ม "วิเคราะห์และจัดพอร์ต";
+|Frontend (หน้าเว็บไซต์)|
+:ส่งข้อมูล (Budget, Target Beta, Duration) ไปยัง API;
+|Backend & Database|
+:ดึงข้อมูลราคาหุ้น SET50 ย้อนหลัง (DataFetcher);
+:ตรวจสอบข้อมูลใน Redis Cache;
+:คำนวณอัตราผลตอบแทนและความแปรปรวนของตลาด;
+:ประมวลผล Black-Litterman Engine (หาผลตอบแทนคาดหวังใหม่);
+:ส่งข้อมูลเข้า Genetic Algorithm Optimizer;
+:ประมวลผลค้นหาสัดส่วนหุ้นที่ดีที่สุด (Evolution Process);
+:คำนวณโอกาสสำเร็จ (Monte Carlo / Success Probability);
+:บันทึกข้อมูล Portfolio และ Assets ลง Database;
+:ส่งผลลัพธ์สัดส่วนหุ้นกลับไปยังหน้าเว็บ;
+|Frontend (หน้าเว็บไซต์)|
+:เรนเดอร์กราฟวงกลม (Pie Chart) แสดงสัดส่วน;
+:แสดงค่าคาดการณ์ผลตอบแทนและโอกาสสำเร็จ;
+|User (ผู้ใช้งาน)|
+:ดูผลลัพธ์การจัดพอร์ตโฟลิโอ;
+stop
+@enduml
+`;
+
+const diagram3 = `
+@startuml
+${skin}
+
+|User (ผู้ใช้งาน)|
+|Frontend (หน้าเว็บไซต์)|
+|Backend & Database|
+
+|User (ผู้ใช้งาน)|
+start
+:เข้าสู่หน้า "ปรับแต่งมุมมองตลาด";
+:เลือกหุ้นที่สนใจ (Ticker);
+:กรอกมุมมองผลตอบแทนล่วงหน้า (เช่น โต 5%);
+:กดปุ่ม "บันทึกมุมมอง";
+|Frontend (หน้าเว็บไซต์)|
+:ส่งข้อมูล Stock Views ไปยัง API;
+|Backend & Database|
+:ตรวจสอบความถูกต้องของข้อมูลหุ้น;
+:บันทึกมุมมองใหม่ลงในตาราง StockViews;
+:อัปเดตวันที่แก้ไข (updated_at);
+:ส่งสถานะการบันทึกสำเร็จ;
+|Frontend (หน้าเว็บไซต์)|
+:แสดงแจ้งเตือน (Toast Notification) ว่าบันทึกสำเร็จ;
+:อัปเดตรายการมุมมองในตารางบนหน้าเว็บ;
+|User (ผู้ใช้งาน)|
+:ตรวจสอบรายการมุมมองที่ถูกเพิ่ม;
+stop
+@enduml
+`;
+
+async function renderSVG(diagramStr, containerId) {
+    const encoded = plantumlEncoder.encode(diagramStr);
+    const url = "https://www.plantuml.com/plantuml/svg/" + encoded;
+    
+    try {
+        const response = await fetch(url);
+        let svgText = await response.text();
+        
+        // Ensure SVG has the class for styling
+        svgText = svgText.replace(/<svg\s+/, '<svg class="puml-img" ');
+        
+        // Force font family via inline style mapping to our loaded Google Font
+        svgText = svgText.replace(/font-family="[^"]*"/g, 'font-family="\\'Sarabun\\', sans-serif"');
+        
+        document.getElementById(containerId).innerHTML = svgText;
+    } catch (err) {
+        console.error("Failed to load SVG for " + containerId, err);
+        document.getElementById(containerId).innerHTML = \`<img class="puml-img" src="\${url}" alt="Diagram" />\`;
+    }
+}
+
+renderSVG(diagram1, "container_diagram1");
+renderSVG(diagram2, "container_diagram2");
+renderSVG(diagram3, "container_diagram3");
+</script>
+
+</body>
+</html>

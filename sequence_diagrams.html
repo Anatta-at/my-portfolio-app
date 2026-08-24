@@ -1,0 +1,681 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <title>Sequence Diagrams — IntelliPortfolio System</title>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;700&display=swap');
+        
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: 'Sarabun', sans-serif;
+            background: #fff;
+            color: #1a1a1a;
+            line-height: 1.6;
+            padding: 40px 60px;
+        }
+
+        h1 {
+            font-size: 28px;
+            font-weight: 700;
+            text-align: center;
+            margin-bottom: 6px;
+            color: #111;
+        }
+        
+        .subtitle {
+            text-align: center;
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 40px;
+        }
+
+        h2 {
+            font-size: 20px;
+            font-weight: 700;
+            color: #b45309;
+            margin-top: 50px;
+            margin-bottom: 8px;
+            padding-bottom: 6px;
+            border-bottom: 2px solid #f59e0b;
+            page-break-before: always;
+        }
+
+        h2:first-of-type {
+            page-break-before: auto;
+        }
+
+        h3 {
+            font-size: 16px;
+            font-weight: 600;
+            color: #333;
+            margin-top: 30px;
+            margin-bottom: 10px;
+        }
+
+        .diagram-container {
+            text-align: center;
+            margin: 20px 0 40px 0;
+            overflow-x: auto;
+        }
+        
+        .diagram-container .mermaid {
+            display: inline-block;
+        }
+
+        .diagram-container .mermaid svg {
+            max-width: 100%;
+            height: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            font-size: 13px;
+        }
+        
+        th {
+            background: #f59e0b;
+            color: white;
+            padding: 10px 12px;
+            text-align: left;
+            font-weight: 600;
+        }
+        
+        td {
+            padding: 8px 12px;
+            border-bottom: 1px solid #e5e5e5;
+        }
+        
+        tr:nth-child(even) td { background: #fafafa; }
+        
+        code {
+            background: #f3f4f6;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-family: 'Courier New', monospace;
+        }
+
+        .note-box {
+            background: #fffbeb;
+            border-left: 4px solid #f59e0b;
+            padding: 12px 16px;
+            margin: 16px 0;
+            font-size: 13px;
+            color: #92400e;
+            border-radius: 0 8px 8px 0;
+        }
+        
+        .print-btn {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: #f59e0b;
+            color: white;
+            border: none;
+            padding: 14px 28px;
+            font-size: 16px;
+            font-weight: 700;
+            border-radius: 12px;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(245,158,11,0.4);
+            z-index: 1000;
+            font-family: 'Sarabun', sans-serif;
+        }
+        
+        .print-btn:hover { background: #d97706; }
+        
+        @media print {
+            body { padding: 20px 30px; font-size: 11px; }
+            h1 { font-size: 22px; }
+            h2 { font-size: 16px; margin-top: 10px; }
+            h3 { font-size: 13px; margin-top: 10px; }
+            .print-btn { display: none; }
+            .diagram-container { margin: 10px 0 20px 0; }
+            .note-box { padding: 8px 12px; font-size: 11px; }
+            table { font-size: 11px; }
+        }
+    </style>
+</head>
+<body>
+
+<button class="print-btn" onclick="window.print()">📄 Save as PDF</button>
+
+<h1>Sequence Diagrams</h1>
+<p class="subtitle">IntelliPortfolio — AI-Powered Portfolio Optimization System</p>
+
+<div class="note-box">
+    ไดอะแกรมด้านล่างนี้ครอบคลุม <b>ทุก Flow</b> ของระบบ IntelliPortfolio ตั้งแต่การล็อกอิน, การคำนวณ AI Engine, จนถึงระบบจัดการหลังบ้าน (Admin)
+</div>
+
+<!-- ==================== SECTION 1 ==================== -->
+<h2>1. Authentication & Role-Based Access Control (RBAC)</h2>
+
+<h3>1.1 การล็อกอินและเข้าสู่ระบบ</h3>
+<div class="diagram-container">
+<pre class="mermaid">
+sequenceDiagram
+    autonumber
+    actor User as ผู้ใช้งาน
+    participant Browser as Next.js Frontend
+    participant Clerk as Clerk Auth Service
+    participant Middleware as Next.js Middleware
+    participant Page as Protected Page
+
+    User->>Browser: เข้า URL (e.g., /dashboard)
+    Browser->>Middleware: Request /dashboard
+    Middleware->>Clerk: ตรวจสอบ Auth Token
+    
+    alt ยังไม่ได้ล็อกอิน
+        Clerk-->>Middleware: ไม่พบ Token
+        Middleware-->>Browser: Redirect → /login
+        Browser-->>User: แสดงหน้า Login
+        User->>Browser: กรอก Email / Password
+        Browser->>Clerk: Sign In Request
+        Clerk->>Clerk: ตรวจสอบข้อมูล
+        Clerk-->>Browser: Auth Token + Session Cookie
+        Browser->>Middleware: Request /dashboard (with Cookie)
+    end
+    
+    Middleware->>Clerk: Verify Token
+    Clerk-->>Middleware: Valid ✅ (userId)
+    Middleware-->>Page: อนุญาตเข้าถึง
+    Page-->>Browser: Render หน้าเว็บ
+    Browser-->>User: แสดงหน้า Dashboard
+</pre>
+</div>
+
+<h3>1.2 การเข้าถึงหน้า Admin (RBAC Check)</h3>
+<div class="diagram-container">
+<pre class="mermaid">
+sequenceDiagram
+    autonumber
+    actor Admin as ผู้ใช้งาน
+    participant Browser as Admin Page (React)
+    participant ClerkHook as useAuth() Hook
+    participant FastAPI as FastAPI Backend
+    participant DB as PostgreSQL
+
+    Admin->>Browser: เข้าหน้า /admin
+    Browser->>ClerkHook: ดึง userId
+    ClerkHook-->>Browser: userId
+
+    alt ไม่มี userId
+        Browser-->>Admin: แสดง Access Denied
+    end
+
+    Browser->>FastAPI: GET /api/users/{userId}/role
+    FastAPI->>DB: SELECT role FROM users WHERE clerk_id = ?
+    
+    alt พบ User ในระบบ
+        DB-->>FastAPI: role = admin
+    else ไม่พบ User
+        DB-->>FastAPI: empty
+        FastAPI-->>Browser: role = user (default)
+    end
+    
+    FastAPI-->>Browser: { status: success, role: admin }
+    
+    alt role = admin หรือ analyst
+        Browser->>Browser: setIsAdminAuthenticated(true)
+        Browser->>FastAPI: ดึงข้อมูล Users + Assets
+        Browser-->>Admin: แสดง Admin Console
+    else role = user
+        Browser-->>Admin: แสดง Access Denied
+    end
+</pre>
+</div>
+
+<!-- ==================== SECTION 2 ==================== -->
+<h2>2. Portfolio Optimization (AI Engine — Core Flow)</h2>
+
+<h3>2.1 การวางแผนและสร้างพอร์ต (Full Pipeline)</h3>
+<div class="diagram-container">
+<pre class="mermaid">
+sequenceDiagram
+    autonumber
+    actor User as ผู้ใช้งาน
+    participant PlanPage as Plan Page
+    participant FastAPI as FastAPI Backend
+    participant DB as PostgreSQL
+    participant DataFetcher as SETDataFetcher
+    participant Yahoo as Yahoo Finance
+    participant BL as Black-Litterman
+    participant GA as Genetic Algorithm
+    participant Views as ViewProvider
+    participant Backtest as BacktestEngine
+    participant Redis as Redis Cache
+
+    User->>PlanPage: กรอกข้อมูลการลงทุน
+    Note over PlanPage: ชื่อพอร์ต, งบประมาณ, เป้าหมาย,<br/>ระดับความเสี่ยง, จำนวนหุ้น,<br/>น้ำหนักสูงสุด, หุ้นล็อค
+
+    PlanPage->>FastAPI: POST /api/optimize
+
+    rect rgb(230, 240, 255)
+        Note over FastAPI,Redis: Step 1: ดึงรายชื่อหุ้น SET50
+        FastAPI->>DataFetcher: get_set50_tickers()
+        DataFetcher->>DB: SELECT ticker FROM assets WHERE is_active = TRUE
+        DB-->>DataFetcher: tickers 50 ตัว
+        DataFetcher-->>FastAPI: tickers[]
+    end
+
+    rect rgb(230, 255, 230)
+        Note over FastAPI,Yahoo: Step 2: ดึงราคาหุ้นและคำนวณ Beta
+        FastAPI->>Yahoo: get_market_data_with_beta(tickers)
+        Yahoo->>Redis: ตรวจสอบ Cache
+        alt มี Cache
+            Redis-->>Yahoo: คืน cached data
+        else ไม่มี Cache
+            Yahoo->>Yahoo: Download via yfinance
+            Yahoo->>Redis: บันทึก Cache (TTL 6 ชม.)
+        end
+        Yahoo-->>FastAPI: cov_matrix, betas
+    end
+
+    rect rgb(255, 240, 230)
+        Note over FastAPI,DB: Step 3: ดึง Market Cap
+        FastAPI->>DataFetcher: get_market_caps(valid_tickers)
+        DataFetcher->>DB: SELECT ticker, market_cap FROM assets
+        DB-->>DataFetcher: market_caps
+        DataFetcher-->>FastAPI: market_caps (pd.Series)
+    end
+
+    rect rgb(255, 255, 230)
+        Note over FastAPI,Views: Step 4: เตรียม Analyst Views
+        FastAPI->>Views: get_all_views(valid_tickers)
+        Views->>DB: SELECT * FROM analyst_views
+        DB-->>Views: มุมมองนักวิเคราะห์
+        Views-->>FastAPI: views_data
+        Note over FastAPI: ผสาน user_custom_views (ถ้ามี)
+    end
+
+    rect rgb(230, 245, 255)
+        Note over FastAPI,BL: Step 5: Black-Litterman Model
+        FastAPI->>BL: calculate_posterior()
+        Note over BL: Prior Returns จาก Market Equilibrium<br/>ผสาน Views ด้วย Bayesian Update
+        BL-->>FastAPI: adj_returns, updated_cov
+    end
+
+    rect rgb(245, 230, 255)
+        Note over FastAPI,GA: Step 6: Genetic Algorithm
+        FastAPI->>GA: run_optimization()
+        Note over GA: Population 200 ชุด
+        loop 100 Generations
+            GA->>GA: Selection, Crossover, Mutation
+        end
+        GA-->>FastAPI: portfolio_df, final_ret, final_vol
+    end
+
+    rect rgb(240, 240, 230)
+        Note over FastAPI,DB: Step 7: บันทึกลง Database
+        FastAPI->>FastAPI: calculate_success_probability()
+        FastAPI->>FastAPI: calculate_forecast_range()
+        FastAPI->>DB: UPSERT users + INSERT portfolios
+        DB-->>FastAPI: portfolio_id
+        FastAPI->>DB: INSERT portfolio_assets
+    end
+
+    rect rgb(230, 240, 240)
+        Note over FastAPI,Backtest: Step 8: Backtest ย้อนหลัง
+        FastAPI->>Backtest: run_backtest(weights, start, end)
+        Backtest->>Yahoo: ดึงราคาย้อนหลัง
+        Yahoo-->>Backtest: Historical prices
+        Backtest-->>FastAPI: bt_results
+    end
+
+    FastAPI-->>PlanPage: Response JSON
+    PlanPage->>PlanPage: Redirect to /dashboard/{id}
+    PlanPage-->>User: แสดงผลลัพธ์พอร์ต
+</pre>
+</div>
+
+<!-- ==================== SECTION 3 ==================== -->
+<h2>3. Portfolio Dashboard</h2>
+
+<h3>3.1 ดูรายการพอร์ตทั้งหมด</h3>
+<div class="diagram-container">
+<pre class="mermaid">
+sequenceDiagram
+    autonumber
+    actor User as ผู้ใช้งาน
+    participant Dashboard as Dashboard Page
+    participant ClerkHook as useAuth()
+    participant FastAPI as FastAPI Backend
+    participant DB as PostgreSQL
+
+    User->>Dashboard: เข้าหน้า /dashboard
+    Dashboard->>ClerkHook: ดึง userId
+    ClerkHook-->>Dashboard: userId
+    Dashboard->>FastAPI: GET /api/portfolios?clerk_id={userId}
+    FastAPI->>DB: SELECT * FROM portfolios WHERE clerk_id = ? ORDER BY created_at DESC
+    DB-->>FastAPI: rows[]
+    
+    loop แต่ละพอร์ต
+        FastAPI->>FastAPI: calculate_success_probability()
+        FastAPI->>FastAPI: calculate_forecast_range()
+    end
+    
+    FastAPI-->>Dashboard: { portfolios: [...] }
+    Dashboard-->>User: แสดงรายการพอร์ตทั้งหมด
+</pre>
+</div>
+
+<h3>3.2 ดูรายละเอียดพอร์ตเฉพาะตัว + Backtest</h3>
+<div class="diagram-container">
+<pre class="mermaid">
+sequenceDiagram
+    autonumber
+    actor User as ผู้ใช้งาน
+    participant Detail as Dashboard/{id} Page
+    participant FastAPI as FastAPI Backend
+    participant DB as PostgreSQL
+    participant Backtest as BacktestEngine
+    participant Yahoo as Yahoo Finance API
+
+    User->>Detail: เข้าหน้า /dashboard/{portfolio_id}
+    Detail->>FastAPI: GET /api/portfolios/{portfolio_id}
+    
+    FastAPI->>DB: SELECT * FROM portfolios WHERE id = ?
+    DB-->>FastAPI: portfolio metadata
+    FastAPI->>DB: SELECT * FROM portfolio_assets WHERE portfolio_id = ?
+    DB-->>FastAPI: assets (ticker, weight, beta)
+    
+    FastAPI->>FastAPI: คำนวณ success_probability + forecast_range
+    
+    FastAPI->>Backtest: run_backtest(weights_dict, start, end)
+    Backtest->>Yahoo: ดึงราคาย้อนหลังตาม duration
+    Yahoo-->>Backtest: Historical data
+    Backtest->>Backtest: คำนวณ NAV, Drawdown, Sharpe Ratio
+    Backtest-->>FastAPI: backtest results
+    
+    FastAPI-->>Detail: { metadata, portfolio[], backtest }
+    Detail-->>User: แสดงกราฟ Backtest, Pie Chart, ตาราง
+</pre>
+</div>
+
+<!-- ==================== SECTION 4 ==================== -->
+<h2>4. Admin — จัดการผู้ใช้งาน (User Role Management)</h2>
+
+<h3>4.1 ดูรายชื่อผู้ใช้งานทั้งหมด</h3>
+<div class="diagram-container">
+<pre class="mermaid">
+sequenceDiagram
+    autonumber
+    actor Admin as Admin
+    participant AdminPage as Admin Page
+    participant NextAPI as Next.js API Route
+    participant Clerk as Clerk Backend SDK
+    participant FastAPI as FastAPI Backend
+    participant DB as PostgreSQL
+
+    Admin->>AdminPage: กดแท็บ Users
+    AdminPage->>AdminPage: getToken() จาก useAuth()
+    
+    par ดึงข้อมูลพร้อมกัน
+        AdminPage->>NextAPI: GET /api/admin/users (Bearer token)
+        NextAPI->>NextAPI: await auth() ตรวจสอบ userId
+        NextAPI->>FastAPI: GET /api/admin/users
+        FastAPI->>DB: SELECT clerk_id, role, COUNT(portfolios) FROM users
+        DB-->>FastAPI: DB users[]
+        FastAPI-->>NextAPI: { data: dbUsers[] }
+        NextAPI->>Clerk: getUserList()
+        Clerk-->>NextAPI: Clerk users[] (ชื่อ, email, รูป)
+        NextAPI->>NextAPI: Merge Clerk + DB data
+        NextAPI-->>AdminPage: { data: mergedUsers[] }
+    and
+        AdminPage->>FastAPI: GET /api/admin/assets
+        FastAPI->>DB: SELECT * FROM assets
+        DB-->>FastAPI: assets[]
+        FastAPI-->>AdminPage: { data: assets[] }
+    end
+    
+    AdminPage-->>Admin: แสดงตาราง Users พร้อมข้อมูลครบ
+</pre>
+</div>
+
+<h3>4.2 เปลี่ยน Role ผู้ใช้งาน</h3>
+<div class="diagram-container">
+<pre class="mermaid">
+sequenceDiagram
+    autonumber
+    actor Admin as Admin
+    participant AdminPage as Admin Page
+    participant FastAPI as FastAPI Backend
+    participant DB as PostgreSQL
+
+    Admin->>AdminPage: เลือก Role ใหม่จาก Dropdown
+    AdminPage->>AdminPage: confirm ยืนยันการเปลี่ยนสิทธิ์
+    Admin->>AdminPage: กด OK
+
+    AdminPage->>FastAPI: PUT /api/admin/users/{target_id}/role
+    Note over AdminPage,FastAPI: { new_role: admin, admin_id: user_abc123 }
+
+    FastAPI->>DB: SELECT role FROM users WHERE clerk_id = admin_id
+    DB-->>FastAPI: role = admin
+    
+    alt ผู้ร้องขอไม่ใช่ Admin
+        FastAPI-->>AdminPage: { status: error, Unauthorized }
+        AdminPage-->>Admin: แสดง Alert แจ้งเตือน
+    end
+
+    FastAPI->>DB: UPSERT users SET role = admin
+    DB-->>FastAPI: Updated
+    FastAPI-->>AdminPage: { status: success }
+    AdminPage->>AdminPage: fetchAdminData() Reload
+    AdminPage-->>Admin: ตาราง Refresh แสดง Role ใหม่
+</pre>
+</div>
+
+<!-- ==================== SECTION 5 ==================== -->
+<h2>5. Admin — จัดการสินทรัพย์ (Asset Management CRUD)</h2>
+
+<h3>5.1 เพิ่มหุ้นใหม่ (Create)</h3>
+<div class="diagram-container">
+<pre class="mermaid">
+sequenceDiagram
+    autonumber
+    actor Admin as Admin
+    participant AdminPage as Admin Page
+    participant FastAPI as FastAPI Backend
+    participant DB as PostgreSQL
+
+    Admin->>AdminPage: พิมพ์ Ticker + Market Cap
+    Admin->>AdminPage: กดปุ่ม Add Asset
+    AdminPage->>FastAPI: POST /api/admin/assets
+    Note over AdminPage,FastAPI: { ticker: EXAMPLE, market_cap: 500000, is_active: true }
+
+    FastAPI->>DB: INSERT INTO assets (ticker, market_cap, is_active)
+    
+    alt Ticker ซ้ำ
+        DB-->>FastAPI: Error (unique constraint)
+        FastAPI-->>AdminPage: { status: error }
+        AdminPage-->>Admin: แสดง Error
+    else สำเร็จ
+        DB-->>FastAPI: Inserted
+        FastAPI-->>AdminPage: { status: success }
+        AdminPage->>AdminPage: fetchAdminData() Reload
+        AdminPage-->>Admin: ตารางแสดงหุ้นตัวใหม่
+    end
+</pre>
+</div>
+
+<h3>5.2 แก้ไข Market Cap / เปิด-ปิด Status (Update)</h3>
+<div class="diagram-container">
+<pre class="mermaid">
+sequenceDiagram
+    autonumber
+    actor Admin as Admin
+    participant AdminPage as Admin Page
+    participant FastAPI as FastAPI Backend
+    participant DB as PostgreSQL
+
+    Admin->>AdminPage: กดปุ่ม Edit ที่หุ้นตัวที่ต้องการ
+    AdminPage->>AdminPage: เปิด Inline Edit Mode
+    Admin->>AdminPage: แก้ไข Market Cap / Toggle Status
+    Admin->>AdminPage: กดปุ่ม Save
+
+    AdminPage->>FastAPI: PUT /api/admin/assets/{ticker}
+    Note over AdminPage,FastAPI: { ticker: ADVANC, market_cap: 900000, is_active: true }
+
+    FastAPI->>DB: UPDATE assets SET market_cap, is_active WHERE ticker = ?
+    DB-->>FastAPI: Updated
+    FastAPI-->>AdminPage: { status: success }
+    AdminPage->>AdminPage: fetchAdminData() Reload
+    AdminPage-->>Admin: ตาราง Refresh แสดงค่าใหม่
+</pre>
+</div>
+
+<h3>5.3 ลบหุ้น (Delete)</h3>
+<div class="diagram-container">
+<pre class="mermaid">
+sequenceDiagram
+    autonumber
+    actor Admin as Admin
+    participant AdminPage as Admin Page
+    participant FastAPI as FastAPI Backend
+    participant DB as PostgreSQL
+
+    Admin->>AdminPage: กดปุ่ม Delete ที่หุ้นตัวที่ต้องการ
+    AdminPage->>AdminPage: confirm ยืนยันการลบ
+    Admin->>AdminPage: กด OK
+
+    AdminPage->>FastAPI: DELETE /api/admin/assets/{ticker}
+    FastAPI->>DB: DELETE FROM assets WHERE ticker = ?
+    DB-->>FastAPI: Deleted
+    FastAPI-->>AdminPage: { status: success }
+    AdminPage->>AdminPage: fetchAdminData() Reload
+    AdminPage-->>Admin: หุ้นหายจากตาราง
+
+    Note over AdminPage,DB: ผลกระทบ: หุ้นตัวนี้จะหายจากหน้า Plan Page ทันที
+</pre>
+</div>
+
+<!-- ==================== SECTION 6 ==================== -->
+<h2>6. Landing Page — Market Highlights</h2>
+<div class="diagram-container">
+<pre class="mermaid">
+sequenceDiagram
+    autonumber
+    actor Visitor as ผู้เยี่ยมชม
+    participant Landing as Landing Page
+    participant FastAPI as FastAPI Backend
+    participant Cache as In-Memory Cache
+    participant Yahoo as Yahoo Finance API
+
+    Visitor->>Landing: เข้า URL / (หน้าแรก)
+    Landing->>FastAPI: GET /api/market-highlights
+
+    FastAPI->>Cache: ตรวจสอบ Cache
+    
+    alt มี Cache (อายุน้อยกว่า 1 ชม.)
+        Cache-->>FastAPI: cached data
+        FastAPI-->>Landing: { data: [...], cached: true }
+    else ไม่มี Cache หรือหมดอายุ
+        loop DELTA, SCC, PTTEP
+            FastAPI->>Yahoo: yf.download(symbol, 21 วันก่อน)
+            Yahoo-->>FastAPI: Historical price data
+            FastAPI->>FastAPI: คำนวณ change, pct_change
+        end
+        FastAPI->>Cache: บันทึก Cache (TTL 1 ชม.)
+        FastAPI-->>Landing: { data: [...], cached: false }
+    end
+
+    Landing-->>Visitor: แสดง Market Highlight Cards
+</pre>
+</div>
+
+<!-- ==================== SECTION 7 ==================== -->
+<h2>7. ภาพรวม Architecture (System Overview)</h2>
+<div class="diagram-container">
+<pre class="mermaid">
+sequenceDiagram
+    autonumber
+    participant User as User Browser
+    participant Next as Next.js (Port 3000)
+    participant Clerk as Clerk Auth
+    participant API as FastAPI (Port 8000)
+    participant DB as PostgreSQL (Port 5432)
+    participant Redis as Redis (Port 6379)
+    participant Yahoo as Yahoo Finance
+
+    Note over User,Yahoo: ระบบทั้งหมดรันบน Docker Compose
+
+    User->>Next: HTTP Request
+    Next->>Clerk: ตรวจสอบ Authentication
+    Clerk-->>Next: userId / Session
+    
+    Next->>API: Proxy API Calls
+    API->>DB: Read/Write Data
+    API->>Redis: Cache Market Data
+    API->>Yahoo: Fetch Stock Prices
+    
+    Yahoo-->>API: Price Data
+    Redis-->>API: Cached Data
+    DB-->>API: Query Results
+    API-->>Next: JSON Response
+    Next-->>User: Rendered Page + Data
+</pre>
+</div>
+
+<!-- ==================== API TABLE ==================== -->
+<h2>สรุปตาราง API Endpoints</h2>
+<table>
+    <thead>
+        <tr>
+            <th>Method</th>
+            <th>Endpoint</th>
+            <th>หน้าที่</th>
+            <th>ใช้ใน</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr><td><code>POST</code></td><td><code>/api/optimize</code></td><td>คำนวณและสร้างพอร์ตใหม่</td><td>Plan Page</td></tr>
+        <tr><td><code>GET</code></td><td><code>/api/portfolios?clerk_id=</code></td><td>ดึงรายการพอร์ตทั้งหมด</td><td>Dashboard</td></tr>
+        <tr><td><code>GET</code></td><td><code>/api/portfolios/{id}</code></td><td>ดึงรายละเอียดพอร์ต + Backtest</td><td>Dashboard/{id}</td></tr>
+        <tr><td><code>GET</code></td><td><code>/api/market-highlights</code></td><td>ข้อมูลตลาดหน้าแรก</td><td>Landing Page</td></tr>
+        <tr><td><code>GET</code></td><td><code>/api/users/{id}/role</code></td><td>ตรวจสอบ Role ผู้ใช้</td><td>Admin Page</td></tr>
+        <tr><td><code>GET</code></td><td><code>/api/admin/users</code></td><td>ดึงรายชื่อผู้ใช้ (DB)</td><td>Admin Page</td></tr>
+        <tr><td><code>GET</code></td><td><code>/api/admin/users</code> (Next.js)</td><td>Merge DB + Clerk Users</td><td>Admin Page</td></tr>
+        <tr><td><code>PUT</code></td><td><code>/api/admin/users/{id}/role</code></td><td>เปลี่ยน Role</td><td>Admin Page</td></tr>
+        <tr><td><code>GET</code></td><td><code>/api/admin/assets</code></td><td>ดึงรายชื่อสินทรัพย์</td><td>Admin + Plan</td></tr>
+        <tr><td><code>POST</code></td><td><code>/api/admin/assets</code></td><td>เพิ่มสินทรัพย์ใหม่</td><td>Admin Page</td></tr>
+        <tr><td><code>PUT</code></td><td><code>/api/admin/assets/{ticker}</code></td><td>แก้ไขสินทรัพย์</td><td>Admin Page</td></tr>
+        <tr><td><code>DELETE</code></td><td><code>/api/admin/assets/{ticker}</code></td><td>ลบสินทรัพย์</td><td>Admin Page</td></tr>
+    </tbody>
+</table>
+
+<script>
+    mermaid.initialize({
+        startOnLoad: true,
+        theme: 'default',
+        sequence: {
+            diagramMarginX: 15,
+            diagramMarginY: 15,
+            actorMargin: 60,
+            width: 180,
+            height: 50,
+            boxMargin: 8,
+            boxTextMargin: 5,
+            noteMargin: 8,
+            messageMargin: 30,
+            mirrorActors: true,
+            useMaxWidth: true,
+            wrap: true
+        },
+        themeVariables: {
+            actorBkg: '#fef3c7',
+            actorBorder: '#f59e0b',
+            actorTextColor: '#1a1a1a',
+            signalColor: '#1a1a1a',
+            noteBkgColor: '#fefce8',
+            noteBorderColor: '#fbbf24'
+        }
+    });
+</script>
+
+</body>
+</html>
