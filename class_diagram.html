@@ -104,7 +104,7 @@
     </div>
 
     <script>
-        const classDiagram = `
+const classDiagram = `
 @startuml
 skinparam monochrome true
 skinparam shadowing false
@@ -119,124 +119,115 @@ skinparam class {
 }
 hide circle
 
-class Account {
-  - username : string
-  - email : string
-  - password : string
-  + login()
-  + logout()
-  + changePassword()
+class Member {
+  - clerk_id : String
+  - email : String
+  - role : String
+  - last_login_at : DateTime
+  - created_at : DateTime
+  + register(email: String): bool
+  + login(): bool
+  + logout(): void
+  + manage_account(): void
+  + delete_account(): bool
 }
 
 class User {
-  - userId : string
-  + register()
-  + updateProfile()
-  + viewOwnStats()
-  + reviewGAResult()
+  - theme_preference : String = "light"
+  + edit_profile(): bool
+  + toggle_theme(): void
+  + get_portfolio_history(): list
 }
 
 class Admin {
-  - adminId : string
-  - role : string
-  + manageUser()
-  + viewUserStats()
-  + addAsset()
-  + editAsset()
-  + deleteAsset()
+  + manage_user_accounts(): void
+  + manage_set50_assets(): void
+  + check_usage_summary(): list
+  + view_user_portfolio_history(portfolio_id: int) : list
 }
 
-class Dashboard {
-  - dashboardId : string
-  + displayReport()
-}
-
-class DCAReport {
-  - reportId : string
-  - generatedDate : datetime
-  - avgCost : double
-  - avgCost : double
-  - totalUnits : double
-  + generate()
-  + downloadPDF()
-  + viewStats()
-}
-
-class GeneticAlgorithm {
-  - populationSize : int
-  - generations : int
-  - mutationRate : double
-  - crossoverRate : double
-  + initialize()
-  + evaluate()
-  + crossover()
-  + mutate()
-  + generateOptimalPlan()
-  + optimize()
-  + testModel()
-  + compareModels()
-}
-
-class InvestmentPlan {
-  - planId : string
-  - goalAmount : double
-  - monthlyAmount : double
-  - investmentPeriod : int
-  - frequency : string
-  - isPreMadePlan : boolean
-  + createPlan()
-  + selectPlan()
-  + downloadPlanPDF()
-  + viewStats()
+class PortfolioHistory {
+  - user_id : int
+  - saved_portfolios : list
+  + get_all_history(): list
+  + open_portfolio_detail(portfolio_id: int): Dashboard
 }
 
 class Portfolio {
-  - portfolioId : string
-  - totalValue : double
-  - totalReturn : double
-  - assets : List<Asset>
-  + calcTotalValue()
-  + viewStats()
-  + getReturn()
-  + addAsset()
+  - id : int
+  - clerk_id : String
+  - name : String = "My Portfolio"
+  - target_beta : float
+  - budget : float
+  - target_amount : float
+  - duration_years : int
+  - max_weight_per_asset : float
+  - locked_tickers : list
+  - expected_return : float
+  - volatility : float
+  - success_prob : float
+  - created_at : DateTime
+  - portfolio_type : String
+  + create_custom_portfolio(): int
+  + create_preset_portfolio(): int
+  + edit_portfolio_settings(): bool
+  + calculate_duration(principal: float, goal: float, annual_return: float): float
+  + calculate_required_principal(duration: float, goal: float, annual_return: float): float
 }
 
-class InvestmentRecord {
-  - recordId : string
-  - date : datetime
-  - amount : double
-  - assetQuantity : double
-  + recordDCA()
-  + getHistory()
-  + delete()
+class PortfolioAsset {
+  - id : int
+  - weight : float
 }
 
-class Asset {
-  - assetId : string
-  - symbol : string
-  - name : string
-  - currentPrice : double
-  + getPrice()
-  + update()
-  + delete()
+class Dashboard {
+  - portfolio_id : int
+  + render_allocation_chart(): void
+  + render_backtest_comparison_chart(): void
+  + export_pdf_summary(): File
 }
 
-User -up-|> Account
-Admin -up-|> Account
+class AssetSet50 {
+  - ticker : String
+  - market_cap : long
+  - is_active : bool = true
+  - created_at : DateTime
+  - updated_at : DateTime
+  + get_active_assets(): list
+  + get_market_caps(tickers: list): Series
+  + add_asset(): bool
+  + update_asset(): bool
+  + delete_asset(): bool
+}
 
-User "1" -right- "1" Dashboard
-Dashboard "1" -down- "1..*" DCAReport
-DCAReport "1" -down- "1" Portfolio
-Portfolio "1" -down- "0..*" Asset
+class BacktestEngine {
+  + run_backtest(weights_dict: dict, start_date: Date, end_date: Date): DataFrame
+  + get_benchmark_data(benchmark: String = "SET50"): DataFrame
+}
 
-GeneticAlgorithm "1" -down- "1" InvestmentPlan
-InvestmentPlan "1" -down- "0..*" InvestmentRecord
+class OptimizationEngine {
+  + run_optimization(tickers: list, bl_returns: list, cov_matrix: DataFrame, market_caps: Series): tuple
+  - calculate_posterior(market_caps: Series, cov_matrix: DataFrame, views_data: dict): tuple
+}
 
-User "1" -- "0..*" InvestmentPlan
-User "1" -- "0..*" InvestmentRecord
-InvestmentRecord "1..*" -right- "1..*" Asset
+User -up-|> Member
+Admin -up-|> Member
 
-Admin "1" -- "0..*" Asset
+User "1" -down- "1" PortfolioHistory
+User "1" -down- "*" Portfolio
+Admin "1" -down- "1" Dashboard
+
+PortfolioHistory "1" *-right- "*" Portfolio
+Portfolio "1" -right- "1" Dashboard
+
+Portfolio "1" *-left- "*" PortfolioAsset
+
+PortfolioAsset "*" --> "1" AssetSet50
+Admin "1" --> "*" AssetSet50
+
+Portfolio .down.> BacktestEngine
+Portfolio .down.> OptimizationEngine
+BacktestEngine -down-[hidden]- OptimizationEngine
 
 @enduml
 `;
