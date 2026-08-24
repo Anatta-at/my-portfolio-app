@@ -94,79 +94,126 @@ skinparam class {
     BorderColor Black
     ArrowColor Black
 }
+hide circle
 
-package "API Models (Pydantic / FastAPI)" {
-    class OptimizeRequest {
-        + user_id: str
-        + portfolio_name: str
-        + user_custom_views: dict
-        + target_beta: float
-        + max_stocks: int
-        + max_weight_per_asset: float
-        + start_date: str
-        + end_date: str
-        + budget: float
-        + target_amount: float
-        + duration_years: int
-        + locked_stocks: list
-        + sectors: list
-    }
-    
-    class TemplateRequest {
-        + user_id: str
-        + portfolio_name: str
-        + target_beta: float
-        + budget: float
-        + target_amount: float
-        + duration_years: int
-        + expected_return: float
-        + portfolio_volatility: float
-        + portfolio_data: list
-    }
+class Account {
+  - username : string
+  - email : string
+  - password : string
+  + login()
+  + logout()
+  + changePassword()
 }
 
-package "Data Fetchers (engine/data_fetcher.py)" {
-    class SETDataFetcher {
-        + {static} get_set50_tickers() : List[str]
-        + {static} filter_by_sector(tickers, sectors) : List[str]
-        + {static} get_market_caps(tickers) : pd.Series
-    }
-
-    class YahooFinanceFetcher {
-        + {static} get_market_data_with_beta(tickers, period) : Tuple[DataFrame, Dict]
-    }
+class User {
+  - userId : string
+  + register()
+  + updateProfile()
+  + viewOwnStats()
+  + reviewGAResult()
 }
 
-package "Optimizers (engine/core_optimizer.py)" {
-    class BlackLittermanEngine {
-        + {static} calculate_posterior(market_caps, cov_matrix, views_data) : Series
-    }
-
-    class GeneticPortfolioOptimizer {
-        - risk_free_rate : float
-        + __init__(risk_free_rate: float)
-        + run_optimization(tickers, bl_returns, cov_matrix, market_caps, ...) : Dict
-    }
+class Admin {
+  - adminId : string
+  - role : string
+  + manageUser()
+  + viewUserStats()
+  + addAsset()
+  + editAsset()
+  + deleteAsset()
 }
 
-package "Simulators & Analysis" {
-    class BacktestEngine {
-        + run_backtest(weights_dict, start_date, end_date) : Dict
-        - _default_empty_result(msg: str) : Dict
-    }
-
-    class PortfolioSimulator {
-        + {static} calculate_duration(principal, goal, annual_return) : float
-        + {static} calculate_required_principal(duration, goal, annual_return) : float
-    }
+class Dashboard {
+  - dashboardId : string
+  + displayReport()
 }
 
-' Relationships & Data Flow
-OptimizeRequest ..> SETDataFetcher : "triggers"
-SETDataFetcher --> YahooFinanceFetcher : "passes tickers"
-YahooFinanceFetcher --> BlackLittermanEngine : "cov_matrix & returns"
-BlackLittermanEngine --> GeneticPortfolioOptimizer : "posterior returns"
-GeneticPortfolioOptimizer --> BacktestEngine : "optimized weights"
+class DCAReport {
+  - reportId : string
+  - generatedDate : datetime
+  - avgCost : double
+  - avgCost : double
+  - totalUnits : double
+  + generate()
+  + downloadPDF()
+  + viewStats()
+}
+
+class GeneticAlgorithm {
+  - populationSize : int
+  - generations : int
+  - mutationRate : double
+  - crossoverRate : double
+  + initialize()
+  + evaluate()
+  + crossover()
+  + mutate()
+  + generateOptimalPlan()
+  + optimize()
+  + testModel()
+  + compareModels()
+}
+
+class InvestmentPlan {
+  - planId : string
+  - goalAmount : double
+  - monthlyAmount : double
+  - investmentPeriod : int
+  - frequency : string
+  - isPreMadePlan : boolean
+  + createPlan()
+  + selectPlan()
+  + downloadPlanPDF()
+  + viewStats()
+}
+
+class Portfolio {
+  - portfolioId : string
+  - totalValue : double
+  - totalReturn : double
+  - assets : List<Asset>
+  + calcTotalValue()
+  + viewStats()
+  + getReturn()
+  + addAsset()
+}
+
+class InvestmentRecord {
+  - recordId : string
+  - date : datetime
+  - amount : double
+  - assetQuantity : double
+  + recordDCA()
+  + getHistory()
+  + delete()
+}
+
+class Asset {
+  - assetId : string
+  - symbol : string
+  - name : string
+  - currentPrice : double
+  + getPrice()
+  + update()
+  + delete()
+}
+
+Account <|-- User
+Account <|-- Admin
+
+User "1" -right- "1" Dashboard
+Dashboard "1" -- "1..*" DCAReport
+DCAReport "1" -- "1" Portfolio
+Portfolio "1" -- "0..*" Asset
+
+User "1" -- "0..*" InvestmentPlan
+GeneticAlgorithm "1" -right- "1" InvestmentPlan
+InvestmentPlan "1" -- "0..*" InvestmentRecord
+User "1" -- "0..*" InvestmentRecord
+InvestmentRecord "1..*" -right- "1..*" Asset
+
+Admin "1" -- "0..*" Asset
+
 @enduml
 `;
 
