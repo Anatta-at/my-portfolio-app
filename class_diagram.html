@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <title>Class Diagram — IntelliPortfolio Backend</title>
+    <script src="https://cdn.jsdelivr.net/npm/plantuml-encoder@1.4.0/dist/plantuml-encoder.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;700&display=swap');
+        
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: 'Sarabun', sans-serif;
+            background: #fff;
+            color: #1a1a1a;
+            line-height: 1.6;
+            padding: 40px 60px;
+        }
+
+        h1 {
+            font-size: 28px;
+            font-weight: 700;
+            text-align: center;
+            margin-bottom: 6px;
+            color: #111;
+        }
+        
+        .subtitle {
+            text-align: center;
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 40px;
+        }
+
+        .diagram-container {
+            text-align: center;
+            margin: 20px 0 40px 0;
+            overflow-x: auto;
+            padding: 20px;
+        }
+        
+        .diagram-container img {
+            max-width: 100%;
+            height: auto;
+        }
+
+        .print-btn {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: #333;
+            color: white;
+            border: none;
+            padding: 14px 28px;
+            font-size: 16px;
+            font-weight: 700;
+            border-radius: 12px;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            z-index: 1000;
+            font-family: 'Sarabun', sans-serif;
+        }
+        
+        .print-btn:hover { background: #111; }
+        
+        @media print {
+            body { padding: 20px 30px; font-size: 11px; }
+            h1 { font-size: 22px; }
+            .print-btn { display: none; }
+            .diagram-container { margin: 10px 0 20px 0; padding: 10px; }
+        }
+    </style>
+</head>
+<body>
+
+<button class="print-btn" onclick="window.print()">📄 Save as PDF</button>
+
+<h1>Class Diagram</h1>
+<p class="subtitle">System Architecture & Core Engines (Backend)</p>
+
+<div class="diagram-container">
+    <img id="img_diagram" alt="Class Diagram" />
+</div>
+
+<script>
+const classDiagram = `
+@startuml
+skinparam monochrome true
+skinparam shadowing false
+skinparam defaultFontName "Tahoma"
+skinparam defaultFontSize 14
+skinparam class {
+    BackgroundColor White
+    BorderColor Black
+    ArrowColor Black
+}
+
+package "API Models (Pydantic / FastAPI)" {
+    class OptimizeRequest {
+        + user_id: str
+        + portfolio_name: str
+        + user_custom_views: dict
+        + target_beta: float
+        + max_stocks: int
+        + max_weight_per_asset: float
+        + start_date: str
+        + end_date: str
+        + budget: float
+        + target_amount: float
+        + duration_years: int
+        + locked_stocks: list
+        + sectors: list
+    }
+    
+    class TemplateRequest {
+        + user_id: str
+        + portfolio_name: str
+        + target_beta: float
+        + budget: float
+        + target_amount: float
+        + duration_years: int
+        + expected_return: float
+        + portfolio_volatility: float
+        + portfolio_data: list
+    }
+}
+
+package "Data Fetchers (engine/data_fetcher.py)" {
+    class SETDataFetcher {
+        + {static} get_set50_tickers() : List[str]
+        + {static} filter_by_sector(tickers, sectors) : List[str]
+        + {static} get_market_caps(tickers) : pd.Series
+    }
+
+    class YahooFinanceFetcher {
+        + {static} get_market_data_with_beta(tickers, period) : Tuple[DataFrame, Dict]
+    }
+}
+
+package "Optimizers (engine/core_optimizer.py)" {
+    class BlackLittermanEngine {
+        + {static} calculate_posterior(market_caps, cov_matrix, views_data) : Series
+    }
+
+    class GeneticPortfolioOptimizer {
+        - risk_free_rate : float
+        + __init__(risk_free_rate: float)
+        + run_optimization(tickers, bl_returns, cov_matrix, market_caps, ...) : Dict
+    }
+}
+
+package "Simulators & Analysis" {
+    class BacktestEngine {
+        + run_backtest(weights_dict, start_date, end_date) : Dict
+        - _default_empty_result(msg: str) : Dict
+    }
+
+    class PortfolioSimulator {
+        + {static} calculate_duration(principal, goal, annual_return) : float
+        + {static} calculate_required_principal(duration, goal, annual_return) : float
+    }
+}
+
+' Relationships & Data Flow
+OptimizeRequest ..> SETDataFetcher : "triggers"
+SETDataFetcher --> YahooFinanceFetcher : "passes tickers"
+YahooFinanceFetcher --> BlackLittermanEngine : "cov_matrix & returns"
+BlackLittermanEngine --> GeneticPortfolioOptimizer : "posterior returns"
+GeneticPortfolioOptimizer --> BacktestEngine : "optimized weights"
+@enduml
+`;
+
+const encoded = plantumlEncoder.encode(classDiagram);
+document.getElementById("img_diagram").src = "https://www.plantuml.com/plantuml/svg/" + encoded;
+</script>
+
+</body>
+</html>

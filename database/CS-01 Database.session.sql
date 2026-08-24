@@ -1,4 +1,5 @@
 -- 1. ล้างตารางเก่าเพื่อโครงสร้างใหม่ที่ถูกต้อง (ระวัง! ข้อมูลเก่าจะหายไป)
+DROP TABLE IF EXISTS stock_views CASCADE;
 DROP TABLE IF EXISTS portfolio_assets CASCADE;
 DROP TABLE IF EXISTS portfolios CASCADE;
 DROP TABLE IF EXISTS users CASCADE;
@@ -37,6 +38,17 @@ CREATE TABLE portfolio_assets (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- 6. สร้าง Index เพื่อความเร็วในการค้นหา
+-- 6. ตาราง StockViews: เก็บมุมมองการลงทุนของผู้ใช้แบบ Black-Litterman
+CREATE TABLE stock_views (
+    id SERIAL PRIMARY KEY,
+    portfolio_id INT NOT NULL REFERENCES portfolios(id) ON DELETE CASCADE,
+    ticker VARCHAR(20) NOT NULL,
+    expected_return NUMERIC(8, 4),
+    variance NUMERIC(8, 4),
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- 7. สร้าง Index เพื่อความเร็วในการค้นหา
 CREATE INDEX idx_portfolios_clerk_id ON portfolios(clerk_id);
 CREATE INDEX idx_portfolio_assets_portfolio_id ON portfolio_assets(portfolio_id);
+CREATE INDEX idx_stock_views_portfolio_id ON stock_views(portfolio_id);

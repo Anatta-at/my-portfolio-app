@@ -137,13 +137,21 @@ ViewsDetails -right- "1" Assets
 StockViews "*" -up- Defines
 Defines -up- "1" Assets
 
+hexagon "HasViews" as HasViews
+Portfolios "1" -down- HasViews
+HasViews -down- "*" StockViews
+
 ' Users Attributes (Fan UP)
 usecase "<u>clerk_id</u>" as u_id
+usecase "email" as u_email
+usecase "full_name" as u_full_name
 usecase "role" as u_role
 usecase "created_at" as u_created
 usecase "last_login" as u_last_login
 
 Users -up- u_id
+Users -up- u_email
+Users -up- u_full_name
 Users -up- u_role
 Users -up- u_created
 Users -up- u_last_login
@@ -199,12 +207,14 @@ Assets -up- a_is_active
 
 ' StockViews Attributes (Fan DOWN)
 usecase "<u>id</u>" as sv_id
+usecase "port_id" as sv_port_id
 usecase "ticker" as sv_ticker
 usecase "exp_return" as sv_expected_return
 usecase "variance" as sv_variance
 usecase "updated_at" as sv_updated_at
 
 StockViews -down- sv_id
+StockViews -down- sv_port_id
 StockViews -down- sv_ticker
 StockViews -down- sv_expected_return
 StockViews -down- sv_variance
