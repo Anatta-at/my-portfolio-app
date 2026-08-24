@@ -1,14 +1,19 @@
 <!DOCTYPE html>
 <html lang="th">
+
 <head>
     <meta charset="UTF-8">
     <title>Class Diagram — IntelliPortfolio Backend</title>
     <script src="https://cdn.jsdelivr.net/npm/plantuml-encoder@1.4.0/dist/plantuml-encoder.min.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;700&display=swap');
-        
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
         body {
             font-family: 'Sarabun', sans-serif;
             background: #fff;
@@ -24,7 +29,7 @@
             margin-bottom: 6px;
             color: #111;
         }
-        
+
         .subtitle {
             text-align: center;
             color: #666;
@@ -38,7 +43,7 @@
             overflow-x: auto;
             padding: 20px;
         }
-        
+
         .diagram-container img {
             max-width: 100%;
             height: auto;
@@ -56,39 +61,57 @@
             font-weight: 700;
             border-radius: 12px;
             cursor: pointer;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
             z-index: 1000;
             font-family: 'Sarabun', sans-serif;
         }
-        
-        .print-btn:hover { background: #111; }
-        
+
+        .print-btn:hover {
+            background: #111;
+        }
+
         @media print {
-            body { padding: 20px 30px; font-size: 11px; }
-            h1 { font-size: 22px; }
-            .print-btn { display: none; }
-            .diagram-container { margin: 10px 0 20px 0; padding: 10px; }
+            body {
+                padding: 20px 30px;
+                font-size: 11px;
+            }
+
+            h1 {
+                font-size: 22px;
+            }
+
+            .print-btn {
+                display: none;
+            }
+
+            .diagram-container {
+                margin: 10px 0 20px 0;
+                padding: 10px;
+            }
         }
     </style>
 </head>
+
 <body>
 
-<button class="print-btn" onclick="window.print()">📄 Save as PDF</button>
+    <button class="print-btn" onclick="window.print()">📄 Save as PDF</button>
 
-<h1>Class Diagram</h1>
-<p class="subtitle">System Architecture & Core Engines (Backend)</p>
+    <h1>Class Diagram</h1>
+    <p class="subtitle">System Architecture & Core Engines (Backend)</p>
 
-<div class="diagram-container">
-    <img id="img_diagram" alt="Class Diagram" />
-</div>
+    <div class="diagram-container">
+        <img id="img_diagram" alt="Class Diagram" />
+    </div>
 
-<script>
-const classDiagram = `
+    <script>
+        const classDiagram = `
 @startuml
 skinparam monochrome true
 skinparam shadowing false
 skinparam defaultFontName "Tahoma"
 skinparam defaultFontSize 14
+skinparam linetype ortho
+skinparam groupInheritance 2
 skinparam class {
     BackgroundColor White
     BorderColor Black
@@ -198,17 +221,18 @@ class Asset {
   + delete()
 }
 
-Account <|-- User
-Account <|-- Admin
+User -up-|> Account
+Admin -up-|> Account
 
 User "1" -right- "1" Dashboard
-Dashboard "1" -- "1..*" DCAReport
-DCAReport "1" -- "1" Portfolio
-Portfolio "1" -- "0..*" Asset
+Dashboard "1" -down- "1..*" DCAReport
+DCAReport "1" -down- "1" Portfolio
+Portfolio "1" -down- "0..*" Asset
+
+GeneticAlgorithm "1" -down- "1" InvestmentPlan
+InvestmentPlan "1" -down- "0..*" InvestmentRecord
 
 User "1" -- "0..*" InvestmentPlan
-GeneticAlgorithm "1" -right- "1" InvestmentPlan
-InvestmentPlan "1" -- "0..*" InvestmentRecord
 User "1" -- "0..*" InvestmentRecord
 InvestmentRecord "1..*" -right- "1..*" Asset
 
@@ -217,9 +241,10 @@ Admin "1" -- "0..*" Asset
 @enduml
 `;
 
-const encoded = plantumlEncoder.encode(classDiagram);
-document.getElementById("img_diagram").src = "https://www.plantuml.com/plantuml/svg/" + encoded;
-</script>
+        const encoded = plantumlEncoder.encode(classDiagram);
+        document.getElementById("img_diagram").src = "https://www.plantuml.com/plantuml/svg/" + encoded;
+    </script>
 
 </body>
+
 </html>
