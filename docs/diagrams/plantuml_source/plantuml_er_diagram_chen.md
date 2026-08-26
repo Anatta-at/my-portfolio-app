@@ -24,11 +24,11 @@ collections "stock_views" as StockViews
 ' ==========================================
 ' RELATIONSHIPS
 ' ==========================================
-hexagon "creates" as creates #white;line:black
-hexagon "contains" as contains #white;line:black
-hexagon "has views" as has_views #white;line:black
-hexagon "referenced in" as ref_asset #white;line:black
-hexagon "referenced view" as ref_view #white;line:black
+rectangle "creates" as creates <<Relationship>>
+rectangle "contains" as contains <<Relationship>>
+rectangle "has views" as has_views <<Relationship>>
+rectangle "referenced in" as ref_asset <<Relationship>>
+rectangle "referenced view" as ref_view <<Relationship>>
 
 ' ==========================================
 ' ATTRIBUTES: users
