@@ -114,7 +114,7 @@ skinparam sequenceMessageAlign center
 participant "user : User" as User
 participant "frontend : Website" as Frontend
 participant "backend : API" as Backend
-participant "database : DB" as DB
+participant "users : users" as DB
 
 |||
 activate User
@@ -268,7 +268,7 @@ participant "user : User" as User
 participant "frontend : Website" as Frontend
 participant "backend : API" as Backend
 participant "engine : Model" as Model
-participant "database : DB" as DB
+participant "portfolios : portfolios" as DB
 
 |||
 activate User
@@ -326,7 +326,7 @@ skinparam sequenceMessageAlign center
 participant "user : User" as User
 participant "frontend : Website" as Frontend
 participant "backend : API" as Backend
-participant "database : DB" as DB
+participant "portfolios : portfolios" as DB
 
 |||
 activate User
@@ -380,7 +380,7 @@ participant "user : User" as User
 participant "frontend : Website" as Frontend
 participant "backend : API" as Backend
 participant "engine : Model" as Model
-participant "database : DB" as DB
+participant "portfolios : portfolios" as DB
 
 |||
 activate User
@@ -432,7 +432,7 @@ skinparam sequenceMessageAlign center
 participant "user : User" as User
 participant "frontend : Website" as Frontend
 participant "backend : API" as Backend
-participant "database : DB" as DB
+participant "portfolios : portfolios" as DB
 
 |||
 activate User
@@ -479,7 +479,7 @@ skinparam sequenceMessageAlign center
 participant "user : User" as User
 participant "frontend : Website" as Frontend
 participant "backend : API" as Backend
-participant "database : DB" as DB
+participant "portfolios : portfolios" as DB
 
 |||
 activate User
@@ -566,7 +566,7 @@ participant "actor : User" as User
 participant "frontend : Website" as Frontend
 participant "auth : Clerk" as Clerk
 participant "backend : API" as Backend
-participant "database : DB" as DB
+participant "users : users" as DB
 
 |||
 activate User
@@ -699,7 +699,7 @@ skinparam sequenceMessageAlign center
 participant "admin : Admin" as Admin
 participant "frontend : Website" as Frontend
 participant "backend : API" as Backend
-participant "database : DB" as DB
+participant "users : users" as DB
 
 |||
 activate Admin
@@ -755,7 +755,7 @@ skinparam sequenceMessageAlign center
 participant "admin : Admin" as Admin
 participant "frontend : Website" as Frontend
 participant "backend : API" as Backend
-participant "database : DB" as DB
+participant "portfolios : portfolios" as DB
 
 |||
 activate Admin
@@ -802,7 +802,7 @@ skinparam sequenceMessageAlign center
 participant "admin : Admin" as Admin
 participant "frontend : Website" as Frontend
 participant "backend : API" as Backend
-participant "database : DB" as DB
+participant "assets : assets" as DB
 
 |||
 activate Admin

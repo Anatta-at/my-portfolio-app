@@ -14,7 +14,26 @@ Foreign Key     : -
 **ตารางที่ 3.15 Data Dictionary : users**
 
 | Field Name | Description | Data Type | Data Size | Key |
+| :
+---
+
+Table code name : 02  
+Table name      : assets  
+Description     : เก็บข้อมูลหลักทรัพย์ในกลุ่มดัชนี SET50 ที่เปิดให้เลือกลงทุน  
+Primary Key     : ticker  
+Foreign Key     : -  
+อายุการใช้งาน     : ตลอดการใช้งาน  
+
+**ตารางที่ 3.16 Data Dictionary : assets**
+
+| Field Name | Description | Data Type | Data Size | Key |
 | :--- | :--- | :--- | :--- | :--- |
+| ticker | สัญลักษณ์ย่อของหุ้น (เช่น PTT, AOT) | VARCHAR | 10 | PK |
+| market_cap | มูลค่าตามราคาตลาดของหลักทรัพย์ | BIGINT | - | |
+| is_active | สถานะว่ายังเปิดให้เลือกลงทุนหรือไม่ (True/False) | BOOLEAN | - | |
+| created_at | วันเวลาที่เพิ่มข้อมูลหุ้นเข้าระบบ | TIMESTAMP | - | |
+| updated_at | วันเวลาที่มีการแก้ไขข้อมูลหุ้นล่าสุด | TIMESTAMP | - | |
+--- | :--- | :--- | :--- | :--- |
 | clerk_id | รหัสอ้างอิงยืนยันตัวตนจาก Clerk Auth | VARCHAR | 255 | PK |
 | email | อีเมลของผู้ใช้งาน | VARCHAR | 255 | |
 | full_name | ชื่อ-นามสกุลของผู้ใช้งาน | VARCHAR | 255 | |
@@ -24,14 +43,14 @@ Foreign Key     : -
 
 ---
 
-Table code name : 02  
+Table code name : 05  
 Table name      : portfolios  
 Description     : เก็บข้อมูลพอร์ตการลงทุนหลักที่ AI (Genetic Algorithm & Black-Litterman) สร้างขึ้นให้ผู้ใช้  
 Primary Key     : id  
 Foreign Key     : clerk_id (อ้างอิงตาราง users)  
 อายุการใช้งาน     : จนกว่าผู้ใช้จะลบพอร์ตการลงทุนทิ้ง  
 
-**ตารางที่ 3.16 Data Dictionary : portfolios**
+**ตารางที่ 3.17 Data Dictionary : portfolios**
 
 | Field Name | Description | Data Type | Data Size | Key |
 | :--- | :--- | :--- | :--- | :--- |
@@ -48,14 +67,14 @@ Foreign Key     : clerk_id (อ้างอิงตาราง users)
 
 ---
 
-Table code name : 03  
+Table code name : 05  
 Table name      : portfolio_assets  
 Description     : เก็บสัดส่วนการลงทุนของสินทรัพย์ (หุ้นรายตัว) ที่แตกออกมาจากแต่ละพอร์ตโฟลิโอ (1st Normal Form)  
 Primary Key     : id  
 Foreign Key     : portfolio_id (อ้างอิงตาราง portfolios)  
 อายุการใช้งาน     : จนกว่าผู้ใช้จะลบพอร์ตการลงทุนทิ้ง  
 
-**ตารางที่ 3.17 Data Dictionary : portfolio_assets**
+**ตารางที่ 3.18 Data Dictionary : portfolio_assets**
 
 | Field Name | Description | Data Type | Data Size | Key |
 | :--- | :--- | :--- | :--- | :--- |
@@ -68,14 +87,14 @@ Foreign Key     : portfolio_id (อ้างอิงตาราง portfolios)
 
 ---
 
-Table code name : 04  
+Table code name : 05  
 Table name      : stock_views  
 Description     : เก็บข้อมูลมุมมองการลงทุนรายตัว (Views) ของผู้ใช้สำหรับการประมวลผลโมเดล Black-Litterman  
 Primary Key     : id  
 Foreign Key     : portfolio_id (อ้างอิงตาราง portfolios)  
 อายุการใช้งาน     : มีการปรับปรุงใหม่ทุกครั้งที่ผู้ใช้เปลี่ยนแปลงมุมมองหรือสร้างพอร์ต  
 
-**ตารางที่ 3.18 Data Dictionary : stock_views**
+**ตารางที่ 3.19 Data Dictionary : stock_views**
 
 | Field Name | Description | Data Type | Data Size | Key |
 | :--- | :--- | :--- | :--- | :--- |
