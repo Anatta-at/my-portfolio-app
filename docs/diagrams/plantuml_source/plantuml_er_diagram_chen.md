@@ -9,9 +9,7 @@
 skinparam monochrome true
 skinparam shadowing false
 skinparam packageStyle rectangle
-
-' left to right direction (Removed for better Smetana rendering)
-
+top to bottom direction
 
 
 ' ==========================================
@@ -26,11 +24,11 @@ collections "stock_views" as StockViews
 ' ==========================================
 ' RELATIONSHIPS
 ' ==========================================
-hexagon "creates" as creates
-hexagon "contains" as contains
-hexagon "has views" as has_views
-hexagon "referenced in" as ref_asset
-hexagon "referenced view" as ref_view
+hexagon "creates" as creates #white;line:black
+hexagon "contains" as contains #white;line:black
+hexagon "has views" as has_views #white;line:black
+hexagon "referenced in" as ref_asset #white;line:black
+hexagon "referenced view" as ref_view #white;line:black
 
 ' ==========================================
 ' ATTRIBUTES: users
