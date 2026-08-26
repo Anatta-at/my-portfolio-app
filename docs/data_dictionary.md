@@ -1,15 +1,17 @@
-# พจนานุกรมข้อมูล (Data Dictionary)
+## 3.26 พจนานุกรมข้อมูล (Data Dictionary)
 
-รายละเอียดแฟ้มข้อมูลที่ใช้ในระบบ (Intelliportfolio Management System) ฉบับอัปเดตล่าสุด โครงสร้างฐานข้อมูลถูกออกแบบใหม่เพื่อรองรับระบบ Authentication (Clerk) และโมเดล Black-Litterman อย่างเต็มรูปแบบ
+รายละเอียดแฟ้มข้อมูลที่ใช้ในระบบ (Intelliportfolio Management System) อ้างอิงจาก Entity-Relationship Diagram สามารถสรุปรายละเอียดต่างๆ ได้ดังตารางต่อไปนี้
 
 ---
 
-## 1. Table: users
-**Description:** เก็บข้อมูลผู้ใช้งานและผู้ดูแลระบบ โดยอ้างอิงรหัสจากระบบยืนยันตัวตน Clerk
-**Primary Key:** clerk_id
-**Foreign Key:** -
+Table code name : 01  
+Table name      : users  
+Description     : เก็บข้อมูลผู้ใช้งานและผู้ดูแลระบบ โดยอ้างอิงรหัสจากระบบยืนยันตัวตน Clerk  
+Primary Key     : clerk_id  
+Foreign Key     : -  
+อายุการใช้งาน     : ตลอดการใช้งาน  
 
-**ตาราง Data Dictionary : users**
+**ตารางที่ 3.15 Data Dictionary : users**
 
 | Field Name | Description | Data Type | Data Size | Key |
 | :--- | :--- | :--- | :--- | :--- |
@@ -22,12 +24,14 @@
 
 ---
 
-## 2. Table: portfolios
-**Description:** เก็บข้อมูลพอร์ตการลงทุนหลักที่ AI (Genetic Algorithm & Black-Litterman) สร้างขึ้นให้ผู้ใช้
-**Primary Key:** id
-**Foreign Key:** clerk_id (อ้างอิงตาราง users)
+Table code name : 02  
+Table name      : portfolios  
+Description     : เก็บข้อมูลพอร์ตการลงทุนหลักที่ AI (Genetic Algorithm & Black-Litterman) สร้างขึ้นให้ผู้ใช้  
+Primary Key     : id  
+Foreign Key     : clerk_id (อ้างอิงตาราง users)  
+อายุการใช้งาน     : จนกว่าผู้ใช้จะลบพอร์ตการลงทุนทิ้ง  
 
-**ตาราง Data Dictionary : portfolios**
+**ตารางที่ 3.16 Data Dictionary : portfolios**
 
 | Field Name | Description | Data Type | Data Size | Key |
 | :--- | :--- | :--- | :--- | :--- |
@@ -44,12 +48,14 @@
 
 ---
 
-## 3. Table: portfolio_assets
-**Description:** เก็บสัดส่วนการลงทุนของสินทรัพย์ (หุ้นรายตัว) ที่แตกออกมาจากแต่ละพอร์ตโฟลิโอ (1st Normal Form)
-**Primary Key:** id
-**Foreign Key:** portfolio_id (อ้างอิงตาราง portfolios)
+Table code name : 03  
+Table name      : portfolio_assets  
+Description     : เก็บสัดส่วนการลงทุนของสินทรัพย์ (หุ้นรายตัว) ที่แตกออกมาจากแต่ละพอร์ตโฟลิโอ (1st Normal Form)  
+Primary Key     : id  
+Foreign Key     : portfolio_id (อ้างอิงตาราง portfolios)  
+อายุการใช้งาน     : จนกว่าผู้ใช้จะลบพอร์ตการลงทุนทิ้ง  
 
-**ตาราง Data Dictionary : portfolio_assets**
+**ตารางที่ 3.17 Data Dictionary : portfolio_assets**
 
 | Field Name | Description | Data Type | Data Size | Key |
 | :--- | :--- | :--- | :--- | :--- |
@@ -62,12 +68,14 @@
 
 ---
 
-## 4. Table: stock_views
-**Description:** เก็บข้อมูลมุมมองการลงทุนรายตัว (Views) ของผู้ใช้สำหรับการประมวลผลโมเดล Black-Litterman
-**Primary Key:** id
-**Foreign Key:** portfolio_id (อ้างอิงตาราง portfolios)
+Table code name : 04  
+Table name      : stock_views  
+Description     : เก็บข้อมูลมุมมองการลงทุนรายตัว (Views) ของผู้ใช้สำหรับการประมวลผลโมเดล Black-Litterman  
+Primary Key     : id  
+Foreign Key     : portfolio_id (อ้างอิงตาราง portfolios)  
+อายุการใช้งาน     : มีการปรับปรุงใหม่ทุกครั้งที่ผู้ใช้เปลี่ยนแปลงมุมมองหรือสร้างพอร์ต  
 
-**ตาราง Data Dictionary : stock_views**
+**ตารางที่ 3.18 Data Dictionary : stock_views**
 
 | Field Name | Description | Data Type | Data Size | Key |
 | :--- | :--- | :--- | :--- | :--- |
