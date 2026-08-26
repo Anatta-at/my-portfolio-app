@@ -12,26 +12,7 @@ skinparam packageStyle rectangle
 
 ' left to right direction (Removed for better Smetana rendering)
 
-<style>
-hexagon {
-    BackgroundColor white
-    .Identifying {
-        LineThickness 2
-    }
-}
-rectangle {
-    BackgroundColor white
-    .Weak {
-        LineThickness 2
-    }
-}
-collections {
-    BackgroundColor white
-}
-usecase {
-    BackgroundColor white
-}
-</style>
+
 
 ' ==========================================
 ' ENTITIES
