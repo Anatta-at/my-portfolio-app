@@ -204,16 +204,7 @@ def sync_user(req: SyncUserRequest):
     if not req.clerk_id:
         return {"status": "error", "message": "Missing clerk_id"}
     try:
-        import os
-        import psycopg2
-        db_host = os.getenv("DATABASE_HOST", "localhost")
-        conn = psycopg2.connect(
-            dbname="intelliport_db",
-            user="admin",            
-            password="Heyrose05",     
-            host=db_host,        
-            port="5432"
-        )
+        conn = get_db_connection()
         cursor = conn.cursor()
         cursor.execute("""
             INSERT INTO users (clerk_id, email, full_name) 
@@ -336,10 +327,29 @@ def optimize_portfolio(req: OptimizeRequest):
         return {"status": "error", "message": str(e)}
 
 # ==========================================
+# ==========================================
+# 🌟 TEMPLATE & DELETE REQUEST MODELS 🌟
+# ==========================================
+class TemplatePortfolioRequest(BaseModel):
+    user_id: str
+    portfolio_name: str
+    target_beta: float
+    budget: float
+    target_amount: Optional[float] = None
+    duration_years: int = 5
+    expected_return: float
+    portfolio_volatility: float
+    portfolio_data: List[dict]
+
+class DeletePortfoliosRequest(BaseModel):
+    portfolio_ids: List[int]
+    clerk_id: str
+
+# ==========================================
 # 🌟 API สำหรับบันทึกพอร์ตสำเร็จรูป (Template) 🌟
 # ==========================================
 @app.post("/api/portfolios/template")
-def create_template_portfolio(req: TemplateRequest):
+def create_template_portfolio(req: TemplatePortfolioRequest):
     try:
         port_id = save_portfolio_to_db(
             clerk_id=req.user_id,
@@ -356,6 +366,27 @@ def create_template_portfolio(req: TemplateRequest):
             return {"status": "success", "portfolio_id": port_id}
         else:
             return {"status": "error", "message": "Failed to save template to database"}
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return {"status": "error", "message": str(e)}
+
+# ==========================================
+# 🌟 API สำหรับลบพอร์ตการลงทุน 🌟
+# ==========================================
+@app.delete("/api/portfolios")
+def delete_portfolios(req: DeletePortfoliosRequest):
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        
+        query = "DELETE FROM portfolios WHERE id = ANY(%s) AND clerk_id = %s"
+        cursor.execute(query, (req.portfolio_ids, req.clerk_id))
+        conn.commit()
+        
+        cursor.close()
+        conn.close()
+        return {"status": "success", "message": "Portfolios deleted successfully"}
     except Exception as e:
         import traceback
         traceback.print_exc()
@@ -423,7 +454,7 @@ def get_user_portfolios(clerk_id: str):
 # 🌟 API สำหรับดึงข้อมูลรายละเอียดพอร์ตและประมวลผล Backtest 🌟
 # ==========================================
 @app.post("/api/portfolios/delete")
-def delete_portfolios(req: DeletePortfoliosRequest):
+def post_delete_portfolios(req: DeletePortfoliosRequest):
     try:
         conn = get_db_connection()
         cursor = conn.cursor()
