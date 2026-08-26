@@ -95,7 +95,7 @@ function MarketHighlights() {
           const color = isPositive ? "#16a34a" : "#dc2626"; 
 
           return (
-            <div key={item.name} className="bg-white/80 dark:bg-[#1A1A19]/80 backdrop-blur-sm rounded-xl border border-stone-200/50 dark:border-stone-800/50 shadow-sm overflow-hidden flex flex-col hover:border-amber-500/30 transition-colors">
+            <div key={item.name} className="bg-white/80 dark:bg-stone-900/80 backdrop-blur-sm rounded-xl border border-stone-200/50 dark:border-stone-800/50 shadow-sm overflow-hidden flex flex-col hover:border-amber-500/30 transition-colors">
               <div className="p-5 pb-2">
                 <dt className="text-sm font-bold text-stone-900 dark:text-stone-100">
                   {item.name} <span className="font-normal text-stone-500 dark:text-stone-400 ml-1">{item.tickerSymbol}</span>
@@ -229,7 +229,7 @@ export default function Home() {
             {features.map((action) => (
               <div
                 key={action.title}
-                className="group relative bg-white dark:bg-[#1A1A19] p-8 hover:bg-stone-50 dark:hover:bg-[#222220] transition-colors focus-within:ring-2 focus-within:ring-amber-500 focus-within:ring-inset"
+                className="group relative bg-white dark:bg-stone-900 p-8 hover:bg-stone-50 dark:hover:bg-stone-800 transition-colors focus-within:ring-2 focus-within:ring-amber-500 focus-within:ring-inset"
               >
                 <div>
                   <span

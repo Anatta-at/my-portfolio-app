@@ -8,29 +8,46 @@ from deap import base, creator, tools, algorithms
 class BlackLittermanEngine:
     @staticmethod
     def calculate_posterior(market_caps: pd.Series, cov_matrix: pd.DataFrame, views_data: Dict[str, Dict[str, float]]):
+        # 1. ดึงชื่อหุ้นทั้งหมด และนับจำนวนหุ้น
         tickers = list(cov_matrix.columns)
         n = len(tickers)
+        
+        # 2. S = ตารางความผันผวนและความสัมพันธ์ของหุ้น (Covariance Matrix)
         S = cov_matrix.values
+        
+        # 3. w_mkt = สัดส่วนมูลค่าตลาดของหุ้นแต่ละตัว (เทียบเป็น % จากตลาดรวม)
         w_mkt = market_caps.values / market_caps.sum()
+        
+        # 4. pi = ผลตอบแทนคาดหวังตามกลไกตลาด (Market Implied Returns) 
+        # เกิดจากการเอา ความเกลียดความเสี่ยงของตลาด (2.5) * (ความเสี่ยง S * น้ำหนักตลาด w_mkt)
         pi = 2.5 * np.dot(S, w_mkt)  # type: ignore
         
+        # 5. ถ้าไม่มีมุมมองส่วนตัวส่งมา ให้ส่งค่า pi และ S คืนไปใช้งานต่อกับ GA ได้เลยทันที
         if not views_data:
             return pi, S
+            
+        # --- 6. ส่วนนี้จะทำงานก็ต่อเมื่อมี views_data (มุมมองส่วนตัว) ส่งมาเท่านั้น ---
         p_list, q_list, omega_diag = [], [], []
         for t, data in views_data.items():
             if t in tickers:
                 row = np.zeros(n)
                 row[tickers.index(t)] = 1
                 p_list.append(row)
-                q_list.append(data['return_view'])
-                omega_diag.append(data.get('variance', 0.05))
+                q_list.append(data['return_view']) # ตัวเลขผลกำไรที่คาดหวังจากผู้ใช้
+                omega_diag.append(data.get('variance', 0.05)) # ระดับความมั่นใจ (ค่ายิ่งน้อยยิ่งมั่นใจ)
         
         if not q_list:
             return pi, S
+            
+        # P = เมทริกซ์บอกตำแหน่งหุ้น, Q = กำไรที่คาดหวัง, tau = ตัวคูณปรับความผันผวนของตลาด
         P, Q, tau = np.array(p_list), np.array(q_list), 0.05
         Omega = np.diag(omega_diag) 
+        
+        # สมการสมองกลของ Black-Litterman: ใช้ชั่งน้ำหนักระหว่าง "กลไกตลาด (pi)" กับ "มุมมองผู้ใช้ (Q)"
         term1 = np.linalg.inv(np.linalg.inv(tau * S) + np.dot(np.dot(P.T, np.linalg.inv(Omega)), P))  # type: ignore
         term2 = np.dot(np.linalg.inv(tau * S), pi) + np.dot(np.dot(P.T, np.linalg.inv(Omega)), Q)  # type: ignore
+        
+        # คืนค่า: ผลตอบแทนคาดหวังหลังชั่งน้ำหนักเสร็จแล้ว (Posterior Return) และ ตารางความเสี่ยง (S)
         return np.dot(term1, term2), S
 
 class GeneticPortfolioOptimizer:

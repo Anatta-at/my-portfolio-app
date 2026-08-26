@@ -1,5 +1,9 @@
 # backend/main.py
 # pyright: ignore [reportMissingImports, reportMissingModuleSource]
+import os
+from dotenv import load_dotenv
+load_dotenv(os.path.join(os.path.dirname(__file__), '..', '.env'))
+
 import json
 import psycopg2
 from fastapi import FastAPI
@@ -259,7 +263,7 @@ def optimize_portfolio(req: OptimizeRequest):
         if req.user_custom_views:
             for symbol, val in req.user_custom_views.items():
                 t = f"{symbol}.BK"
-                if t in views_data:
+                if t in valid_tickers: # เปลี่ยนจากการเช็คใน views_data เป็นเช็คว่ามีหุ้นนี้ในตลาดหรือไม่
                     views_data[t] = {"return_view": val, "variance": 0.01}
         
         # 5. ประมวลผล Black-Litterman
@@ -283,7 +287,7 @@ def optimize_portfolio(req: OptimizeRequest):
         # 7. กรองหุ้นและแปลงเป็น List Dictionary
         final_portfolio = portfolio_df[portfolio_df['Weight'] > 0.01].copy().fillna(0.0)
         weights_dict = dict(zip(final_portfolio['Ticker'], final_portfolio['Weight']))
-        portfolio_records = final_portfolio.to_dict(orient="records")
+        portfolio_records = final_portfolio.to_dict(orient="records") # type: ignore
 
         # 🌟 7.5 บันทึกข้อมูลลง PostgreSQL ทันทีที่คำนวณเสร็จ! 🌟
         port_id = save_portfolio_to_db(
@@ -771,11 +775,11 @@ def get_market_highlights():
     try:
         for info in tickers_info:
             df = yf.download(info["symbol"], start=start_date, end=end_date, progress=False)
-            if df.empty:
+            if df is None or df.empty: # type: ignore
                 continue
                 
-            price_col = df['Adj Close'] if 'Adj Close' in df.columns else df['Close']
-            if isinstance(price_col, pd.DataFrame): price_col = price_col.iloc[:, 0]
+            price_col = df['Adj Close'] if 'Adj Close' in df.columns else df['Close'] # type: ignore
+            if isinstance(price_col, pd.DataFrame): price_col = price_col.iloc[:, 0] # type: ignore
             
             recent_data = price_col.dropna().tail(14)
             if len(recent_data) < 2:
@@ -787,7 +791,7 @@ def get_market_highlights():
             change = current_price - prev_price
             pct_change = (change / prev_price) * 100
             
-            chart_data = [{"date": str(date.date()), "value": float(val)} for date, val in recent_data.items()]
+            chart_data = [{"date": str(date_val)[:10], "value": float(price)} for date_val, price in recent_data.items()] # type: ignore
             
             result_data.append({
                 "name": info["name"],

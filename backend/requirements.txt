@@ -19,3 +19,4 @@ yfinance
 requests
 beautifulsoup4
 redis
+python-dotenv

@@ -16,7 +16,7 @@ class BacktestEngine:
         try:
             # 1. ดึงข้อมูลราคาหุ้นในพอร์ต
             data = yf.download(tickers_bk, start=start_date, end=end_date, progress=False)
-            if data.empty:
+            if data is None or data.empty:
                 return self._default_empty_result(f"ไม่พบประวัติราคาในช่วง {start_date} ถึง {end_date}")
 
             if isinstance(data.columns, pd.MultiIndex):
@@ -61,14 +61,14 @@ class BacktestEngine:
             bm_cum_returns = pd.Series(100000, index=port_cum_returns.index)
             bm_total_return = 0.0
             
-            if not bm_data.empty:
-                bm_price = bm_data['Adj Close'] if 'Adj Close' in bm_data.columns else bm_data['Close']
+            if bm_data is not None and not getattr(bm_data, 'empty', True): # type: ignore
+                bm_price = bm_data['Adj Close'] if 'Adj Close' in bm_data.columns else bm_data['Close'] # type: ignore
                 if isinstance(bm_price, pd.DataFrame): bm_price = bm_price.iloc[:, 0]
                 
                 bm_returns = bm_price.pct_change().dropna()
                 bm_cum_returns = (1 + bm_returns).cumprod() * 100000
                 raw_return = (bm_price.iloc[-1] / bm_price.iloc[0]) - 1
-                bm_total_return = float(raw_return.iloc[0]) if hasattr(raw_return, "iloc") else float(raw_return)
+                bm_total_return = float(raw_return.iloc[0]) if hasattr(raw_return, "iloc") else float(raw_return) # type: ignore
                 if np.isnan(bm_total_return):
                     bm_total_return = 0.0
 
@@ -78,7 +78,7 @@ class BacktestEngine:
             
             # จับคู่ข้อมูลเข้าด้วยกันเป็น DataFrame
             chart_df = pd.DataFrame({"AI": port_monthly, "SET50": bm_monthly}).dropna()
-            chart_df.index = chart_df.index.strftime('%Y-%m') # เปลี่ยนรูปแบบวันที่เป็น YYYY-MM
+            chart_df.index = chart_df.index.strftime('%Y-%m') # type: ignore # เปลี่ยนรูปแบบวันที่เป็น YYYY-MM
             chart_df.reset_index(inplace=True)
             chart_df.rename(columns={'Date': 'date'}, inplace=True) # ให้ตรงกับที่ Dashboard หน้าบ้านอ่าน
 
@@ -93,7 +93,7 @@ class BacktestEngine:
             }
             
             if missing_tickers:
-                result["warning"] = f"หุ้น {', '.join(missing_tickers)} ไม่มีข้อมูลในช่วงนี้"
+                result["warning"] = f"หุ้น {', '.join(str(m) for m in missing_tickers)} ไม่มีข้อมูลในช่วงนี้" # type: ignore
                 
             return result
             

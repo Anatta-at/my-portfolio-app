@@ -1,6 +1,7 @@
 CREATE TABLE IF NOT EXISTS assets (
     ticker VARCHAR(20) PRIMARY KEY,
     market_cap BIGINT NOT NULL,
+    sector VARCHAR(100),
     is_active BOOLEAN DEFAULT TRUE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );

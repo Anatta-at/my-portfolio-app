@@ -136,7 +136,7 @@ class YahooFinanceFetcher:
         print(f"📥 กำลังดึงข้อมูลราคา {len(tickers)} หุ้น จาก Yahoo Finance...")
         data = yf.download(all_tickers, period=period, interval="1wk", progress=False)
         
-        if data.empty:
+        if data is None or data.empty:
             raise ValueError("ไม่สามารถดึงข้อมูลจาก Yahoo Finance ได้")
 
         # สกัดเอาเฉพาะราคาปิด (Adj Close หรือ Close)
@@ -153,14 +153,17 @@ class YahooFinanceFetcher:
         returns = prices.pct_change().dropna()
         
         # 1. คำนวณ Covariance Matrix (รายปี)
-        cov_matrix = returns.drop(columns=["^SET"], errors='ignore').cov() * 52
+        cov_matrix = returns.drop(columns=["^SET"], errors='ignore').cov() * 52 # type: ignore
         
         # 2. คำนวณค่า Beta รายตัวเทียบกับดัชนี ^SET
         betas = {}
         if "^SET" in returns.columns:
             market_var = returns["^SET"].var()
             for t in cov_matrix.columns:
-                ticker_cov_market = returns[t].cov(returns["^SET"])
+                
+                ticker_series = pd.Series(returns[t])
+                market_series = pd.Series(returns["^SET"])
+                ticker_cov_market = ticker_series.cov(market_series)
                 betas[t] = ticker_cov_market / market_var if market_var != 0 else 1.0
         else:
             betas = {t: 1.0 for t in cov_matrix.columns}

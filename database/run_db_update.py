@@ -2,6 +2,8 @@ import psycopg2
 import os
 
 def run_sql_file(filename):
+    conn = None
+    cursor = None
     try:
         conn = psycopg2.connect(
             dbname="intelliport_db",
@@ -22,9 +24,9 @@ def run_sql_file(filename):
     except Exception as e:
         print(f"❌ Error updating database: {e}")
     finally:
-        if 'cursor' in locals():
+        if cursor:
             cursor.close()
-        if 'conn' in locals():
+        if conn:
             conn.close()
 
 if __name__ == "__main__":
