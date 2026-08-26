@@ -25,7 +25,7 @@ skinparam ArrowColor black
 skinparam ArrowFontSize 16
 skinparam sequenceMessageAlign center
 skinparam SequenceGroupBorderColor #999999
-skinparam SequenceGroupBorderThickness 3.0
+skinparam SequenceGroupBorderThickness 1.5
 skinparam SequenceGroupFontColor #666666
 
 participant "user : User" as User
@@ -114,7 +114,7 @@ skinparam ArrowColor black
 skinparam ArrowFontSize 16
 skinparam sequenceMessageAlign center
 skinparam SequenceGroupBorderColor #999999
-skinparam SequenceGroupBorderThickness 3.0
+skinparam SequenceGroupBorderThickness 1.5
 skinparam SequenceGroupFontColor #666666
 
 participant "user : User" as User
@@ -193,7 +193,7 @@ skinparam ArrowColor black
 skinparam ArrowFontSize 16
 skinparam sequenceMessageAlign center
 skinparam SequenceGroupBorderColor #999999
-skinparam SequenceGroupBorderThickness 3.0
+skinparam SequenceGroupBorderThickness 1.5
 skinparam SequenceGroupFontColor #666666
 
 participant "user : User" as User
@@ -234,7 +234,7 @@ skinparam ArrowColor black
 skinparam ArrowFontSize 16
 skinparam sequenceMessageAlign center
 skinparam SequenceGroupBorderColor #999999
-skinparam SequenceGroupBorderThickness 3.0
+skinparam SequenceGroupBorderThickness 1.5
 skinparam SequenceGroupFontColor #666666
 
 participant "user : User" as User
@@ -276,7 +276,7 @@ skinparam ArrowColor black
 skinparam ArrowFontSize 16
 skinparam sequenceMessageAlign center
 skinparam SequenceGroupBorderColor #999999
-skinparam SequenceGroupBorderThickness 3.0
+skinparam SequenceGroupBorderThickness 1.5
 skinparam SequenceGroupFontColor #666666
 
 participant "user : User" as User
@@ -338,7 +338,7 @@ skinparam ArrowColor black
 skinparam ArrowFontSize 16
 skinparam sequenceMessageAlign center
 skinparam SequenceGroupBorderColor #999999
-skinparam SequenceGroupBorderThickness 3.0
+skinparam SequenceGroupBorderThickness 1.5
 skinparam SequenceGroupFontColor #666666
 
 participant "user : User" as User
@@ -394,7 +394,7 @@ skinparam ArrowColor black
 skinparam ArrowFontSize 16
 skinparam sequenceMessageAlign center
 skinparam SequenceGroupBorderColor #999999
-skinparam SequenceGroupBorderThickness 3.0
+skinparam SequenceGroupBorderThickness 1.5
 skinparam SequenceGroupFontColor #666666
 
 participant "user : User" as User
@@ -450,7 +450,7 @@ skinparam ArrowColor black
 skinparam ArrowFontSize 16
 skinparam sequenceMessageAlign center
 skinparam SequenceGroupBorderColor #999999
-skinparam SequenceGroupBorderThickness 3.0
+skinparam SequenceGroupBorderThickness 1.5
 skinparam SequenceGroupFontColor #666666
 
 participant "user : User" as User
@@ -500,7 +500,7 @@ skinparam ArrowColor black
 skinparam ArrowFontSize 16
 skinparam sequenceMessageAlign center
 skinparam SequenceGroupBorderColor #999999
-skinparam SequenceGroupBorderThickness 3.0
+skinparam SequenceGroupBorderThickness 1.5
 skinparam SequenceGroupFontColor #666666
 
 participant "user : User" as User
@@ -551,7 +551,7 @@ skinparam ArrowColor black
 skinparam ArrowFontSize 16
 skinparam sequenceMessageAlign center
 skinparam SequenceGroupBorderColor #999999
-skinparam SequenceGroupBorderThickness 3.0
+skinparam SequenceGroupBorderThickness 1.5
 skinparam SequenceGroupFontColor #666666
 
 participant "user : User" as User
@@ -592,7 +592,7 @@ skinparam ArrowColor black
 skinparam ArrowFontSize 16
 skinparam sequenceMessageAlign center
 skinparam SequenceGroupBorderColor #999999
-skinparam SequenceGroupBorderThickness 3.0
+skinparam SequenceGroupBorderThickness 1.5
 skinparam SequenceGroupFontColor #666666
 
 participant "actor : User" as User
@@ -691,7 +691,7 @@ skinparam ArrowColor black
 skinparam ArrowFontSize 16
 skinparam sequenceMessageAlign center
 skinparam SequenceGroupBorderColor #999999
-skinparam SequenceGroupBorderThickness 3.0
+skinparam SequenceGroupBorderThickness 1.5
 skinparam SequenceGroupFontColor #666666
 
 participant "actor : User" as User
@@ -732,7 +732,7 @@ skinparam ArrowColor black
 skinparam ArrowFontSize 16
 skinparam sequenceMessageAlign center
 skinparam SequenceGroupBorderColor #999999
-skinparam SequenceGroupBorderThickness 3.0
+skinparam SequenceGroupBorderThickness 1.5
 skinparam SequenceGroupFontColor #666666
 
 participant "admin : Admin" as Admin
@@ -791,7 +791,7 @@ skinparam ArrowColor black
 skinparam ArrowFontSize 16
 skinparam sequenceMessageAlign center
 skinparam SequenceGroupBorderColor #999999
-skinparam SequenceGroupBorderThickness 3.0
+skinparam SequenceGroupBorderThickness 1.5
 skinparam SequenceGroupFontColor #666666
 
 participant "admin : Admin" as Admin
@@ -841,7 +841,7 @@ skinparam ArrowColor black
 skinparam ArrowFontSize 16
 skinparam sequenceMessageAlign center
 skinparam SequenceGroupBorderColor #999999
-skinparam SequenceGroupBorderThickness 3.0
+skinparam SequenceGroupBorderThickness 1.5
 skinparam SequenceGroupFontColor #666666
 
 participant "admin : Admin" as Admin
