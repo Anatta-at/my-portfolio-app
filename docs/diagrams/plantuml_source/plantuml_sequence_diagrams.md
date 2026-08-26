@@ -25,9 +25,9 @@ skinparam ArrowColor black
 skinparam ArrowFontSize 16
 skinparam sequenceMessageAlign center
 
-participant ": User" as User
-participant "หน้าเว็บ : Website" as Frontend
-participant "ระบบล็อกอิน : Clerk" as Clerk
+participant "user : User" as User
+participant "frontend : Website" as Frontend
+participant "auth : Clerk" as Clerk
 
 |||
 activate User
@@ -111,8 +111,8 @@ skinparam ArrowColor black
 skinparam ArrowFontSize 16
 skinparam sequenceMessageAlign center
 
-participant ": User" as User
-participant "หน้าแก้ไขข้อมูล : Website" as Frontend
+participant "user : User" as User
+participant "frontend : Website" as Frontend
 participant "backend : API" as Backend
 participant "database : DB" as DB
 
@@ -187,8 +187,8 @@ skinparam ArrowColor black
 skinparam ArrowFontSize 16
 skinparam sequenceMessageAlign center
 
-participant ": User" as User
-participant "หน้าเว็บ : Website" as Frontend
+participant "user : User" as User
+participant "frontend : Website" as Frontend
 
 |||
 activate User
@@ -225,8 +225,8 @@ skinparam ArrowColor black
 skinparam ArrowFontSize 16
 skinparam sequenceMessageAlign center
 
-participant ": User" as User
-participant "หน้าเว็บ : Website" as Frontend
+participant "user : User" as User
+participant "frontend : Website" as Frontend
 
 |||
 activate User
@@ -264,8 +264,8 @@ skinparam ArrowColor black
 skinparam ArrowFontSize 16
 skinparam sequenceMessageAlign center
 
-participant ": User" as User
-participant "หน้าเว็บ : Website" as Frontend
+participant "user : User" as User
+participant "frontend : Website" as Frontend
 participant "backend : API" as Backend
 participant "engine : Model" as Model
 participant "database : DB" as DB
@@ -323,8 +323,8 @@ skinparam ArrowColor black
 skinparam ArrowFontSize 16
 skinparam sequenceMessageAlign center
 
-participant ": User" as User
-participant "หน้าเว็บ : Website" as Frontend
+participant "user : User" as User
+participant "frontend : Website" as Frontend
 participant "backend : API" as Backend
 participant "database : DB" as DB
 
@@ -376,8 +376,8 @@ skinparam ArrowColor black
 skinparam ArrowFontSize 16
 skinparam sequenceMessageAlign center
 
-participant ": User" as User
-participant "หน้าปรับปรุงพอร์ต : Website" as Frontend
+participant "user : User" as User
+participant "frontend : Website" as Frontend
 participant "backend : API" as Backend
 participant "engine : Model" as Model
 participant "database : DB" as DB
@@ -429,8 +429,8 @@ skinparam ArrowColor black
 skinparam ArrowFontSize 16
 skinparam sequenceMessageAlign center
 
-participant ": User" as User
-participant "หน้าสรุปผลพอร์ต : Website" as Frontend
+participant "user : User" as User
+participant "frontend : Website" as Frontend
 participant "backend : API" as Backend
 participant "database : DB" as DB
 
@@ -476,8 +476,8 @@ skinparam ArrowColor black
 skinparam ArrowFontSize 16
 skinparam sequenceMessageAlign center
 
-participant ": User" as User
-participant "หน้าเว็บ : Website" as Frontend
+participant "user : User" as User
+participant "frontend : Website" as Frontend
 participant "backend : API" as Backend
 participant "database : DB" as DB
 
@@ -524,8 +524,8 @@ skinparam ArrowColor black
 skinparam ArrowFontSize 16
 skinparam sequenceMessageAlign center
 
-participant ": User" as User
-participant "หน้าเว็บ : Website" as Frontend
+participant "user : User" as User
+participant "frontend : Website" as Frontend
 
 |||
 activate User
@@ -562,9 +562,9 @@ skinparam ArrowColor black
 skinparam ArrowFontSize 16
 skinparam sequenceMessageAlign center
 
-participant ": User / Admin" as User
-participant "หน้าเว็บ : Website" as Frontend
-participant "ระบบล็อกอิน : Clerk" as Clerk
+participant "actor : User" as User
+participant "frontend : Website" as Frontend
+participant "auth : Clerk" as Clerk
 participant "backend : API" as Backend
 participant "database : DB" as DB
 
@@ -658,8 +658,8 @@ skinparam ArrowColor black
 skinparam ArrowFontSize 16
 skinparam sequenceMessageAlign center
 
-participant ": User / Admin" as User
-participant "หน้าเว็บ : Website" as Frontend
+participant "actor : User" as User
+participant "frontend : Website" as Frontend
 
 |||
 activate User
@@ -696,8 +696,8 @@ skinparam ArrowColor black
 skinparam ArrowFontSize 16
 skinparam sequenceMessageAlign center
 
-participant ": Admin" as Admin
-participant "หน้าจอแอดมิน : Website" as Frontend
+participant "admin : Admin" as Admin
+participant "frontend : Website" as Frontend
 participant "backend : API" as Backend
 participant "database : DB" as DB
 
@@ -752,8 +752,8 @@ skinparam ArrowColor black
 skinparam ArrowFontSize 16
 skinparam sequenceMessageAlign center
 
-participant ": Admin" as Admin
-participant "หน้าจอแอดมิน : Website" as Frontend
+participant "admin : Admin" as Admin
+participant "frontend : Website" as Frontend
 participant "backend : API" as Backend
 participant "database : DB" as DB
 
@@ -799,8 +799,8 @@ skinparam ArrowColor black
 skinparam ArrowFontSize 16
 skinparam sequenceMessageAlign center
 
-participant ": Admin" as Admin
-participant "หน้าจอแอดมิน : Website" as Frontend
+participant "admin : Admin" as Admin
+participant "frontend : Website" as Frontend
 participant "backend : API" as Backend
 participant "database : DB" as DB
 
