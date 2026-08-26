@@ -20,7 +20,7 @@ skinparam ParticipantBorderThickness 1.0
 skinparam ParticipantFontSize 16
 skinparam LifeLineBackgroundColor white
 skinparam LifeLineBorderColor black
-skinparam LifeLineBorderThickness 7.0
+skinparam LifeLineBorderThickness 3.0
 skinparam ArrowColor black
 skinparam ArrowFontSize 16
 skinparam sequenceMessageAlign center
@@ -109,7 +109,7 @@ skinparam ParticipantBorderThickness 1.0
 skinparam ParticipantFontSize 16
 skinparam LifeLineBackgroundColor white
 skinparam LifeLineBorderColor black
-skinparam LifeLineBorderThickness 7.0
+skinparam LifeLineBorderThickness 3.0
 skinparam ArrowColor black
 skinparam ArrowFontSize 16
 skinparam sequenceMessageAlign center
@@ -188,7 +188,7 @@ skinparam ParticipantBorderThickness 1.0
 skinparam ParticipantFontSize 16
 skinparam LifeLineBackgroundColor white
 skinparam LifeLineBorderColor black
-skinparam LifeLineBorderThickness 7.0
+skinparam LifeLineBorderThickness 3.0
 skinparam ArrowColor black
 skinparam ArrowFontSize 16
 skinparam sequenceMessageAlign center
@@ -229,7 +229,7 @@ skinparam ParticipantBorderThickness 1.0
 skinparam ParticipantFontSize 16
 skinparam LifeLineBackgroundColor white
 skinparam LifeLineBorderColor black
-skinparam LifeLineBorderThickness 7.0
+skinparam LifeLineBorderThickness 3.0
 skinparam ArrowColor black
 skinparam ArrowFontSize 16
 skinparam sequenceMessageAlign center
@@ -271,7 +271,7 @@ skinparam ParticipantBorderThickness 1.0
 skinparam ParticipantFontSize 16
 skinparam LifeLineBackgroundColor white
 skinparam LifeLineBorderColor black
-skinparam LifeLineBorderThickness 7.0
+skinparam LifeLineBorderThickness 3.0
 skinparam ArrowColor black
 skinparam ArrowFontSize 16
 skinparam sequenceMessageAlign center
@@ -333,7 +333,7 @@ skinparam ParticipantBorderThickness 1.0
 skinparam ParticipantFontSize 16
 skinparam LifeLineBackgroundColor white
 skinparam LifeLineBorderColor black
-skinparam LifeLineBorderThickness 7.0
+skinparam LifeLineBorderThickness 3.0
 skinparam ArrowColor black
 skinparam ArrowFontSize 16
 skinparam sequenceMessageAlign center
@@ -389,7 +389,7 @@ skinparam ParticipantBorderThickness 1.0
 skinparam ParticipantFontSize 16
 skinparam LifeLineBackgroundColor white
 skinparam LifeLineBorderColor black
-skinparam LifeLineBorderThickness 7.0
+skinparam LifeLineBorderThickness 3.0
 skinparam ArrowColor black
 skinparam ArrowFontSize 16
 skinparam sequenceMessageAlign center
@@ -445,7 +445,7 @@ skinparam ParticipantBorderThickness 1.0
 skinparam ParticipantFontSize 16
 skinparam LifeLineBackgroundColor white
 skinparam LifeLineBorderColor black
-skinparam LifeLineBorderThickness 7.0
+skinparam LifeLineBorderThickness 3.0
 skinparam ArrowColor black
 skinparam ArrowFontSize 16
 skinparam sequenceMessageAlign center
@@ -495,7 +495,7 @@ skinparam ParticipantBorderThickness 1.0
 skinparam ParticipantFontSize 16
 skinparam LifeLineBackgroundColor white
 skinparam LifeLineBorderColor black
-skinparam LifeLineBorderThickness 7.0
+skinparam LifeLineBorderThickness 3.0
 skinparam ArrowColor black
 skinparam ArrowFontSize 16
 skinparam sequenceMessageAlign center
@@ -546,7 +546,7 @@ skinparam ParticipantBorderThickness 1.0
 skinparam ParticipantFontSize 16
 skinparam LifeLineBackgroundColor white
 skinparam LifeLineBorderColor black
-skinparam LifeLineBorderThickness 7.0
+skinparam LifeLineBorderThickness 3.0
 skinparam ArrowColor black
 skinparam ArrowFontSize 16
 skinparam sequenceMessageAlign center
@@ -587,7 +587,7 @@ skinparam ParticipantBorderThickness 1.0
 skinparam ParticipantFontSize 16
 skinparam LifeLineBackgroundColor white
 skinparam LifeLineBorderColor black
-skinparam LifeLineBorderThickness 7.0
+skinparam LifeLineBorderThickness 3.0
 skinparam ArrowColor black
 skinparam ArrowFontSize 16
 skinparam sequenceMessageAlign center
@@ -686,7 +686,7 @@ skinparam ParticipantBorderThickness 1.0
 skinparam ParticipantFontSize 16
 skinparam LifeLineBackgroundColor white
 skinparam LifeLineBorderColor black
-skinparam LifeLineBorderThickness 7.0
+skinparam LifeLineBorderThickness 3.0
 skinparam ArrowColor black
 skinparam ArrowFontSize 16
 skinparam sequenceMessageAlign center
@@ -727,7 +727,7 @@ skinparam ParticipantBorderThickness 1.0
 skinparam ParticipantFontSize 16
 skinparam LifeLineBackgroundColor white
 skinparam LifeLineBorderColor black
-skinparam LifeLineBorderThickness 7.0
+skinparam LifeLineBorderThickness 3.0
 skinparam ArrowColor black
 skinparam ArrowFontSize 16
 skinparam sequenceMessageAlign center
@@ -786,7 +786,7 @@ skinparam ParticipantBorderThickness 1.0
 skinparam ParticipantFontSize 16
 skinparam LifeLineBackgroundColor white
 skinparam LifeLineBorderColor black
-skinparam LifeLineBorderThickness 7.0
+skinparam LifeLineBorderThickness 3.0
 skinparam ArrowColor black
 skinparam ArrowFontSize 16
 skinparam sequenceMessageAlign center
@@ -836,7 +836,7 @@ skinparam ParticipantBorderThickness 1.0
 skinparam ParticipantFontSize 16
 skinparam LifeLineBackgroundColor white
 skinparam LifeLineBorderColor black
-skinparam LifeLineBorderThickness 7.0
+skinparam LifeLineBorderThickness 3.0
 skinparam ArrowColor black
 skinparam ArrowFontSize 16
 skinparam sequenceMessageAlign center
