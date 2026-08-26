@@ -14,7 +14,7 @@ skinparam backgroundcolor white
 skinparam ranksep 50
 
 skinparam SwimlaneBorderColor black
-skinparam SwimlaneBorderThickness 1.5
+skinparam SwimlaneBorderThickness 2.0
 skinparam SwimlaneBackgroundColor white
 skinparam SwimlaneTitleBackgroundColor white
 skinparam SwimlaneTitleFontColor black
@@ -77,7 +77,7 @@ skinparam backgroundcolor white
 skinparam ranksep 50
 
 skinparam SwimlaneBorderColor black
-skinparam SwimlaneBorderThickness 1.5
+skinparam SwimlaneBorderThickness 2.0
 skinparam SwimlaneBackgroundColor white
 skinparam SwimlaneTitleBackgroundColor white
 skinparam SwimlaneTitleFontColor black
@@ -131,7 +131,7 @@ skinparam backgroundcolor white
 skinparam ranksep 50
 
 skinparam SwimlaneBorderColor black
-skinparam SwimlaneBorderThickness 1.5
+skinparam SwimlaneBorderThickness 2.0
 skinparam SwimlaneBackgroundColor white
 skinparam SwimlaneTitleBackgroundColor white
 skinparam SwimlaneTitleFontColor black
@@ -168,7 +168,7 @@ skinparam backgroundcolor white
 skinparam ranksep 50
 
 skinparam SwimlaneBorderColor black
-skinparam SwimlaneBorderThickness 1.5
+skinparam SwimlaneBorderThickness 2.0
 skinparam SwimlaneBackgroundColor white
 skinparam SwimlaneTitleBackgroundColor white
 skinparam SwimlaneTitleFontColor black
@@ -205,7 +205,7 @@ skinparam backgroundcolor white
 skinparam ranksep 50
 
 skinparam SwimlaneBorderColor black
-skinparam SwimlaneBorderThickness 1.5
+skinparam SwimlaneBorderThickness 2.0
 skinparam SwimlaneBackgroundColor white
 skinparam SwimlaneTitleBackgroundColor white
 skinparam SwimlaneTitleFontColor black
@@ -251,7 +251,7 @@ skinparam backgroundcolor white
 skinparam ranksep 50
 
 skinparam SwimlaneBorderColor black
-skinparam SwimlaneBorderThickness 1.5
+skinparam SwimlaneBorderThickness 2.0
 skinparam SwimlaneBackgroundColor white
 skinparam SwimlaneTitleBackgroundColor white
 skinparam SwimlaneTitleFontColor black
@@ -295,7 +295,7 @@ skinparam backgroundcolor white
 skinparam ranksep 50
 
 skinparam SwimlaneBorderColor black
-skinparam SwimlaneBorderThickness 1.5
+skinparam SwimlaneBorderThickness 2.0
 skinparam SwimlaneBackgroundColor white
 skinparam SwimlaneTitleBackgroundColor white
 skinparam SwimlaneTitleFontColor black
@@ -340,7 +340,7 @@ skinparam backgroundcolor white
 skinparam ranksep 50
 
 skinparam SwimlaneBorderColor black
-skinparam SwimlaneBorderThickness 1.5
+skinparam SwimlaneBorderThickness 2.0
 skinparam SwimlaneBackgroundColor white
 skinparam SwimlaneTitleBackgroundColor white
 skinparam SwimlaneTitleFontColor black
@@ -379,7 +379,7 @@ skinparam backgroundcolor white
 skinparam ranksep 50
 
 skinparam SwimlaneBorderColor black
-skinparam SwimlaneBorderThickness 1.5
+skinparam SwimlaneBorderThickness 2.0
 skinparam SwimlaneBackgroundColor white
 skinparam SwimlaneTitleBackgroundColor white
 skinparam SwimlaneTitleFontColor black
@@ -422,7 +422,7 @@ skinparam backgroundcolor white
 skinparam ranksep 50
 
 skinparam SwimlaneBorderColor black
-skinparam SwimlaneBorderThickness 1.5
+skinparam SwimlaneBorderThickness 2.0
 skinparam SwimlaneBackgroundColor white
 skinparam SwimlaneTitleBackgroundColor white
 skinparam SwimlaneTitleFontColor black
@@ -457,7 +457,7 @@ skinparam backgroundcolor white
 skinparam ranksep 50
 
 skinparam SwimlaneBorderColor black
-skinparam SwimlaneBorderThickness 1.5
+skinparam SwimlaneBorderThickness 2.0
 skinparam SwimlaneBackgroundColor white
 skinparam SwimlaneTitleBackgroundColor white
 skinparam SwimlaneTitleFontColor black
@@ -525,7 +525,7 @@ skinparam backgroundcolor white
 skinparam ranksep 50
 
 skinparam SwimlaneBorderColor black
-skinparam SwimlaneBorderThickness 1.5
+skinparam SwimlaneBorderThickness 2.0
 skinparam SwimlaneBackgroundColor white
 skinparam SwimlaneTitleBackgroundColor white
 skinparam SwimlaneTitleFontColor black
@@ -560,7 +560,7 @@ skinparam backgroundcolor white
 skinparam ranksep 50
 
 skinparam SwimlaneBorderColor black
-skinparam SwimlaneBorderThickness 1.5
+skinparam SwimlaneBorderThickness 2.0
 skinparam SwimlaneBackgroundColor white
 skinparam SwimlaneTitleBackgroundColor white
 skinparam SwimlaneTitleFontColor black
@@ -607,7 +607,7 @@ skinparam backgroundcolor white
 skinparam ranksep 50
 
 skinparam SwimlaneBorderColor black
-skinparam SwimlaneBorderThickness 1.5
+skinparam SwimlaneBorderThickness 2.0
 skinparam SwimlaneBackgroundColor white
 skinparam SwimlaneTitleBackgroundColor white
 skinparam SwimlaneTitleFontColor black
@@ -648,7 +648,7 @@ skinparam backgroundcolor white
 skinparam ranksep 50
 
 skinparam SwimlaneBorderColor black
-skinparam SwimlaneBorderThickness 1.5
+skinparam SwimlaneBorderThickness 2.0
 skinparam SwimlaneBackgroundColor white
 skinparam SwimlaneTitleBackgroundColor white
 skinparam SwimlaneTitleFontColor black
