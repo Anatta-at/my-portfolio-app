@@ -24,6 +24,9 @@ skinparam LifeLineBorderThickness 7.0
 skinparam ArrowColor black
 skinparam ArrowFontSize 16
 skinparam sequenceMessageAlign center
+skinparam SequenceGroupBorderColor #999999
+skinparam SequenceGroupBorderThickness 1.0
+skinparam SequenceGroupFontColor #666666
 
 participant "user : User" as User
 participant "frontend : Website" as Frontend
@@ -110,6 +113,9 @@ skinparam LifeLineBorderThickness 7.0
 skinparam ArrowColor black
 skinparam ArrowFontSize 16
 skinparam sequenceMessageAlign center
+skinparam SequenceGroupBorderColor #999999
+skinparam SequenceGroupBorderThickness 1.0
+skinparam SequenceGroupFontColor #666666
 
 participant "user : User" as User
 participant "frontend : Website" as Frontend
@@ -186,6 +192,9 @@ skinparam LifeLineBorderThickness 7.0
 skinparam ArrowColor black
 skinparam ArrowFontSize 16
 skinparam sequenceMessageAlign center
+skinparam SequenceGroupBorderColor #999999
+skinparam SequenceGroupBorderThickness 1.0
+skinparam SequenceGroupFontColor #666666
 
 participant "user : User" as User
 participant "frontend : Website" as Frontend
@@ -224,6 +233,9 @@ skinparam LifeLineBorderThickness 7.0
 skinparam ArrowColor black
 skinparam ArrowFontSize 16
 skinparam sequenceMessageAlign center
+skinparam SequenceGroupBorderColor #999999
+skinparam SequenceGroupBorderThickness 1.0
+skinparam SequenceGroupFontColor #666666
 
 participant "user : User" as User
 participant "frontend : Website" as Frontend
@@ -263,6 +275,9 @@ skinparam LifeLineBorderThickness 7.0
 skinparam ArrowColor black
 skinparam ArrowFontSize 16
 skinparam sequenceMessageAlign center
+skinparam SequenceGroupBorderColor #999999
+skinparam SequenceGroupBorderThickness 1.0
+skinparam SequenceGroupFontColor #666666
 
 participant "user : User" as User
 participant "frontend : Website" as Frontend
@@ -322,6 +337,9 @@ skinparam LifeLineBorderThickness 7.0
 skinparam ArrowColor black
 skinparam ArrowFontSize 16
 skinparam sequenceMessageAlign center
+skinparam SequenceGroupBorderColor #999999
+skinparam SequenceGroupBorderThickness 1.0
+skinparam SequenceGroupFontColor #666666
 
 participant "user : User" as User
 participant "frontend : Website" as Frontend
@@ -375,6 +393,9 @@ skinparam LifeLineBorderThickness 7.0
 skinparam ArrowColor black
 skinparam ArrowFontSize 16
 skinparam sequenceMessageAlign center
+skinparam SequenceGroupBorderColor #999999
+skinparam SequenceGroupBorderThickness 1.0
+skinparam SequenceGroupFontColor #666666
 
 participant "user : User" as User
 participant "frontend : Website" as Frontend
@@ -428,6 +449,9 @@ skinparam LifeLineBorderThickness 7.0
 skinparam ArrowColor black
 skinparam ArrowFontSize 16
 skinparam sequenceMessageAlign center
+skinparam SequenceGroupBorderColor #999999
+skinparam SequenceGroupBorderThickness 1.0
+skinparam SequenceGroupFontColor #666666
 
 participant "user : User" as User
 participant "frontend : Website" as Frontend
@@ -475,6 +499,9 @@ skinparam LifeLineBorderThickness 7.0
 skinparam ArrowColor black
 skinparam ArrowFontSize 16
 skinparam sequenceMessageAlign center
+skinparam SequenceGroupBorderColor #999999
+skinparam SequenceGroupBorderThickness 1.0
+skinparam SequenceGroupFontColor #666666
 
 participant "user : User" as User
 participant "frontend : Website" as Frontend
@@ -523,6 +550,9 @@ skinparam LifeLineBorderThickness 7.0
 skinparam ArrowColor black
 skinparam ArrowFontSize 16
 skinparam sequenceMessageAlign center
+skinparam SequenceGroupBorderColor #999999
+skinparam SequenceGroupBorderThickness 1.0
+skinparam SequenceGroupFontColor #666666
 
 participant "user : User" as User
 participant "frontend : Website" as Frontend
@@ -561,6 +591,9 @@ skinparam LifeLineBorderThickness 7.0
 skinparam ArrowColor black
 skinparam ArrowFontSize 16
 skinparam sequenceMessageAlign center
+skinparam SequenceGroupBorderColor #999999
+skinparam SequenceGroupBorderThickness 1.0
+skinparam SequenceGroupFontColor #666666
 
 participant "actor : User" as User
 participant "frontend : Website" as Frontend
@@ -657,6 +690,9 @@ skinparam LifeLineBorderThickness 7.0
 skinparam ArrowColor black
 skinparam ArrowFontSize 16
 skinparam sequenceMessageAlign center
+skinparam SequenceGroupBorderColor #999999
+skinparam SequenceGroupBorderThickness 1.0
+skinparam SequenceGroupFontColor #666666
 
 participant "actor : User" as User
 participant "frontend : Website" as Frontend
@@ -695,6 +731,9 @@ skinparam LifeLineBorderThickness 7.0
 skinparam ArrowColor black
 skinparam ArrowFontSize 16
 skinparam sequenceMessageAlign center
+skinparam SequenceGroupBorderColor #999999
+skinparam SequenceGroupBorderThickness 1.0
+skinparam SequenceGroupFontColor #666666
 
 participant "admin : Admin" as Admin
 participant "frontend : Website" as Frontend
@@ -751,6 +790,9 @@ skinparam LifeLineBorderThickness 7.0
 skinparam ArrowColor black
 skinparam ArrowFontSize 16
 skinparam sequenceMessageAlign center
+skinparam SequenceGroupBorderColor #999999
+skinparam SequenceGroupBorderThickness 1.0
+skinparam SequenceGroupFontColor #666666
 
 participant "admin : Admin" as Admin
 participant "frontend : Website" as Frontend
@@ -798,6 +840,9 @@ skinparam LifeLineBorderThickness 7.0
 skinparam ArrowColor black
 skinparam ArrowFontSize 16
 skinparam sequenceMessageAlign center
+skinparam SequenceGroupBorderColor #999999
+skinparam SequenceGroupBorderThickness 1.0
+skinparam SequenceGroupFontColor #666666
 
 participant "admin : Admin" as Admin
 participant "frontend : Website" as Frontend
