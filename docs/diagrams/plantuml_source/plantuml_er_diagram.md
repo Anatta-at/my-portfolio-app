@@ -15,7 +15,7 @@ skinparam classBackgroundColor white
 
 ' ตั้งค่าสไตล์ของ ER Diagram ให้เป็น Crow's Foot
 hide circle
-skinparam linetype ortho
+' skinparam linetype ortho (Removed for better Smetana rendering)
 skinparam monochrome true
 skinparam shadowing false
 skinparam nodesep 60

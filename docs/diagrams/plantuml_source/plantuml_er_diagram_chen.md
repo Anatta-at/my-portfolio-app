@@ -10,7 +10,7 @@ skinparam monochrome true
 skinparam shadowing false
 skinparam packageStyle rectangle
 
-left to right direction
+' left to right direction (Removed for better Smetana rendering)
 
 <style>
 hexagon {
