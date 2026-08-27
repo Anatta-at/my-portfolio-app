@@ -1,17 +1,25 @@
 import os
 import psycopg2
+from dotenv import load_dotenv
+
+# โหลด environment variables
+load_dotenv(os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), '.env'))
 
 def add_column():
     db_host = os.getenv("DATABASE_HOST", "localhost")
     print(f"Connecting to DB at {db_host}...")
     
-    conn = psycopg2.connect(
-        dbname="intelliport_db",
-        user="admin",
-        password="Heyrose05",
-        host=db_host,
-        port="5432"
-    )
+    db_url = os.getenv("DATABASE_URL")
+    if db_url:
+        conn = psycopg2.connect(db_url)
+    else:
+        conn = psycopg2.connect(
+            dbname=os.getenv("DB_NAME", "intelliport_db"),
+            user=os.getenv("DB_USER", "admin"),
+            password=os.getenv("DB_PASSWORD", ""),
+            host=db_host,
+            port=os.getenv("DB_PORT", "5432")
+        )
     cursor = conn.cursor()
     
     try:
