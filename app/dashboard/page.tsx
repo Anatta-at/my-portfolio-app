@@ -4,7 +4,7 @@ import { useEffect, useState, useMemo } from 'react';
 import { useAuth } from '@clerk/nextjs';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Plus, ChevronLeft, ChevronRight, MoreHorizontal, ArrowRight, Trash2, TriangleAlert, X } from 'lucide-react';
+import { Plus, ChevronLeft, ChevronRight, MoreHorizontal, ArrowRight, Trash2, TriangleAlert, X, AlertCircle } from 'lucide-react';
 
 export default function HistoryPage() {
   const { userId, isLoaded } = useAuth();
@@ -23,10 +23,18 @@ export default function HistoryPage() {
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
   const [isDeleting, setIsDeleting] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  // ✅ เพิ่ม Toast state
+  const [toast, setToast] = useState<{ message: string; type: 'error' | 'success' } | null>(null);
 
   useEffect(() => {
     if (!isLoaded || !userId) {
-      if (isLoaded && !userId) setIsLoading(false);
+      if (isLoaded && !userId) {
+        // ✅ แก้ไข: เพิ่ม redirect ไปหน้า Login เมื่อไม่ได้เข้าสู่ระบบ
+        // ก่อน: แค่ setIsLoading(false) ทำให้เห็นหน้าว่างเปล่า
+        // หลัง: redirect ไป /login เพื่อ UX ที่ดีกว่า
+        router.push('/login');
+        setIsLoading(false);
+      }
       return;
     }
 
@@ -54,7 +62,7 @@ export default function HistoryPage() {
     }
 
     fetchHistory();
-  }, [userId, isLoaded]);
+  }, [userId, isLoaded, router]);
 
   // Filtering and Pagination Logic
   const filteredData = useMemo(() => {
@@ -107,10 +115,10 @@ export default function HistoryPage() {
         setPortfolios(prev => prev.filter(p => !selectedIds.has(p.id)));
         setIsDeleteDialogOpen(false);
       } else {
-        alert(data.message || 'ลบข้อมูลไม่สำเร็จ');
+        setToast({ message: data.message || 'ลบข้อมูลไม่สำเร็จ', type: 'error' });
       }
     } catch {
-      alert('เกิดข้อผิดพลาดในการเชื่อมต่อเซิร์ฟเวอร์');
+      setToast({ message: 'เกิดข้อผิดพลาดในการเชื่อมต่อเซิร์ฟเวอร์', type: 'error' });
     } finally {
       setIsDeleting(false);
     }
@@ -148,6 +156,21 @@ export default function HistoryPage() {
 
   return (
     <main className="min-h-screen bg-[#FAFAF8] dark:bg-[#111110] py-12 px-4 sm:px-6 lg:px-8 font-sans">
+      {/* ✅ Toast Notification */}
+      {toast && (
+        <div className={`fixed top-20 right-4 z-50 flex items-center gap-3 px-4 py-3 rounded-xl shadow-lg border max-w-sm ${
+          toast.type === 'error'
+            ? 'bg-red-50 dark:bg-red-950/80 border-red-200 dark:border-red-800 text-red-800 dark:text-red-200'
+            : 'bg-green-50 dark:bg-green-950/80 border-green-200 dark:border-green-800 text-green-800 dark:text-green-200'
+        }`}>
+          <AlertCircle className="w-4 h-4 flex-shrink-0" />
+          <p className="text-sm font-medium flex-1">{toast.message}</p>
+          <button onClick={() => setToast(null)} className="opacity-60 hover:opacity-100">
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+      )}
+
       <div className="max-w-5xl mx-auto mb-10 flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4 pb-6">
         <div>
           <h1 className="text-3xl font-black text-stone-900 dark:text-stone-100 tracking-tight">แดชบอร์ด</h1>

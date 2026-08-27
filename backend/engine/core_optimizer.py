@@ -1,5 +1,6 @@
 # pyright: ignore [reportAttributeAccessIssue, reportUnusedParameter, reportMissingImports]
 import random
+import time
 import numpy as np
 import pandas as pd
 from typing import Dict
@@ -70,8 +71,12 @@ class GeneticPortfolioOptimizer:
         locked_indices = [tickers.index(t) for t in locked_stocks_clean if t in tickers]
 
 
-        random.seed(42)
-        np.random.seed(42)
+        # ✅ แก้ไข: เปลี่ยนจาก seed คงที่ (42) → seed จาก timestamp
+        # ก่อน: seed(42) ทำให้ผู้ใช้ทุกคนได้พอร์ตเหมือนกัน 100%
+        # หลัง: seed จาก microsecond ทำให้ผลลัพธ์หลากหลายขึ้น
+        seed = int(time.time() * 1000) % (2 ** 32)
+        random.seed(seed)
+        np.random.seed(seed)
         
         cov = getattr(cov_matrix, "values", cov_matrix)  # type: ignore
         

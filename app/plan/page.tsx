@@ -3,13 +3,28 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@clerk/nextjs';
-import { AlertCircle, X, ArrowRight, Sliders, DollarSign, Clock } from 'lucide-react';
+import { AlertCircle, X, ArrowRight, Sliders, DollarSign, Clock, CheckCircle2 } from 'lucide-react';
 
 export default function PlanPage() {
   const router = useRouter();
   const { userId } = useAuth();
 
   const [isLoading, setIsLoading] = useState(false);
+  // ✅ เพิ่มใหม่: Toast Notification state
+  // ก่อน: ใช้ alert() บราวเซอร์ดีไอเล็กที่บล็อก UI และดูไม่สวย
+  // หลัง: ใช้ Toast component ที่สวยงามและไม่บล็อก UI
+  const [toast, setToast] = useState<{ message: string; type: 'error' | 'success' } | null>(null);
+  // ✅ เพิ่มใหม่: Progress Steps state ขณะรอ GA
+  // ก่อน: ไม่มี ผู้ใช้เห็นแค่ spinner สีเขียว ไม่รู้ว่าระบบทำอะไร
+  // หลัง: แสดงขั้นตอนที่ระบบกำลังทำ (ดึงข้อมูล, BL, GA, Backtest)
+  const [loadingStep, setLoadingStep] = useState(0);
+  const loadingSteps = [
+    '📡 กำลังดึงข้อมูลหุ้น SET50...',
+    '🧮 Black-Litterman กำลังคำนวณผลตอบแทน...',
+    '🧬 Genetic Algorithm กำลังหาพอร์ตที่ดีที่สุด...',
+    '📊 Backtesting เปรียบเทียบกับ SET50...',
+    '💾 กำลังบันทึกผลลัพธ์...',
+  ];
 
   const [mainTab, setMainTab] = useState<'template' | 'custom'>('template');
   const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null);
@@ -153,12 +168,16 @@ export default function PlanPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!userId) {
-      alert("กรุณาเข้าสู่ระบบก่อนสร้างแผนการลงทุนครับ");
-      router.push('/login');
+      // ✅ แก้ไข: เปลี่ยนจาก alert() เป็น Toast notification
+      // ก่อน: alert("กรุณาเข้าสู่ระบบก่อน...") บล็อกหน้าจอและดูไม่เป็น professional
+      // หลัง: Toast แสดงทันทีโดยไม่บล็อกการใช้งานของ UI
+      setToast({ message: 'กรุณาเข้าสู่ระบบก่อนสร้างแผนการลงทุน', type: 'error' });
+      setTimeout(() => router.push('/login'), 2000);
       return;
     }
     if (validateForm()) {
       setIsLoading(true);
+      setLoadingStep(0);
       const finalDuration = Number(getCalculatedDuration() || 0);
       const finalBudget = Number(getRawNumber(String(getCalculatedBudget() || '0')));
       const finalTarget = formData.targetAmount ? Number(getRawNumber(formData.targetAmount)) : null;
@@ -171,6 +190,10 @@ export default function PlanPage() {
       const startDate = new Date();
       startDate.setFullYear(endDate.getFullYear() - finalDuration);
       try {
+        // ✅ เดิน Progress Steps
+        setLoadingStep(1); // BL
+        await new Promise(r => setTimeout(r, 800));
+        setLoadingStep(2); // GA
         const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/optimize`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -182,20 +205,26 @@ export default function PlanPage() {
             sectors: selectedSectors.length > 0 ? selectedSectors : undefined
           })
         });
+        setLoadingStep(3); // Backtest
         if (!response.ok) throw new Error('การตอบสนองจากเซิร์ฟเวอร์ผิดพลาด');
         const data = await response.json();
+        setLoadingStep(4); // Saving
+        await new Promise(r => setTimeout(r, 400));
         if (data.status === 'success') {
           localStorage.setItem('userPlan', JSON.stringify(cleanData));
           localStorage.setItem('portfolioResult', JSON.stringify(data));
           router.push(`/dashboard/${data.portfolio_id}`);
         } else {
-          alert('เกิดข้อผิดพลาดในการคำนวณ: ' + data.message);
+          // ✅ แก้ไข: เปลี่ยนจาก alert() เป็น Toast
+          setToast({ message: 'เกิดข้อผิดพลาด: ' + (data.detail || data.message || 'Unknown error'), type: 'error' });
         }
       } catch (error) {
         console.error("API Error:", error);
-        alert('ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์ประมวลผลได้');
+        // ✅ แก้ไข: เปลี่ยนจาก alert() เป็น Toast
+        setToast({ message: 'ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์ประมวลผลได้', type: 'error' });
       } finally {
         setIsLoading(false);
+        setLoadingStep(0);
       }
     }
   };
@@ -278,8 +307,8 @@ export default function PlanPage() {
 
   const handleTemplateSubmit = async (templateId: string) => {
     if (!userId) {
-      alert("กรุณาเข้าสู่ระบบก่อนสร้างแผนการลงทุนครับ");
-      router.push('/login');
+      setToast({ message: 'กรุณาเข้าสู่ระบบก่อนสร้างแผนการลงทุน', type: 'error' });
+      setTimeout(() => router.push('/login'), 2000);
       return;
     }
     const template = templates.find(t => t.id === templateId);
@@ -287,12 +316,12 @@ export default function PlanPage() {
 
     const budgetRaw = Number(getRawNumber(templateBudget));
     if (budgetRaw <= 0) {
-      alert("กรุณาระบุเงินลงทุนให้ถูกต้อง (มากกว่า 0 บาท)");
+      setToast({ message: 'กรุณาระบุเงินลงทุนให้ถูกต้อง (มากกว่า 0 บาท)', type: 'error' });
       return;
     }
     const durationNum = Number(templateDuration);
     if (!durationNum || durationNum <= 0) {
-      alert("กรุณาระบุระยะเวลาลงทุนให้ถูกต้อง (มากกว่า 0 ปี)");
+      setToast({ message: 'กรุณาระบุระยะเวลาลงทุนให้ถูกต้อง (มากกว่า 0 ปี)', type: 'error' });
       return;
     }
 
@@ -318,11 +347,11 @@ export default function PlanPage() {
       if (data.status === 'success') {
         router.push(`/dashboard/${data.portfolio_id}`);
       } else {
-        alert('เกิดข้อผิดพลาดในการบันทึก: ' + data.message);
+        setToast({ message: 'เกิดข้อผิดพลาดในการบันทึก: ' + (data.detail || data.message), type: 'error' });
       }
     } catch (error) {
       console.error("API Error:", error);
-      alert('ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์ประมวลผลได้');
+      setToast({ message: 'ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์ประมวลผลได้', type: 'error' });
     } finally {
       setIsLoading(false);
     }
@@ -331,6 +360,48 @@ export default function PlanPage() {
   return (
     <main className="min-h-screen bg-[#FAFAF8] dark:bg-[#111110] py-12 px-4 sm:px-6 lg:px-8 selection:bg-amber-100 selection:text-amber-900">
       <div className="max-w-6xl mx-auto">
+
+        {/* ✅ Toast Notification Component — แทน alert() */}
+        {toast && (
+          <div className={`fixed top-20 right-4 z-50 flex items-center gap-3 px-4 py-3 rounded-xl shadow-lg border max-w-sm animate-in slide-in-from-right ${
+            toast.type === 'error'
+              ? 'bg-red-50 dark:bg-red-950/80 border-red-200 dark:border-red-800 text-red-800 dark:text-red-200'
+              : 'bg-green-50 dark:bg-green-950/80 border-green-200 dark:border-green-800 text-green-800 dark:text-green-200'
+          }`}>
+            {toast.type === 'error' ? <AlertCircle className="w-4 h-4 flex-shrink-0" /> : <CheckCircle2 className="w-4 h-4 flex-shrink-0" />}
+            <p className="text-sm font-medium flex-1">{toast.message}</p>
+            <button onClick={() => setToast(null)} className="opacity-60 hover:opacity-100">
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+        )}
+
+        {/* ✅ Loading Progress Modal — แสดงการคำนวณระหว่างรอ GA */}
+        {isLoading && (
+          <div className="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm flex items-center justify-center">
+            <div className="bg-white dark:bg-stone-900 rounded-2xl shadow-2xl p-8 max-w-sm w-full mx-4">
+              <div className="text-center mb-6">
+                <div className="w-12 h-12 border-4 border-amber-500 border-t-transparent rounded-full animate-spin mx-auto mb-3" />
+                <h3 className="text-lg font-bold text-stone-900 dark:text-stone-100">AI กำลังประมวลผล...</h3>
+                <p className="text-sm text-stone-500 dark:text-stone-400 mt-1">อาจใช้เวลา 30-90 วินาที</p>
+              </div>
+              <div className="space-y-2">
+                {loadingSteps.map((step, index) => (
+                  <div key={index} className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-all ${
+                    index + 1 < loadingStep ? 'text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-950/30' :
+                    index + 1 === loadingStep ? 'text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/30 font-medium' :
+                    'text-stone-400 dark:text-stone-600'
+                  }`}>
+                    {index + 1 < loadingStep ? <CheckCircle2 className="w-4 h-4 flex-shrink-0" /> :
+                     index + 1 === loadingStep ? <div className="w-4 h-4 border-2 border-amber-500 border-t-transparent rounded-full animate-spin flex-shrink-0" /> :
+                     <div className="w-4 h-4 rounded-full border-2 border-stone-300 dark:border-stone-700 flex-shrink-0" />}
+                    {step}
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
 
         <div className="mb-10">
           <h1 className="text-3xl font-black text-stone-900 dark:text-stone-100 tracking-tight">สร้างแผนลงทุน</h1>
@@ -651,7 +722,7 @@ export default function PlanPage() {
                                             setLockedStocks(lockedStocks.filter(s => s !== ticker));
                                           } else {
                                             if (lockedStocks.length >= Number(numStocks)) {
-                                              alert(`ล็อกหุ้นได้สูงสุด ${numStocks} ตัว`);
+                                              setToast({ message: `ล็อกหุ้นได้สูงสุด ${numStocks} ตัว`, type: 'error' });
                                               return;
                                             }
                                             setLockedStocks([...lockedStocks, ticker]);

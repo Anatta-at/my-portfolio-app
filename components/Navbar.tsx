@@ -4,10 +4,15 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { SignedIn, SignedOut, UserButton, useAuth } from "@clerk/nextjs";
 import { ThemeToggle } from "./ThemeToggle";
+import { Menu, X } from 'lucide-react';
 
 export default function Navbar() {
   const { userId, isSignedIn, isLoaded } = useAuth();
   const [isAdmin, setIsAdmin] = useState(false);
+  // ✅ เพิ่มใหม่: state สำหรับ Mobile Menu
+  // ก่อน: ไม่มี state นี้เลย เมนูถูก hidden บน mobile โดยไม่มี hamburger
+  // หลัง: ควบคุมการเปิด/ปิด mobile menu ได้
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   useEffect(() => {
     const checkAdmin = async () => {
@@ -50,6 +55,7 @@ export default function Navbar() {
             </Link>
           </div>
           
+          {/* Desktop Menu */}
           <div className="hidden md:flex items-center space-x-6">
             <Link href="/" className="text-[13px] font-medium text-stone-500 hover:text-stone-900 dark:text-stone-400 dark:hover:text-stone-100 transition-colors">
               หน้าแรก
@@ -88,10 +94,60 @@ export default function Navbar() {
                 }}
               />
             </SignedIn>
+            {/* ✅ เพิ่มใหม่: Hamburger Button สำหรับ Mobile */}
+            {/* ก่อน: บน Mobile เห็นแค่ Logo กับปุ่ม Login ไม่มีทางเข้าหน้าอื่น */}
+            {/* หลัง: มี hamburger button ที่ toggle mobile menu ได้ */}
+            <button
+              className="md:hidden p-1.5 rounded-md text-stone-500 hover:text-stone-900 dark:text-stone-400 dark:hover:text-stone-100 hover:bg-stone-100 dark:hover:bg-stone-800 transition-colors"
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              aria-label="Toggle mobile menu"
+            >
+              {isMobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+            </button>
           </div>
 
         </div>
       </div>
+
+      {/* ✅ Mobile Dropdown Menu */}
+      {isMobileMenuOpen && (
+        <div className="md:hidden border-t border-stone-200 dark:border-stone-800 bg-[#FAFAF8]/95 dark:bg-[#111110]/95 backdrop-blur-md">
+          <div className="max-w-6xl mx-auto px-4 py-3 flex flex-col space-y-1">
+            <Link
+              href="/"
+              className="px-3 py-2 rounded-md text-sm font-medium text-stone-600 hover:text-stone-900 dark:text-stone-400 dark:hover:text-stone-100 hover:bg-stone-100 dark:hover:bg-stone-800 transition-colors"
+              onClick={() => setIsMobileMenuOpen(false)}
+            >
+              หน้าแรก
+            </Link>
+            <SignedIn>
+              <Link
+                href="/plan"
+                className="px-3 py-2 rounded-md text-sm font-medium text-stone-600 hover:text-stone-900 dark:text-stone-400 dark:hover:text-stone-100 hover:bg-stone-100 dark:hover:bg-stone-800 transition-colors"
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                วางแผนลงทุน
+              </Link>
+              <Link
+                href="/dashboard"
+                className="px-3 py-2 rounded-md text-sm font-medium text-stone-600 hover:text-stone-900 dark:text-stone-400 dark:hover:text-stone-100 hover:bg-stone-100 dark:hover:bg-stone-800 transition-colors"
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                แดชบอร์ด
+              </Link>
+            </SignedIn>
+            {isAdmin && (
+              <Link
+                href="/admin"
+                className="px-3 py-2 rounded-md text-sm font-bold text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors"
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                Admin
+              </Link>
+            )}
+          </div>
+        </div>
+      )}
     </nav>
   );
 }

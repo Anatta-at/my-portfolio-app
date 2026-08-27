@@ -15,9 +15,13 @@ CREATE TABLE users (
 );
 
 -- 4. ตาราง Portfolios: เก็บข้อมูลพอร์ตโฟลิโอหลักที่ AI สร้างขึ้น
+-- ✅ แก้ไข: เพิ่มคอลัมน์ name ที่ขาดหายไป
+-- ก่อน: ไม่มี column name แต่โค้ดใน main.py INSERT และ SELECT ค่า name ตลอด
+-- หลัง: เพิ่ม name VARCHAR(255) พร้อม default value
 CREATE TABLE portfolios (
     id SERIAL PRIMARY KEY,
     clerk_id VARCHAR(255) NOT NULL REFERENCES users(clerk_id) ON DELETE CASCADE,
+    name VARCHAR(255) DEFAULT 'My Portfolio',
     target_beta NUMERIC(5, 2),
     budget NUMERIC(15, 2),
     target_amount NUMERIC(15, 2),
@@ -52,3 +56,6 @@ CREATE TABLE stock_views (
 CREATE INDEX idx_portfolios_clerk_id ON portfolios(clerk_id);
 CREATE INDEX idx_portfolio_assets_portfolio_id ON portfolio_assets(portfolio_id);
 CREATE INDEX idx_stock_views_portfolio_id ON stock_views(portfolio_id);
+
+-- ✅ สำหรับ DB ที่มีอยู่แล้ว ไม่ต้องสร้างใหม่ ให้รัน ALTER TABLE นี้แทน:
+-- ALTER TABLE portfolios ADD COLUMN IF NOT EXISTS name VARCHAR(255) DEFAULT 'My Portfolio';

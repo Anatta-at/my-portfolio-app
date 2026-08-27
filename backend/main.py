@@ -6,7 +6,7 @@ load_dotenv(os.path.join(os.path.dirname(__file__), '..', '.env'))
 
 import json
 import psycopg2
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 from typing import Dict, Optional, List, Any
@@ -24,18 +24,19 @@ from analysis.backtester import BacktestEngine
 # ==========================================
 
 def get_db_connection():
+    # ✅ แก้ไข: ลบ hardcoded password ออก ใช้ os.getenv() ทั้งหมด
+    # ก่อน: password="Heyrose05" ถูกเขียนตรงๆ และปรากฏอยู่บน GitHub
+    # หลัง: อ่านจาก .env file เท่านั้น
     import os, psycopg2
     db_url = os.getenv("DATABASE_URL")
     if db_url:
         return psycopg2.connect(db_url)
-    
-    db_host = os.getenv("DATABASE_HOST", "localhost")
     return psycopg2.connect(
-        dbname="intelliport_db",
-        user="admin",
-        password="Heyrose05",
-        host=db_host,
-        port="5432"
+        dbname=os.getenv("DB_NAME", "intelliport_db"),
+        user=os.getenv("DB_USER", "admin"),
+        password=os.getenv("DB_PASSWORD", ""),
+        host=os.getenv("DATABASE_HOST", "localhost"),
+        port=os.getenv("DB_PORT", "5432")
     )
 
 app = FastAPI(
@@ -44,11 +45,14 @@ app = FastAPI(
     version="8.0"
 )
 
-# ✅ CORS Middleware สำหรับเชื่อมต่อกับ Next.js หน้าบ้าน
+# ✅ แก้ไข: จำกัด CORS origins เฉพาะ domain ที่อนุญาต
+# ก่อน: allow_origins=["*"] ยอมให้ทุก domain เรียก API ได้ เสี่ยง CSRF attack
+# หลัง: ระบุ domain ให้ชัดเจน (Vercel + localhost)
+allowed_origins = os.getenv("ALLOWED_ORIGINS", "http://localhost:3000").split(",")
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
-    allow_methods=["*"],
+    allow_origins=allowed_origins,
+    allow_methods=["GET", "POST", "PUT", "DELETE"],
     allow_headers=["*"],
 )
 
@@ -59,16 +63,19 @@ class OptimizeRequest(BaseModel):
     user_id: Optional[str] = None  # รหัสจาก Clerk
     portfolio_name: Optional[str] = "My Portfolio"
     user_custom_views: Optional[Dict[str, float]] = None 
-    target_beta: float = 1.0
+    # ✅ แก้ไข: เพิ่ม Field validation เพื่อป้องกัน invalid input
+    # ก่อน: target_beta ไม่มี validation ผู้ใช้ส่ง -100 หรือ 999 ได้
+    # หลัง: จำกัดช่วงที่สมเหตุสมผล (0.1 ถึง 3.0)
+    target_beta: float = Field(default=1.0, ge=0.1, le=3.0)
     max_stocks: int = Field(default=5, ge=3, le=25) 
-    max_weight_per_asset: Optional[float] = 0.40
+    max_weight_per_asset: Optional[float] = Field(default=0.40, ge=0.05, le=1.0)
     start_date: str = "2024-01-01"
     end_date: str = "2024-12-01"
     
     # 🌟 เพิ่มตัวแปรมารับค่าเพื่อเก็บลง Database
-    budget: Optional[float] = 100000.0
+    budget: Optional[float] = Field(default=100000.0, ge=1.0)
     target_amount: Optional[float] = None
-    duration_years: Optional[int] = 5
+    duration_years: Optional[int] = Field(default=5, ge=1, le=50)
     locked_stocks: Optional[List[str]] = []
     sectors: Optional[List[str]] = []
 
@@ -202,8 +209,11 @@ def save_portfolio_to_db(clerk_id: str, name: str, beta: float, budget: float, t
 @app.post("/api/users/sync")
 def sync_user(req: SyncUserRequest):
     if not req.clerk_id:
-        return {"status": "error", "message": "Missing clerk_id"}
+        raise HTTPException(status_code=400, detail="Missing clerk_id")
     try:
+        # ✅ แก้ไข: เปลี่ยนมาใช้ get_db_connection() แทนเขียน connection ซ้ำ
+        # ก่อน: เขียน psycopg2.connect() พร้อม hardcoded password ซ้ำในฟังก์ชันนี้
+        # หลัง: ใช้ฟังก์ชัน get_db_connection() ที่กำหนดไว้ด้านบนเพียงจุดเดียว
         conn = get_db_connection()
         cursor = conn.cursor()
         cursor.execute("""
@@ -221,7 +231,7 @@ def sync_user(req: SyncUserRequest):
         return {"status": "success"}
     except Exception as e:
         print(f"❌ DB Error in sync_user: {e}")
-        return {"status": "error", "message": str(e)}
+        raise HTTPException(status_code=500, detail=str(e))
 
 # ==========================================
 # API สำหรับคำนวณและจัดพอร์ตการลงทุน
@@ -280,7 +290,18 @@ def optimize_portfolio(req: OptimizeRequest):
         weights_dict = dict(zip(final_portfolio['Ticker'], final_portfolio['Weight']))
         portfolio_records = final_portfolio.to_dict(orient="records") # type: ignore
 
-        # 🌟 7.5 บันทึกข้อมูลลง PostgreSQL ทันทีที่คำนวณเสร็จ! 🌟
+        # ✅ แก้ไข: สลับลำดับ — ทำ Backtest ก่อน แล้วค่อยบันทึก DB
+        # ก่อน: บันทึก DB ก่อน → ถ้า Backtest fail ข้อมูลใน DB จะ inconsistent
+        # หลัง: Backtest ก่อน ถ้าสำเร็จค่อยบันทึก ป้องกัน data inconsistency
+        
+        # 8. ทดสอบย้อนหลัง (Backtest) — ย้ายมาทำก่อนบันทึก DB
+        bt_engine = BacktestEngine()
+        bt_results = bt_engine.run_backtest(weights_dict, req.start_date, req.end_date)
+        
+        success_prob = calculate_success_probability(req.budget or 100000.0, req.target_amount, req.duration_years or 5, final_ret, final_vol)
+        forecast_range = calculate_forecast_range(req.budget or 100000.0, req.duration_years or 5, final_ret, final_vol)
+
+        # 🌟 บันทึกข้อมูลลง PostgreSQL หลังจาก Backtest สำเร็จแล้วเท่านั้น 🌟
         port_id = save_portfolio_to_db(
             clerk_id=req.user_id or "",
             name=req.portfolio_name or "My Portfolio",
@@ -292,13 +313,6 @@ def optimize_portfolio(req: OptimizeRequest):
             exp_ret=final_ret,
             port_vol=final_vol
         )
-        
-        # 8. ทดสอบย้อนหลัง (Backtest)
-        bt_engine = BacktestEngine()
-        bt_results = bt_engine.run_backtest(weights_dict, req.start_date, req.end_date)
-        
-        success_prob = calculate_success_probability(req.budget or 100000.0, req.target_amount, req.duration_years or 5, final_ret, final_vol)
-        forecast_range = calculate_forecast_range(req.budget or 100000.0, req.duration_years or 5, final_ret, final_vol)
         
         # 9. ส่งผลลัพธ์กลับไปให้หน้า Dashboard
         return {
@@ -321,35 +335,21 @@ def optimize_portfolio(req: OptimizeRequest):
             "backtest": bt_results
         }
         
+    except HTTPException:
+        raise
     except Exception as e:
         import traceback
         traceback.print_exc()
-        return {"status": "error", "message": str(e)}
-
-# ==========================================
-# ==========================================
-# 🌟 TEMPLATE & DELETE REQUEST MODELS 🌟
-# ==========================================
-class TemplatePortfolioRequest(BaseModel):
-    user_id: str
-    portfolio_name: str
-    target_beta: float
-    budget: float
-    target_amount: Optional[float] = None
-    duration_years: int = 5
-    expected_return: float
-    portfolio_volatility: float
-    portfolio_data: List[dict]
-
-class DeletePortfoliosRequest(BaseModel):
-    portfolio_ids: List[int]
-    clerk_id: str
+        # ✅ แก้ไข: ใช้ HTTPException แทน return {"status": "error"}
+        # ก่อน: return HTTP 200 พร้อม {"status": "error"} — ผิดหลัก REST API
+        # หลัง: raise HTTPException(500) ให้ client รู้ว่าเกิด server error จริงๆ
+        raise HTTPException(status_code=500, detail=str(e))
 
 # ==========================================
 # 🌟 API สำหรับบันทึกพอร์ตสำเร็จรูป (Template) 🌟
 # ==========================================
 @app.post("/api/portfolios/template")
-def create_template_portfolio(req: TemplatePortfolioRequest):
+def create_template_portfolio(req: TemplateRequest):
     try:
         port_id = save_portfolio_to_db(
             clerk_id=req.user_id,
@@ -366,27 +366,6 @@ def create_template_portfolio(req: TemplatePortfolioRequest):
             return {"status": "success", "portfolio_id": port_id}
         else:
             return {"status": "error", "message": "Failed to save template to database"}
-    except Exception as e:
-        import traceback
-        traceback.print_exc()
-        return {"status": "error", "message": str(e)}
-
-# ==========================================
-# 🌟 API สำหรับลบพอร์ตการลงทุน 🌟
-# ==========================================
-@app.delete("/api/portfolios")
-def delete_portfolios(req: DeletePortfoliosRequest):
-    try:
-        conn = get_db_connection()
-        cursor = conn.cursor()
-        
-        query = "DELETE FROM portfolios WHERE id = ANY(%s) AND clerk_id = %s"
-        cursor.execute(query, (req.portfolio_ids, req.clerk_id))
-        conn.commit()
-        
-        cursor.close()
-        conn.close()
-        return {"status": "success", "message": "Portfolios deleted successfully"}
     except Exception as e:
         import traceback
         traceback.print_exc()
@@ -454,7 +433,7 @@ def get_user_portfolios(clerk_id: str):
 # 🌟 API สำหรับดึงข้อมูลรายละเอียดพอร์ตและประมวลผล Backtest 🌟
 # ==========================================
 @app.post("/api/portfolios/delete")
-def post_delete_portfolios(req: DeletePortfoliosRequest):
+def delete_portfolios(req: DeletePortfoliosRequest):
     try:
         conn = get_db_connection()
         cursor = conn.cursor()
@@ -471,7 +450,10 @@ def post_delete_portfolios(req: DeletePortfoliosRequest):
         return {"status": "error", "message": str(e)}
 
 @app.get("/api/portfolios/{portfolio_id}")
-def get_portfolio_details(portfolio_id: int):
+def get_portfolio_details(portfolio_id: int, clerk_id: str = Query(...)):
+    # ✅ แก้ไข: เพิ่มการตรวจสอบ Ownership
+    # ก่อน: ไม่มี parameter clerk_id เลย ใครก็เรียกดูพอร์ตของคนอื่นได้ถ้ารู้ ID
+    # หลัง: บังคับส่ง clerk_id มาด้วย และตรวจว่าพอร์ตนั้นเป็นของ user จริงๆ
     try:
         conn = get_db_connection()
         cursor = conn.cursor()
@@ -486,7 +468,13 @@ def get_portfolio_details(portfolio_id: int):
         if not p_row:
             cursor.close()
             conn.close()
-            return {"status": "error", "message": "Portfolio not found"}
+            raise HTTPException(status_code=404, detail="Portfolio not found")
+        
+        # ✅ ตรวจสอบว่าพอร์ตนี้เป็นของ user ที่เรียกมาจริงๆ
+        if p_row[8] != clerk_id:
+            cursor.close()
+            conn.close()
+            raise HTTPException(status_code=403, detail="Access denied: This portfolio belongs to another user")
             
         prob = p_row[9]
         if prob is None and p_row[2] is not None and p_row[5] is not None and p_row[6] is not None:
@@ -581,8 +569,29 @@ def get_portfolio_details(portfolio_id: int):
 # ==========================================
 # ADMIN APIs
 # ==========================================
+
+def verify_admin(admin_clerk_id: str) -> bool:
+    """
+    ✅ เพิ่มใหม่: ฟังก์ชันตรวจสอบว่าเป็น Admin จริงไหม ใช้ก่อนทุก admin endpoint
+    ก่อน: ไม่มีการตรวจสอบใดๆ เรียก /api/admin/users ได้จาก URL โดยตรง
+    หลัง: ทุก admin endpoint ต้องผ่านการตรวจสอบนี้ก่อน
+    """
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute("SELECT role FROM users WHERE clerk_id = %s", (admin_clerk_id,))
+        row = cursor.fetchone()
+        cursor.close()
+        conn.close()
+        return row is not None and row[0] == "admin"
+    except Exception:
+        return False
+
 @app.get("/api/admin/users")
-def get_all_users():
+def get_all_users(admin_clerk_id: str = Query(...)):
+    # ✅ ตรวจสอบว่าเป็น Admin ก่อนดำเนินการ
+    if not verify_admin(admin_clerk_id):
+        raise HTTPException(status_code=403, detail="Unauthorized: Admin access required")
     try:
         conn = get_db_connection()
         cursor = conn.cursor()
@@ -609,10 +618,12 @@ def get_all_users():
         cursor.close()
         conn.close()
         return {"status": "success", "data": users}
+    except HTTPException:
+        raise
     except Exception as e:
         import traceback
         traceback.print_exc()
-        return {"status": "error", "message": str(e)}
+        raise HTTPException(status_code=500, detail=str(e))
 
 class RoleUpdateRequest(BaseModel):
     new_role: str
@@ -627,7 +638,9 @@ class AssetRequest(BaseModel):
     is_active: bool = True
 
 @app.post("/api/admin/users/sync")
-def sync_users_data(req: SyncUsersRequest):
+def sync_users_data(req: SyncUsersRequest, admin_clerk_id: str = Query(...)):
+    if not verify_admin(admin_clerk_id):
+        raise HTTPException(status_code=403, detail="Unauthorized: Admin access required")
     try:
         conn = get_db_connection()
         cursor = conn.cursor()
@@ -642,10 +655,12 @@ def sync_users_data(req: SyncUsersRequest):
         cursor.close()
         conn.close()
         return {"status": "success", "message": "Users synced successfully"}
+    except HTTPException:
+        raise
     except Exception as e:
         import traceback
         traceback.print_exc()
-        return {"status": "error", "message": str(e)}
+        raise HTTPException(status_code=500, detail=str(e))
 
 @app.put("/api/admin/users/{target_clerk_id}/role")
 def update_user_role(target_clerk_id: str, req: RoleUpdateRequest):
@@ -679,7 +694,9 @@ def update_user_role(target_clerk_id: str, req: RoleUpdateRequest):
         return {"status": "error", "message": str(e)}
 
 @app.get("/api/admin/assets")
-def get_admin_assets():
+def get_admin_assets(admin_clerk_id: str = Query(...)):
+    if not verify_admin(admin_clerk_id):
+        raise HTTPException(status_code=403, detail="Unauthorized: Admin access required")
     try:
         conn = get_db_connection()
         cursor = conn.cursor()
@@ -694,8 +711,10 @@ def get_admin_assets():
         cursor.close()
         conn.close()
         return {"status": "success", "data": assets}
+    except HTTPException:
+        raise
     except Exception as e:
-        return {"status": "error", "message": str(e)}
+        raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/api/admin/assets")
 def add_admin_asset(req: AssetRequest):

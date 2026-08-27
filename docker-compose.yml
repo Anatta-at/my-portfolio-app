@@ -1,4 +1,6 @@
-version: '3.8'
+# ✅ แก้ไข: ลบ 'version: 3.8' ออก
+# ก่อน: version: '3.8' ถูก Deprecated ใน Docker Compose v2+ และผลิต warning
+# หลัง: ไม่ต้องระบุ version ใน Docker Compose v2
 
 services:
   backend:
@@ -37,9 +39,12 @@ services:
   db:
     image: postgres:15
     environment:
-      - POSTGRES_USER=admin
-      - POSTGRES_PASSWORD=Heyrose05
-      - POSTGRES_DB=intelliport_db
+      # ✅ แก้ไข: เปลี่ยน POSTGRES_PASSWORD จาก hardcoded มาใช้ env var
+      # ก่อน: POSTGRES_PASSWORD=Heyrose05 ถูก hardcode ในไฟล์และปรากฏบน GitHub
+      # หลัง: อ่านจาก .env file ด้วย ${DB_PASSWORD}
+      - POSTGRES_USER=${DB_USER:-admin}
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+      - POSTGRES_DB=${DB_NAME:-intelliport_db}
     ports:
       - "5432:5432"
     volumes:

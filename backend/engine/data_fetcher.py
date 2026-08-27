@@ -22,19 +22,20 @@ def get_redis_client():
         return None
 
 def get_db_connection():
+    # ✅ แก้ไข: ลบ hardcoded password และ import os ซ้ำออก
+    # ก่อน: password="Heyrose05" ถูก hardcode ตรงๆ ใน source code
+    # หลัง: ใช้ os.getenv() อ่านจาก .env file ทั้งหมด
     import psycopg2
-    import os
-    db_host = os.getenv("DATABASE_HOST", "localhost")
     import os
     db_url = os.getenv("DATABASE_URL")
     if db_url:
         return psycopg2.connect(db_url)
     return psycopg2.connect(
-        dbname="intelliport_db",
-        user="admin",
-        password="Heyrose05",
+        dbname=os.getenv("DB_NAME", "intelliport_db"),
+        user=os.getenv("DB_USER", "admin"),
+        password=os.getenv("DB_PASSWORD", ""),
         host=os.getenv("DATABASE_HOST", "localhost"),
-        port="5432"
+        port=os.getenv("DB_PORT", "5432")
     )
 
 class SETDataFetcher:
