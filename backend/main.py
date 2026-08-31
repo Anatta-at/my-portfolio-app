@@ -2,10 +2,15 @@
 # pyright: ignore [reportMissingImports, reportMissingModuleSource]
 import os
 from dotenv import load_dotenv
-load_dotenv(os.path.join(os.path.dirname(__file__), '..', '.env'))
-
 import json
 import psycopg2
+from dotenv import load_dotenv
+import psycopg2
+
+# โหลด .env จาก parent directory ถ้าจำเป็น
+dotenv_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), '.env')
+load_dotenv(dotenv_path)
+
 from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
@@ -49,10 +54,12 @@ app = FastAPI(
 # ก่อน: allow_origins=["*"] ยอมให้ทุก domain เรียก API ได้ เสี่ยง CSRF attack
 # หลัง: ระบุ domain ให้ชัดเจน (Vercel + localhost)
 allowed_origins = os.getenv("ALLOWED_ORIGINS", "http://localhost:3000").split(",")
+print("DEBUG: ALLOWED_ORIGINS =", allowed_origins)
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=allowed_origins,
-    allow_methods=["GET", "POST", "PUT", "DELETE"],
+    allow_origins=["*"],
+    allow_methods=["*"],
     allow_headers=["*"],
 )
 
@@ -556,7 +563,8 @@ def get_portfolio_details(portfolio_id: int, clerk_id: str = Query(...)):
                 "portfolio_volatility": p_meta["portfolio_volatility"],
                 "success_probability": p_meta["success_probability"],
                 "forecast_lower": p_meta["forecast_lower"],
-                "forecast_upper": p_meta["forecast_upper"]
+                "forecast_upper": p_meta["forecast_upper"],
+                "name": p_meta.get("name", "My Portfolio")
             },
             "portfolio": assets,
             "backtest": bt_results

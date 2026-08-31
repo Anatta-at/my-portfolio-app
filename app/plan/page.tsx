@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@clerk/nextjs';
-import { AlertCircle, X, ArrowRight, Sliders, DollarSign, Clock, CheckCircle2 } from 'lucide-react';
+import { AlertCircle, X, ArrowRight, Sliders, DollarSign, Clock, CheckCircle2, Database, Calculator, Cpu, LineChart, Save } from 'lucide-react';
 
 export default function PlanPage() {
   const router = useRouter();
@@ -19,11 +19,11 @@ export default function PlanPage() {
   // หลัง: แสดงขั้นตอนที่ระบบกำลังทำ (ดึงข้อมูล, BL, GA, Backtest)
   const [loadingStep, setLoadingStep] = useState(0);
   const loadingSteps = [
-    '📡 กำลังดึงข้อมูลหุ้น SET50...',
-    '🧮 Black-Litterman กำลังคำนวณผลตอบแทน...',
-    '🧬 Genetic Algorithm กำลังหาพอร์ตที่ดีที่สุด...',
-    '📊 Backtesting เปรียบเทียบกับ SET50...',
-    '💾 กำลังบันทึกผลลัพธ์...',
+    { label: 'กำลังดึงข้อมูลหุ้น SET50...', icon: Database },
+    { label: 'Black-Litterman กำลังคำนวณผลตอบแทน...', icon: Calculator },
+    { label: 'Genetic Algorithm กำลังหาพอร์ตที่ดีที่สุด...', icon: Cpu },
+    { label: 'Backtesting เปรียบเทียบกับ SET50...', icon: LineChart },
+    { label: 'กำลังบันทึกผลลัพธ์...', icon: Save },
   ];
 
   const [mainTab, setMainTab] = useState<'template' | 'custom'>('template');
@@ -88,6 +88,27 @@ export default function PlanPage() {
     duration: '',
     riskLevel: 'medium',
   });
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get('edit') === 'true') {
+        setMainTab('custom');
+        setFormData(prev => ({
+          ...prev,
+          portfolioName: params.get('name') || prev.portfolioName,
+          initialAmount: params.get('budget') || prev.initialAmount,
+          targetAmount: params.get('target') || prev.targetAmount,
+          duration: params.get('duration') || prev.duration,
+        }));
+        if (params.get('stocks')) setNumStocks(params.get('stocks') as string);
+        
+        // Also show a toast indicating we are in edit mode
+        setToast({ message: 'โหลดข้อมูลพอร์ตเดิมเรียบร้อยแล้ว', type: 'success' });
+        setTimeout(() => setToast(null), 3000);
+      }
+    }
+  }, []);
 
   const [errors, setErrors] = useState({
     portfolioName: '',
@@ -386,7 +407,9 @@ export default function PlanPage() {
                 <p className="text-sm text-stone-500 dark:text-stone-400 mt-1">อาจใช้เวลา 30-90 วินาที</p>
               </div>
               <div className="space-y-2">
-                {loadingSteps.map((step, index) => (
+                {loadingSteps.map((step, index) => {
+                  const Icon = step.icon;
+                  return (
                   <div key={index} className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-all ${
                     index + 1 < loadingStep ? 'text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-950/30' :
                     index + 1 === loadingStep ? 'text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/30 font-medium' :
@@ -395,9 +418,12 @@ export default function PlanPage() {
                     {index + 1 < loadingStep ? <CheckCircle2 className="w-4 h-4 flex-shrink-0" /> :
                      index + 1 === loadingStep ? <div className="w-4 h-4 border-2 border-amber-500 border-t-transparent rounded-full animate-spin flex-shrink-0" /> :
                      <div className="w-4 h-4 rounded-full border-2 border-stone-300 dark:border-stone-700 flex-shrink-0" />}
-                    {step}
+                    <div className="flex items-center gap-2">
+                      <Icon className="w-4 h-4" />
+                      {step.label}
+                    </div>
                   </div>
-                ))}
+                )})}
               </div>
             </div>
           </div>
@@ -831,20 +857,6 @@ export default function PlanPage() {
 
       </div>
 
-      {isLoading && (
-        <div className="fixed inset-0 z-50 bg-white/50 backdrop-blur-sm flex items-center justify-center">
-          <div className="bg-white dark:bg-[#1A1A19] p-6 rounded-2xl shadow-xl border border-stone-100 dark:border-stone-800 flex flex-col items-center max-w-sm w-full mx-4">
-            <div className="relative w-16 h-16 mb-4">
-              <svg className="animate-spin w-full h-full text-amber-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-              </svg>
-            </div>
-            <h3 className="text-lg font-black text-stone-900 dark:text-stone-100 mb-1">กำลังประมวลผล...</h3>
-            <p className="text-stone-500 dark:text-stone-400 text-sm text-center">รอสักครู่ ระบบกำลังจัดการข้อมูลพอร์ตของคุณ</p>
-          </div>
-        </div>
-      )}
     </main>
   );
 }

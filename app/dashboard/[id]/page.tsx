@@ -9,7 +9,8 @@ import {
 import { toPng } from 'html-to-image';
 import jsPDF from 'jspdf';
 import Link from 'next/link';
-import { ArrowLeft, Download, X } from 'lucide-react';
+import { ArrowLeft, Download, X, Edit } from 'lucide-react';
+import { useAuth } from '@clerk/nextjs';
 
 // Warm minimal palette for charts
 // ชุดสีที่มองเห็นชัดเจนและตัดกัน (Vibrant & High Contrast)
@@ -28,7 +29,8 @@ const COLORS = [
 
 export default function PortfolioDetailPage() {
   const params = useParams();
-  const id = params?.id;
+  const { userId } = useAuth();
+  const id = params?.id as string;
 
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -79,12 +81,12 @@ export default function PortfolioDetailPage() {
   }, [portfolioData]);
 
   useEffect(() => {
-    if (!id) return;
+    if (!id || !userId) return;
 
     async function fetchPortfolio() {
       setIsLoading(true);
       try {
-        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/portfolios/${id}`);
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/portfolios/${id}?clerk_id=${userId}`);
         if (!res.ok) throw new Error('ไม่สามารถโหลดข้อมูลพอร์ตได้');
         const data = await res.json();
 
@@ -198,12 +200,20 @@ export default function PortfolioDetailPage() {
               <span>{new Date(meta.created_at).toLocaleDateString('th-TH')}</span>
             </div>
           </div>
-          <button
-            onClick={handleDownloadPDF} disabled={isDownloading}
-            className="px-4 py-2 bg-white dark:bg-[#1A1A19] border border-stone-200 dark:border-stone-700 rounded-lg text-sm font-semibold text-stone-700 dark:text-stone-300 hover:bg-stone-50 dark:hover:bg-stone-800 transition-colors flex items-center"
-          >
-            {isDownloading ? 'กำลังสร้าง PDF...' : <><Download className="w-4 h-4 mr-2" /> PDF Report</>}
-          </button>
+          <div className="flex gap-2">
+            <Link
+              href={`/plan?edit=true&name=${encodeURIComponent(meta.name || '')}&budget=${meta.budget}&target=${meta.target_amount || ''}&duration=${meta.duration_years}&beta=${meta.target_beta}&stocks=${portfolioData.portfolio?.length || 5}`}
+              className="px-4 py-2 bg-stone-900 dark:bg-white border border-stone-900 dark:border-white rounded-lg text-sm font-semibold text-white dark:text-stone-900 hover:bg-stone-800 dark:hover:bg-stone-200 transition-colors flex items-center"
+            >
+              <Edit className="w-4 h-4 mr-2" /> แก้ไขพอร์ต
+            </Link>
+            <button
+              onClick={handleDownloadPDF} disabled={isDownloading}
+              className="px-4 py-2 bg-white dark:bg-[#1A1A19] border border-stone-200 dark:border-stone-700 rounded-lg text-sm font-semibold text-stone-700 dark:text-stone-300 hover:bg-stone-50 dark:hover:bg-stone-800 transition-colors flex items-center"
+            >
+              {isDownloading ? 'กำลังสร้าง PDF...' : <><Download className="w-4 h-4 mr-2" /> PDF Report</>}
+            </button>
+          </div>
         </div>
       </div>
 

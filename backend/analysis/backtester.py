@@ -56,8 +56,8 @@ class BacktestEngine:
             if np.isnan(port_volatility):
                 port_volatility = 0.0
             
-            # 3. ดึงและคำนวณ Benchmark (^SET.BK) เพื่อเทียบกับตลาด
-            bm_data = yf.download("^SET.BK", start=start_date, end=end_date, progress=False)
+            # 3. ดึงและคำนวณ Benchmark (ใช้ TDEX.BK ซึ่งเป็นกองทุน ETF อ้างอิง SET50 แทน ^SET.BK ที่ข้อมูลบั๊กบ่อยใน Yahoo Finance)
+            bm_data = yf.download("TDEX.BK", start=start_date, end=end_date, progress=False)
             bm_cum_returns = pd.Series(100000, index=port_cum_returns.index)
             bm_total_return = 0.0
             
