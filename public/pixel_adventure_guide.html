@@ -1,0 +1,1998 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>⚔️ IntelliPortfolio: Pixel Quest & Architecture Codex</title>
+  <!-- Pixel Art Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Silkscreen:wght@400;700&family=Chakra+Petch:wght@400;600;700&display=swap" rel="stylesheet">
+  
+  <style>
+    /* ==========================================================================
+       PIXEL ART SYSTEM STYLES & RETRO PALETTE
+       ========================================================================== */
+    :root {
+      --bg-dark: #0a0c14;
+      --bg-panel: #121624;
+      --bg-panel-light: #1b2137;
+      --border-outer: #000000;
+      --border-inner: #3a456b;
+      --pixel-gold: #facc15;
+      --pixel-gold-dark: #ca8a04;
+      --pixel-gold-light: #fef08a;
+      --pixel-cyan: #38bdf8;
+      --pixel-cyan-dark: #0284c7;
+      --pixel-green: #22c55e;
+      --pixel-green-dark: #15803d;
+      --pixel-red: #f43f5e;
+      --pixel-red-dark: #be123c;
+      --pixel-purple: #c084fc;
+      --pixel-purple-dark: #7e22ce;
+      --pixel-orange: #fb923c;
+      --text-main: #f1f5f9;
+      --text-muted: #94a3b8;
+      --font-pixel: 'Press Start 2P', monospace;
+      --font-retro: 'Silkscreen', 'Chakra Petch', monospace;
+      --font-thai: 'Chakra Petch', sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      image-rendering: pixelated;
+      image-rendering: -moz-crisp-edges;
+      image-rendering: crisp-edges;
+    }
+
+    body {
+      background-color: var(--bg-dark);
+      background-image: 
+        radial-gradient(rgba(56, 189, 248, 0.08) 1px, transparent 1px),
+        radial-gradient(rgba(250, 204, 21, 0.05) 1px, transparent 1px);
+      background-size: 24px 24px, 48px 48px;
+      color: var(--text-main);
+      font-family: var(--font-thai);
+      line-height: 1.6;
+      overflow-x: hidden;
+      min-height: 100vh;
+    }
+
+    /* Retro Pixel Stepped Borders */
+    .pixel-box {
+      background: var(--bg-panel);
+      position: relative;
+      border: 4px solid #000;
+      box-shadow: 
+        0 -4px 0 0 #3a456b,
+        0 4px 0 0 #0f1322,
+        -4px 0 0 0 #3a456b,
+        4px 0 0 0 #0f1322,
+        0 0 0 4px #000,
+        6px 6px 0 0 rgba(0, 0, 0, 0.7);
+      margin-bottom: 24px;
+    }
+
+    .pixel-box-gold {
+      border: 4px solid #000;
+      box-shadow: 
+        0 -4px 0 0 var(--pixel-gold),
+        0 4px 0 0 var(--pixel-gold-dark),
+        -4px 0 0 0 var(--pixel-gold),
+        4px 0 0 0 var(--pixel-gold-dark),
+        0 0 0 4px #000,
+        6px 6px 0 0 rgba(202, 138, 4, 0.4);
+    }
+
+    .pixel-box-cyan {
+      border: 4px solid #000;
+      box-shadow: 
+        0 -4px 0 0 var(--pixel-cyan),
+        0 4px 0 0 var(--pixel-cyan-dark),
+        -4px 0 0 0 var(--pixel-cyan),
+        4px 0 0 0 var(--pixel-cyan-dark),
+        0 0 0 4px #000,
+        6px 6px 0 0 rgba(2, 132, 199, 0.4);
+    }
+
+    .pixel-btn {
+      font-family: var(--font-pixel);
+      font-size: 11px;
+      color: #000;
+      background: var(--pixel-gold);
+      border: 3px solid #000;
+      box-shadow: 
+        inset -3px -3px 0 0 var(--pixel-gold-dark),
+        inset 3px 3px 0 0 var(--pixel-gold-light),
+        3px 3px 0 0 #000;
+      padding: 12px 18px;
+      cursor: pointer;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      user-select: none;
+      transition: all 0.05s ease-in-out;
+    }
+
+    .pixel-btn:hover {
+      background: #fde047;
+      transform: translate(-1px, -1px);
+      box-shadow: 
+        inset -3px -3px 0 0 var(--pixel-gold-dark),
+        inset 3px 3px 0 0 #fff,
+        4px 4px 0 0 #000;
+    }
+
+    .pixel-btn:active {
+      transform: translate(2px, 2px);
+      box-shadow: 
+        inset 3px 3px 0 0 var(--pixel-gold-dark),
+        1px 1px 0 0 #000;
+    }
+
+    .pixel-btn-cyan {
+      background: var(--pixel-cyan);
+      box-shadow: 
+        inset -3px -3px 0 0 var(--pixel-cyan-dark),
+        inset 3px 3px 0 0 #bae6fd,
+        3px 3px 0 0 #000;
+    }
+    .pixel-btn-cyan:hover { background: #7dd3fc; }
+
+    .pixel-btn-red {
+      background: var(--pixel-red);
+      color: #fff;
+      box-shadow: 
+        inset -3px -3px 0 0 var(--pixel-red-dark),
+        inset 3px 3px 0 0 #fecdd3,
+        3px 3px 0 0 #000;
+    }
+    .pixel-btn-red:hover { background: #fb7185; }
+
+    .pixel-btn-purple {
+      background: var(--pixel-purple);
+      color: #000;
+      box-shadow: 
+        inset -3px -3px 0 0 var(--pixel-purple-dark),
+        inset 3px 3px 0 0 #f3e8ff,
+        3px 3px 0 0 #000;
+    }
+
+    /* CRT Scanline Overlay */
+    .crt-overlay {
+      position: fixed;
+      top: 0; left: 0; width: 100vw; height: 100vh;
+      pointer-events: none;
+      background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%);
+      background-size: 100% 4px;
+      z-index: 9999;
+      opacity: 0.6;
+      display: block;
+    }
+
+    /* Top HUD Navigation */
+    .retro-hud {
+      background: #090b12;
+      border-bottom: 4px solid #000;
+      box-shadow: 0 4px 0 0 #20273d;
+      padding: 12px 24px;
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+    }
+
+    .hud-container {
+      max-width: 1280px;
+      margin: 0 auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+
+    .logo-area {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .logo-badge {
+      width: 40px;
+      height: 40px;
+      background: var(--pixel-gold);
+      border: 3px solid #000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      box-shadow: inset -2px -2px 0 0 var(--pixel-gold-dark);
+      animation: pulse-glow 2s infinite alternate;
+    }
+
+    @keyframes pulse-glow {
+      0% { transform: scale(1); filter: drop-shadow(0 0 2px var(--pixel-gold)); }
+      100% { transform: scale(1.05); filter: drop-shadow(0 0 8px var(--pixel-gold)); }
+    }
+
+    .game-title {
+      font-family: var(--font-pixel);
+      font-size: 14px;
+      color: var(--pixel-gold);
+      text-shadow: 2px 2px 0 #000;
+    }
+
+    .game-subtitle {
+      font-family: var(--font-retro);
+      font-size: 12px;
+      color: var(--pixel-cyan);
+    }
+
+    /* Player Status in HUD */
+    .hud-stats {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      font-family: var(--font-pixel);
+      font-size: 10px;
+    }
+
+    .stat-pill {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: #161c2d;
+      padding: 6px 12px;
+      border: 2px solid #000;
+      box-shadow: inset 0 0 0 2px #26314d;
+    }
+
+    .hud-bar-container {
+      width: 80px;
+      height: 12px;
+      background: #2b1117;
+      border: 2px solid #000;
+      position: relative;
+    }
+
+    .hud-bar-fill-hp {
+      height: 100%;
+      background: var(--pixel-red);
+      width: 100%;
+      transition: width 0.3s steps(5);
+    }
+
+    .hud-bar-fill-xp {
+      height: 100%;
+      background: var(--pixel-green);
+      width: 0%;
+      transition: width 0.3s steps(5);
+    }
+
+    /* Nav Tabs */
+    .tab-nav {
+      display: flex;
+      gap: 8px;
+    }
+
+    .tab-btn {
+      font-family: var(--font-pixel);
+      font-size: 10px;
+      padding: 10px 14px;
+      background: #1b2137;
+      color: #94a3b8;
+      border: 3px solid #000;
+      cursor: pointer;
+      box-shadow: 2px 2px 0 #000;
+    }
+
+    .tab-btn.active {
+      background: var(--pixel-gold);
+      color: #000;
+      box-shadow: inset -2px -2px 0 var(--pixel-gold-dark), 2px 2px 0 #000;
+    }
+
+    /* Main Container */
+    .main-wrapper {
+      max-width: 1280px;
+      margin: 28px auto;
+      padding: 0 20px;
+    }
+
+    /* Banner / Hero */
+    .hero-banner {
+      background: linear-gradient(180deg, #182035 0%, #0d1222 100%);
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      gap: 16px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero-banner::after {
+      content: "";
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background-image: radial-gradient(#38bdf8 1px, transparent 1px);
+      background-size: 16px 16px;
+      opacity: 0.15;
+    }
+
+    .hero-title {
+      font-family: var(--font-pixel);
+      font-size: 20px;
+      line-height: 1.6;
+      color: var(--pixel-gold);
+      text-shadow: 3px 3px 0 #000, -1px -1px 0 #000;
+      position: relative;
+      z-index: 1;
+    }
+
+    .hero-desc {
+      font-size: 16px;
+      max-width: 820px;
+      color: #e2e8f0;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* RPG Battle Arena Styles */
+    .battle-arena {
+      background: #0d111d;
+      border: 4px solid #000;
+      box-shadow: 0 0 0 4px #26314d, 8px 8px 0 0 rgba(0,0,0,0.8);
+      padding: 24px;
+      position: relative;
+    }
+
+    .stage-indicator {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 3px dashed #334155;
+      padding-bottom: 12px;
+      margin-bottom: 20px;
+      font-family: var(--font-pixel);
+      font-size: 11px;
+    }
+
+    .stage-dots {
+      display: flex;
+      gap: 8px;
+    }
+
+    .stage-dot {
+      width: 14px;
+      height: 14px;
+      border: 2px solid #000;
+      background: #334155;
+    }
+
+    .stage-dot.completed {
+      background: var(--pixel-green);
+    }
+
+    .stage-dot.current {
+      background: var(--pixel-gold);
+      box-shadow: 0 0 6px var(--pixel-gold);
+    }
+
+    .combatants-view {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+      min-height: 240px;
+      margin-bottom: 20px;
+    }
+
+    @media (max-width: 768px) {
+      .combatants-view {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .combatant-card {
+      background: #141a2c;
+      border: 3px solid #000;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      box-shadow: inset 0 0 0 2px #26314d;
+      position: relative;
+    }
+
+    .boss-card {
+      border-color: #831843;
+      box-shadow: inset 0 0 0 2px #9f1239;
+    }
+
+    .combatant-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-family: var(--font-pixel);
+      font-size: 11px;
+    }
+
+    .sprite-display {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 140px;
+      position: relative;
+    }
+
+    .pixel-sprite {
+      width: 120px;
+      height: 120px;
+      animation: float-sprite 3s ease-in-out infinite;
+    }
+
+    @keyframes float-sprite {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-8px); }
+    }
+
+    .shake-anim {
+      animation: shake 0.4s cubic-bezier(.36,.07,.19,.97) both !important;
+    }
+
+    @keyframes shake {
+      10%, 90% { transform: translate3d(-3px, 0, 0); }
+      20%, 80% { transform: translate3d(4px, 0, 0); }
+      30%, 50%, 70% { transform: translate3d(-6px, 0, 0); }
+      40%, 60% { transform: translate3d(6px, 0, 0); }
+    }
+
+    .attack-anim {
+      animation: hero-lunge 0.3s ease-in-out;
+    }
+
+    @keyframes hero-lunge {
+      0% { transform: scale(1) translateX(0); }
+      50% { transform: scale(1.2) translateX(20px); }
+      100% { transform: scale(1) translateX(0); }
+    }
+
+    /* Dialogue & Question Box */
+    .dialogue-box {
+      background: #090c15;
+      border: 4px solid #000;
+      box-shadow: inset 0 0 0 3px #38bdf8, 4px 4px 0 #000;
+      padding: 20px;
+      margin-bottom: 20px;
+      min-height: 120px;
+    }
+
+    .dialogue-speaker {
+      font-family: var(--font-pixel);
+      font-size: 11px;
+      color: var(--pixel-gold);
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .dialogue-text {
+      font-family: var(--font-thai);
+      font-size: 17px;
+      font-weight: 600;
+      line-height: 1.6;
+      color: #fff;
+    }
+
+    /* Quiz Option Grid */
+    .options-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+      margin-bottom: 20px;
+    }
+
+    @media (max-width: 768px) {
+      .options-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .quiz-option-btn {
+      background: #182035;
+      border: 3px solid #000;
+      box-shadow: inset 0 0 0 2px #2d3b60, 3px 3px 0 #000;
+      color: #f8fafc;
+      padding: 16px;
+      font-family: var(--font-thai);
+      font-size: 15px;
+      font-weight: 600;
+      text-align: left;
+      cursor: pointer;
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      transition: all 0.1s ease;
+      position: relative;
+    }
+
+    .quiz-option-btn:hover:not(:disabled) {
+      background: #232d4b;
+      transform: translateY(-2px);
+      box-shadow: inset 0 0 0 2px var(--pixel-cyan), 4px 4px 0 #000;
+      color: #38bdf8;
+    }
+
+    .option-key {
+      font-family: var(--font-pixel);
+      font-size: 10px;
+      background: #000;
+      color: var(--pixel-gold);
+      padding: 4px 8px;
+      border: 2px solid #2d3b60;
+      flex-shrink: 0;
+    }
+
+    .quiz-option-btn.correct {
+      background: #14532d !important;
+      border-color: #000 !important;
+      box-shadow: inset 0 0 0 2px #4ade80, 3px 3px 0 #000 !important;
+      color: #bbf7d0 !important;
+    }
+
+    .quiz-option-btn.wrong {
+      background: #7f1d1d !important;
+      border-color: #000 !important;
+      box-shadow: inset 0 0 0 2px #f87171, 3px 3px 0 #000 !important;
+      color: #fecaca !important;
+    }
+
+    /* Explanation Reveal Banner */
+    .explanation-banner {
+      background: #101626;
+      border: 3px solid #000;
+      box-shadow: inset 0 0 0 2px #38bdf8, 4px 4px 0 #000;
+      padding: 18px;
+      margin-bottom: 20px;
+      display: none;
+      animation: fadeIn 0.3s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .explanation-title {
+      font-family: var(--font-pixel);
+      font-size: 11px;
+      color: var(--pixel-cyan);
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* CODEX ARCHITECTURE STYLES (คัมภีร์เวทมนตร์) */
+    .codex-grid {
+      display: grid;
+      grid-template-columns: 280px 1fr;
+      gap: 24px;
+    }
+
+    @media (max-width: 900px) {
+      .codex-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .codex-nav-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .codex-nav-item {
+      background: #131828;
+      border: 3px solid #000;
+      padding: 12px 14px;
+      font-family: var(--font-thai);
+      font-weight: 600;
+      font-size: 14px;
+      color: #cbd5e1;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      transition: all 0.1s ease;
+      box-shadow: 2px 2px 0 #000;
+    }
+
+    .codex-nav-item:hover {
+      background: #1f2742;
+      color: var(--pixel-cyan);
+    }
+
+    .codex-nav-item.active {
+      background: var(--pixel-gold);
+      color: #000;
+      box-shadow: inset -2px -2px 0 var(--pixel-gold-dark), 2px 2px 0 #000;
+    }
+
+    .codex-content-pane {
+      background: #121626;
+      border: 4px solid #000;
+      box-shadow: inset 0 0 0 2px #26314d, 6px 6px 0 0 rgba(0,0,0,0.6);
+      padding: 28px;
+    }
+
+    .codex-header {
+      border-bottom: 3px solid #26314d;
+      padding-bottom: 16px;
+      margin-bottom: 24px;
+    }
+
+    .codex-badge {
+      display: inline-block;
+      font-family: var(--font-pixel);
+      font-size: 10px;
+      padding: 4px 10px;
+      background: var(--pixel-purple-dark);
+      color: var(--pixel-purple);
+      border: 2px solid #000;
+      margin-bottom: 10px;
+    }
+
+    .codex-title {
+      font-family: var(--font-pixel);
+      font-size: 18px;
+      color: var(--pixel-gold);
+      line-height: 1.5;
+    }
+
+    .codex-subtitle {
+      font-size: 14px;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+
+    /* Pixel Code Box */
+    .pixel-code-box {
+      background: #080a10;
+      border: 3px solid #000;
+      box-shadow: inset 0 0 0 2px #1f2742;
+      padding: 16px;
+      font-family: 'Consolas', 'Courier New', monospace;
+      font-size: 13px;
+      color: #a7f3d0;
+      overflow-x: auto;
+      margin: 16px 0;
+      line-height: 1.5;
+    }
+
+    .code-comment { color: #6ee7b7; font-style: italic; }
+    .code-keyword { color: #f43f5e; font-weight: bold; }
+    .code-fn { color: #38bdf8; }
+    .code-num { color: #facc15; }
+
+    /* Formula Highlight Box */
+    .formula-card {
+      background: linear-gradient(135deg, #1e1b4b 0%, #172554 100%);
+      border: 3px solid #000;
+      box-shadow: inset 0 0 0 2px var(--pixel-purple), 4px 4px 0 #000;
+      padding: 18px;
+      margin: 16px 0;
+    }
+
+    .formula-math {
+      font-family: 'Cambria Math', 'Times New Roman', serif;
+      font-size: 19px;
+      text-align: center;
+      padding: 12px 0;
+      color: #fef08a;
+      letter-spacing: 1px;
+    }
+
+    /* Pixel Step Flow Cards */
+    .step-chain {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      margin: 20px 0;
+    }
+
+    .step-card {
+      background: #171d30;
+      border: 3px solid #000;
+      box-shadow: inset 0 0 0 2px #2d3b60, 3px 3px 0 #000;
+      padding: 16px 20px;
+      display: flex;
+      gap: 16px;
+      align-items: flex-start;
+    }
+
+    .step-num-badge {
+      width: 36px;
+      height: 36px;
+      background: var(--pixel-cyan);
+      color: #000;
+      border: 2px solid #000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--font-pixel);
+      font-size: 13px;
+      flex-shrink: 0;
+      box-shadow: inset -2px -2px 0 var(--pixel-cyan-dark);
+    }
+
+    .step-body h4 {
+      font-family: var(--font-thai);
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--pixel-gold);
+      margin-bottom: 4px;
+    }
+
+    .step-body p {
+      font-size: 14px;
+      color: #cbd5e1;
+    }
+
+    /* Secret Scroll / Tip Box */
+    .secret-scroll {
+      background: #2b1f13;
+      border: 3px solid #000;
+      box-shadow: inset 0 0 0 2px #d97706, 4px 4px 0 #000;
+      padding: 16px;
+      margin: 20px 0;
+      position: relative;
+    }
+
+    .secret-scroll-title {
+      font-family: var(--font-pixel);
+      font-size: 11px;
+      color: #fde68a;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+
+    /* Interactive Simulator */
+    .sim-card {
+      background: #0f1422;
+      border: 3px solid #000;
+      box-shadow: inset 0 0 0 2px #38bdf8, 4px 4px 0 #000;
+      padding: 20px;
+      margin-top: 24px;
+    }
+
+    .sim-slider-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 14px;
+      font-family: var(--font-thai);
+      font-size: 14px;
+    }
+
+    .pixel-slider {
+      appearance: none;
+      width: 200px;
+      height: 10px;
+      background: #000;
+      outline: 2px solid #38bdf8;
+    }
+
+    .pixel-slider::-webkit-slider-thumb {
+      appearance: none;
+      width: 16px;
+      height: 20px;
+      background: var(--pixel-gold);
+      border: 2px solid #000;
+      cursor: pointer;
+    }
+
+    /* Retro Victory Modal */
+    .victory-modal-overlay {
+      position: fixed;
+      top: 0; left: 0; width: 100vw; height: 100vh;
+      background: rgba(0, 0, 0, 0.85);
+      z-index: 99999;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .victory-card {
+      background: #111827;
+      border: 6px solid #000;
+      box-shadow: 
+        0 -6px 0 0 var(--pixel-gold),
+        0 6px 0 0 var(--pixel-gold-dark),
+        -6px 0 0 0 var(--pixel-gold),
+        6px 0 0 0 var(--pixel-gold-dark),
+        0 0 0 6px #000,
+        12px 12px 0 0 rgba(0,0,0,0.9);
+      max-width: 600px;
+      width: 100%;
+      padding: 32px;
+      text-align: center;
+      animation: modalPop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    @keyframes modalPop {
+      from { transform: scale(0.7); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
+
+    .victory-title {
+      font-family: var(--font-pixel);
+      font-size: 20px;
+      color: var(--pixel-gold);
+      margin-bottom: 16px;
+      text-shadow: 3px 3px 0 #000;
+    }
+
+    .trophy-sprite {
+      width: 96px;
+      height: 96px;
+      margin: 0 auto 16px;
+      animation: bounce-trophy 1s infinite alternate;
+    }
+
+    @keyframes bounce-trophy {
+      from { transform: translateY(0); }
+      to { transform: translateY(-10px); }
+    }
+
+    /* Footer */
+    .retro-footer {
+      border-top: 4px solid #000;
+      box-shadow: 0 -4px 0 0 #20273d;
+      background: #090c14;
+      padding: 24px;
+      text-align: center;
+      font-family: var(--font-pixel);
+      font-size: 10px;
+      color: #64748b;
+      margin-top: 60px;
+    }
+
+    /* Audio Toggle */
+    .sound-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: #1e293b;
+      padding: 6px 10px;
+      border: 2px solid #000;
+      font-family: var(--font-pixel);
+      font-size: 9px;
+      cursor: pointer;
+      color: var(--pixel-gold);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- CRT Scanline Filter Toggleable -->
+  <div class="crt-overlay" id="crtOverlay"></div>
+
+  <!-- Top Retro HUD Navigation -->
+  <header class="retro-hud">
+    <div class="hud-container">
+      <div class="logo-area">
+        <div class="logo-badge">⚔️</div>
+        <div>
+          <div class="game-title">INTELLIPORTFOLIO QUEST</div>
+          <div class="game-subtitle">8-Bit Architecture Codex & RPG Quiz</div>
+        </div>
+      </div>
+
+      <!-- Player HUD Stats -->
+      <div class="hud-stats">
+        <div class="stat-pill" title="Player Health Points">
+          <span>❤️ HP</span>
+          <div class="hud-bar-container">
+            <div class="hud-bar-fill-hp" id="hudHpBar"></div>
+          </div>
+          <span id="hudHpText">100/100</span>
+        </div>
+
+        <div class="stat-pill" title="Experience Points">
+          <span>⭐ XP</span>
+          <div class="hud-bar-container">
+            <div class="hud-bar-fill-xp" id="hudXpBar"></div>
+          </div>
+          <span id="hudLvlText">LV. 1</span>
+        </div>
+
+        <div class="stat-pill" title="Knowledge Gold Coins">
+          <span>🪙</span>
+          <span id="hudGoldText" style="color:var(--pixel-gold);">0 G</span>
+        </div>
+
+        <div class="sound-badge" id="soundToggleBtn" onclick="toggleSound()">
+          <span>🔊 BGM: OFF</span>
+        </div>
+      </div>
+
+      <!-- Navigation Tabs -->
+      <div class="tab-nav">
+        <button class="tab-btn active" id="tabBtnGame" onclick="switchMainTab('game')">🎮 ADVENTURE GAME</button>
+        <button class="tab-btn" id="tabBtnCodex" onclick="switchMainTab('codex')">📜 ARCHITECTURE CODEX</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content Wrapper -->
+  <div class="main-wrapper">
+
+    <!-- Hero Announcement Banner -->
+    <div class="pixel-box pixel-box-gold hero-banner">
+      <h1 class="hero-title">ยินดีต้อนรับสู่อาณาจักร INTELLIPORTFOLIO</h1>
+      <p class="hero-desc">
+        เรียนรู้เบื้องหลังและกลไกการทำงานของระบบจัดพอร์ตการลงทุนอัจฉริยะ (Next.js + FastAPI + Black-Litterman + Genetic Algorithm) 
+        ผ่านการผจญภัยแบบ Pixel Art RPG ตอบคำถามฟาดฟันบอสทั้ง 5 ด่าน หรือเปิดอ่านคัมภีร์รหัสลับแบบเจาะลึกได้ทันที!
+      </p>
+      <div style="display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; z-index: 1;">
+        <button class="pixel-btn" onclick="switchMainTab('game')">⚔️ เริ่มเล่นเกมตอบคำถาม</button>
+        <button class="pixel-btn pixel-btn-cyan" onclick="switchMainTab('codex')">📖 เจาะลึกระบบหลังบ้าน</button>
+      </div>
+    </div>
+
+    <!-- =========================================================================
+         SECTION 1: ADVENTURE RPG QUIZ GAME (เกมตอบคำถามผจญภัย)
+         ========================================================================= -->
+    <section id="sectionGame">
+      <div class="battle-arena">
+        
+        <!-- Stage / Boss Indicator -->
+        <div class="stage-indicator">
+          <div>
+            <span style="color:var(--pixel-gold);" id="stageNameDisplay">DUNGEON 1: THE GATEWAY OF CLERK & SECURITY</span>
+          </div>
+          <div class="stage-dots">
+            <div class="stage-dot current" id="dot0"></div>
+            <div class="stage-dot" id="dot1"></div>
+            <div class="stage-dot" id="dot2"></div>
+            <div class="stage-dot" id="dot3"></div>
+            <div class="stage-dot" id="dot4"></div>
+          </div>
+        </div>
+
+        <!-- Combat Arena Area -->
+        <div class="combatants-view">
+          
+          <!-- Player Character Card -->
+          <div class="combatant-card" id="heroCard">
+            <div class="combatant-header">
+              <span style="color:var(--pixel-cyan);">🛡️ SIR QUANTALOT (YOU)</span>
+              <span style="color:var(--pixel-green);" id="playerClassTitle">Level 1 Novice</span>
+            </div>
+            <div class="sprite-display">
+              <!-- Pixel Art Hero SVG -->
+              <svg class="pixel-sprite" id="heroSprite" viewBox="0 0 32 32">
+                <!-- Knight Helmet & Body -->
+                <rect x="10" y="4" width="12" height="10" fill="#94a3b8" />
+                <rect x="12" y="7" width="8" height="3" fill="#0f172a" />
+                <rect x="14" y="8" width="4" height="2" fill="#38bdf8" /> <!-- Glowing eyes -->
+                <rect x="8" y="14" width="16" height="10" fill="#334155" />
+                <!-- Golden Crest -->
+                <rect x="14" y="2" width="4" height="3" fill="#facc15" />
+                <!-- Shield -->
+                <rect x="4" y="15" width="6" height="10" fill="#facc15" />
+                <rect x="5" y="16" width="4" height="8" fill="#0284c7" />
+                <!-- Sword -->
+                <rect x="23" y="10" width="3" height="14" fill="#e2e8f0" />
+                <rect x="22" y="22" width="5" height="2" fill="#d97706" />
+                <rect x="23" y="24" width="3" height="3" fill="#78350f" />
+                <!-- Boots -->
+                <rect x="10" y="24" width="5" height="6" fill="#1e293b" />
+                <rect x="17" y="24" width="5" height="6" fill="#1e293b" />
+              </svg>
+            </div>
+            <div style="font-family: var(--font-pixel); font-size: 10px; display:flex; justify-content:space-between;">
+              <span>HP: <strong id="battleHpText">100/100</strong></span>
+              <span>ATK: <strong>25 DMG</strong></span>
+            </div>
+          </div>
+
+          <!-- Boss / Dungeon Guardian Card -->
+          <div class="combatant-card boss-card" id="bossCard">
+            <div class="combatant-header">
+              <span style="color:var(--pixel-red);" id="bossNameTitle">👾 GUARDIAN SENTRY</span>
+              <span style="color:var(--pixel-gold);" id="bossHpText">BOSS HP: 100/100</span>
+            </div>
+            <div class="sprite-display">
+              <!-- Pixel Art Boss SVG -->
+              <svg class="pixel-sprite" id="bossSprite" viewBox="0 0 32 32">
+                <!-- Boss Body (Changes dynamically) -->
+                <rect x="8" y="6" width="16" height="16" fill="#be123c" />
+                <rect x="10" y="10" width="4" height="4" fill="#fef08a" />
+                <rect x="18" y="10" width="4" height="4" fill="#fef08a" />
+                <rect x="11" y="11" width="2" height="2" fill="#000" />
+                <rect x="19" y="11" width="2" height="2" fill="#000" />
+                <rect x="12" y="18" width="8" height="2" fill="#000" />
+                <!-- Spikes -->
+                <polygon points="6,6 10,6 8,2" fill="#f43f5e" />
+                <polygon points="22,6 26,6 24,2" fill="#f43f5e" />
+                <polygon points="4,12 8,10 8,14" fill="#f43f5e" />
+                <polygon points="28,12 24,10 24,14" fill="#f43f5e" />
+                <!-- Tentacles / Base -->
+                <rect x="8" y="22" width="4" height="6" fill="#881337" />
+                <rect x="14" y="22" width="4" height="7" fill="#881337" />
+                <rect x="20" y="22" width="4" height="6" fill="#881337" />
+              </svg>
+            </div>
+            <div style="font-family: var(--font-pixel); font-size: 10px; display:flex; justify-content:space-between;">
+              <span style="color:var(--pixel-purple);">WEAKNESS: ARCHITECTURE INTEL</span>
+              <span id="bossSpecialtyText">Layer: Security</span>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Dialogue & Question Box -->
+        <div class="dialogue-box">
+          <div class="dialogue-speaker">
+            <span id="dialogueSpeakerName">👾 GUARDIAN OF ARCHITECTURE</span>
+            <span style="font-size: 14px;">💬</span>
+          </div>
+          <div class="dialogue-text" id="questionText">
+            กำลังโหลดปริศนาแห่งอาณาจักร...
+          </div>
+        </div>
+
+        <!-- Quiz Answer Options (4 Choices) -->
+        <div class="options-grid" id="optionsGrid">
+          <!-- Will be rendered via JS -->
+        </div>
+
+        <!-- Real-time Explanation Banner -->
+        <div class="explanation-banner" id="explanationBanner">
+          <div class="explanation-title">
+            <span>📜 คำอธิบายเบื้องหลังระบบ (SYSTEM INTEL)</span>
+          </div>
+          <div id="explanationContent" style="font-size: 15px; color: #e2e8f0; line-height: 1.6;">
+            คำอธิบายจะปรากฏที่นี่...
+          </div>
+          <div style="margin-top: 14px; text-align: right;">
+            <button class="pixel-btn" id="nextQuestionBtn" onclick="nextQuestion()">เดินหน้าลุยต่อ ▶</button>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- =========================================================================
+         SECTION 2: ARCHITECTURE CODEX (คัมภีร์ระบบเจาะลึก 5 บท)
+         ========================================================================= -->
+    <section id="sectionCodex" style="display: none;">
+      
+      <div class="codex-grid">
+        
+        <!-- Left Codex Chapter Navigator -->
+        <div class="codex-nav-list">
+          <div class="codex-nav-item active" onclick="loadCodexChapter(1)">
+            <span>🏰</span> บทที่ 1: System Overview & Auth Guard
+          </div>
+          <div class="codex-nav-item" onclick="loadCodexChapter(2)">
+            <span>🌐</span> บทที่ 2: Data Oracle & 24h Redis Cache
+          </div>
+          <div class="codex-nav-item" onclick="loadCodexChapter(3)">
+            <span>🧙‍♂️</span> บทที่ 3: Black-Litterman Alchemy
+          </div>
+          <div class="codex-nav-item" onclick="loadCodexChapter(4)">
+            <span>🧬</span> บทที่ 4: Genetic Algorithm Colosseum
+          </div>
+          <div class="codex-nav-item" onclick="loadCodexChapter(5)">
+            <span>🔮</span> บทที่ 5: Backtest & GBM Probability
+          </div>
+          <div class="codex-nav-item" onclick="loadCodexChapter(6)">
+            <span>🎛️</span> บทที่ 6: Live Formula Playground
+          </div>
+        </div>
+
+        <!-- Right Codex Content Display Area -->
+        <div class="codex-content-pane" id="codexPane">
+          <!-- Dynamic Chapter Content Injected via JS -->
+        </div>
+
+      </div>
+
+    </section>
+
+  </div>
+
+  <!-- Victory & Certification Modal -->
+  <div class="victory-modal-overlay" id="victoryModal">
+    <div class="victory-card">
+      <!-- Pixel Trophy SVG -->
+      <svg class="trophy-sprite" viewBox="0 0 32 32">
+        <rect x="8" y="4" width="16" height="4" fill="#facc15" />
+        <rect x="6" y="8" width="20" height="10" fill="#facc15" />
+        <rect x="8" y="18" width="16" height="4" fill="#eab308" />
+        <rect x="12" y="22" width="8" height="4" fill="#ca8a04" />
+        <rect x="10" y="26" width="12" height="4" fill="#78350f" />
+        <!-- Handles -->
+        <rect x="4" y="8" width="2" height="8" fill="#eab308" />
+        <rect x="26" y="8" width="2" height="8" fill="#eab308" />
+        <!-- Sparkles -->
+        <rect x="14" y="10" width="4" height="4" fill="#fff" />
+      </svg>
+      <h2 class="victory-title">VICTORY ACHIEVED!</h2>
+      <p style="font-size: 16px; margin-bottom: 20px; color:#e2e8f0;">
+        ยินดีด้วย! คุณได้พิชิตการทดสอบและเข้าใจขั้นตอนเบื้องหลังระบบ IntelliPortfolio ครบถ้วนทุกมิติแล้ว!
+      </p>
+      
+      <div style="background:#1f293d; border:3px solid #000; padding:16px; margin-bottom:20px; font-family:var(--font-pixel); font-size:11px;">
+        <div style="color:var(--pixel-gold); margin-bottom:6px;">🎖️ ยศที่ได้รับ: GRANDMASTER QUANT ENGINEER</div>
+        <div style="color:var(--pixel-cyan);">ความรู้: Next.js + FastAPI + Black-Litterman + GA (DEAP)</div>
+      </div>
+
+      <button class="pixel-btn" onclick="restartGame()">🔄 เล่นใหม่อีกครั้ง</button>
+      <button class="pixel-btn pixel-btn-cyan" onclick="switchMainTab('codex'); closeModal();">📖 อ่านคัมภีร์ทั้งหมด</button>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="retro-footer">
+    <div>INTELLIPORTFOLIO BACKEND & FRONTEND SYSTEM DOCUMENTATION</div>
+    <div style="margin-top: 6px; color:#475569;">Pixel Art Theme · 8-Bit Web Audio Engine · Interactive RPG Explorer</div>
+  </footer>
+
+  <!-- =========================================================================
+       JAVASCRIPT LOGIC: RETRO AUDIO SYNTH, QUIZ STATE MACHINE, CODEX ENGINE
+       ========================================================================= -->
+  <script>
+    /* ==========================================================================
+       1. RETRO WEB AUDIO API SYNTHESIZER (8-BIT SOUND EFFECTS & CHIPTUNE BGM)
+       ========================================================================== */
+    let audioCtx = null;
+    let isSoundOn = false;
+    let bgmInterval = null;
+
+    function initAudio() {
+      if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+      if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
+      }
+    }
+
+    function toggleSound() {
+      initAudio();
+      isSoundOn = !isSoundOn;
+      const btn = document.getElementById('soundToggleBtn');
+      if (isSoundOn) {
+        btn.innerHTML = '<span>🔊 BGM: ON</span>';
+        btn.style.borderColor = 'var(--pixel-green)';
+        startRetroBGM();
+        playBeep(523.25, 'triangle', 0.1, 0.1);
+      } else {
+        btn.innerHTML = '<span>🔇 BGM: OFF</span>';
+        btn.style.borderColor = '#000';
+        stopRetroBGM();
+      }
+    }
+
+    function playBeep(freq, type = 'square', duration = 0.1, gain = 0.05) {
+      if (!audioCtx) return;
+      try {
+        const osc = audioCtx.createOscillator();
+        const gainNode = audioCtx.createGain();
+        osc.type = type;
+        osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+        gainNode.gain.setValueAtTime(gain, audioCtx.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + duration);
+        osc.connect(gainNode);
+        gainNode.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + duration);
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
+    function playSfx(name) {
+      if (!isSoundOn) return;
+      initAudio();
+      const now = audioCtx.currentTime;
+
+      if (name === 'hit') {
+        // White noise / punch hit
+        playBeep(120, 'sawtooth', 0.15, 0.15);
+      } else if (name === 'correct') {
+        // High ascending 2-tone chime
+        playBeep(587.33, 'square', 0.08, 0.08);
+        setTimeout(() => playBeep(880.00, 'square', 0.2, 0.1), 80);
+      } else if (name === 'wrong') {
+        // Low descending buzz
+        playBeep(180, 'sawtooth', 0.15, 0.15);
+        setTimeout(() => playBeep(130, 'sawtooth', 0.25, 0.18), 120);
+      } else if (name === 'levelup') {
+        // Arpeggio fanfare
+        [440, 554, 659, 880].forEach((f, idx) => {
+          setTimeout(() => playBeep(f, 'triangle', 0.12, 0.12), idx * 70);
+        });
+      }
+    }
+
+    function startRetroBGM() {
+      if (bgmInterval) clearInterval(bgmInterval);
+      const notes = [261.63, 329.63, 392.00, 523.25, 392.00, 329.63, 293.66, 349.23];
+      let step = 0;
+      bgmInterval = setInterval(() => {
+        if (!isSoundOn || !audioCtx) return;
+        const freq = notes[step % notes.length];
+        playBeep(freq, 'triangle', 0.12, 0.02);
+        step++;
+      }, 260);
+    }
+
+    function stopRetroBGM() {
+      if (bgmInterval) {
+        clearInterval(bgmInterval);
+        bgmInterval = null;
+      }
+    }
+
+    /* ==========================================================================
+       2. QUIZ DATA ENGINE (15 DEEP QUESTIONS ACROSS 5 DUNGEONS)
+       ========================================================================== */
+    const stagesData = [
+      {
+        id: 0,
+        name: "DUNGEON 1: THE GATEWAY OF CLERK & SECURITY",
+        bossName: "👾 SENTRY GUARDIAN OF CLERK",
+        specialty: "Layer: Auth & Security",
+        bossHp: 100,
+        questions: [
+          {
+            speaker: "👾 SENTRY GUARDIAN",
+            question: "ตามกฎใหม่ของระบบที่อาจารย์สั่ง ผู้ใช้ที่เป็น Admin จะต้องถูกจัดการเรื่องสิทธิ์อย่างไรใน IntelliPortfolio?",
+            options: [
+              "Admin ใช้งานได้เฉพาะหน้า /admin เท่านั้น และถูกบล็อก/Redirect ออกหากพยายามเข้าหน้าอื่น",
+              "Admin สามารถเข้าใช้งานหน้า /plan และ /dashboard ได้ตามปกติเหมือน User ทั่วไป",
+              "Admin เข้าได้ทุกหน้าแต่ไม่สามารถบันทึกข้อมูลพอร์ตได้",
+              "Admin ต้องลงทะเบียนใหม่ทุกครั้งที่ต้องการเปลี่ยนสิทธิ์"
+            ],
+            correct: 0,
+            explanation: "ถูกต้อง! ตามความต้องการของอาจารย์และโค้ดใน AdminGuard.tsx + Navbar.tsx: บัญชี Role 'admin' ถูกล็อกให้ใช้งานได้เฉพาะเส้นทาง /admin เท่านั้น และหากพยายามเข้าหน้าอื่นจะถูก Redirect กลับมา /admin ทันที พร้อมทั้ง Navbar จะแสดงเพียงแค่คำว่า 'Admin' เท่านั้น"
+          },
+          {
+            speaker: "👾 SENTRY GUARDIAN",
+            question: "ส่วนประกอบใดใน Next.js ที่ทำหน้าที่ดึงข้อมูลผู้ใช้จาก Clerk แล้วส่งไปบันทึกลงตาราง users ใน PostgreSQL อัตโนมัติ?",
+            options: [
+              "UserSync Component (POST /api/users/sync)",
+              "Docker Compose Daemon",
+              "Genetic Algorithm Evaluator",
+              "SETDataFetcher ใน data_fetcher.py"
+            ],
+            correct: 0,
+            explanation: "ถูกต้อง! UserSync.tsx จะถูกเรียกใน app/layout.tsx หลังจากผู้ใช้ Login ผ่าน Clerk สำเร็จ โดยจะยิง HTTP POST ไปที่ /api/users/sync ใน FastAPI เพื่อบันทึก clerk_id, email, และ full_name ลงในฐานข้อมูล PostgreSQL"
+          }
+        ]
+      },
+      {
+        id: 1,
+        name: "DUNGEON 2: DATA ORACLE & 24H REDIS CACHE",
+        bossName: "🐙 DATA LEVIATHAN (YAHOO & REDIS)",
+        specialty: "Layer: Data Pipeline",
+        bossHp: 100,
+        questions: [
+          {
+            speaker: "🐙 DATA LEVIATHAN",
+            question: "เหตุใดระบบ IntelliPortfolio จึงต้องมี Redis Cache (TTL 24 ชั่วโมง) คั่นระหว่างการดึงข้อมูลหุ้นจาก Yahoo Finance?",
+            options: [
+              "เพื่อป้องกัน Rate Limit ของ Yahoo Finance และลดเวลาคำนวณ Covariance Matrix ที่ใช้เวลานาน",
+              "เพื่อแปลงค่าเงินบาท (THB) ให้กลายเป็นเงินดอลลาร์ (USD)",
+              "เพื่อทำหน้าที่แทนฐานข้อมูล PostgreSQL ถาวร",
+              "เพื่อให้ผู้ใช้สามารถซื้อขายหุ้นแบบ Real-time ได้เสี้ยววินาที"
+            ],
+            correct: 0,
+            explanation: "ถูกต้อง! การดึงราคาหุ้น 5 ปีแบบ Weekly และคำนวณ Covariance Matrix มีต้นทุนด้าน Network และ CPU สูง หากไม่มี Cache เมื่อผู้ใช้หลายคนกดสร้างพอร์ตพร้อมกันจะทำให้ระบบติด Rate Limit ของ Yahoo Finance ดังนั้นระบบจึงเก็บแคชไว้ใน Redis นาน 24 ชม."
+          },
+          {
+            speaker: "🐙 DATA LEVIATHAN",
+            question: "ในการคำนวณความเสี่ยง Beta และ Covariance Matrix ในไฟล์ data_fetcher.py ระบบใช้ข้อมูลความถี่แบบใด และคูณด้วยตัวเลขใดเพื่อปรับเป็นรายปี (Annualized)?",
+            options: [
+              "ข้อมูลรายสัปดาห์ (Weekly) และคูณด้วย 52",
+              "ข้อมูลรายวัน (Daily) และคูณด้วย 365",
+              "ข้อมูลรายเดือน (Monthly) และคูณด้วย 100",
+              "ข้อมูลรายชั่วโมง และคูณด้วย 24"
+            ],
+            correct: 0,
+            explanation: "ถูกต้อง! โค้ดใน YahooFinanceFetcher ใช้ข้อมูลราคารายสัปดาห์ (Weekly 5Y) เพื่อลด Market Noise และเมื่อนำมาคำนวณ Covariance Matrix จะคูณด้วย 52 (จำนวนสัปดาห์ใน 1 ปี) เพื่อแปลงเป็นค่าความผันผวนรายปี"
+          }
+        ]
+      },
+      {
+        id: 2,
+        name: "DUNGEON 3: BLACK-LITTERMAN ALCHEMY",
+        bossName: "🧙‍♂️ ARCHMAGE BLACK-LITTERMAN",
+        specialty: "Layer: Bayesian Model",
+        bossHp: 100,
+        questions: [
+          {
+            speaker: "🧙‍♂️ ARCHMAGE BLACK-LITTERMAN",
+            question: "แบบจำลอง Black-Litterman ถูกนำมาใช้แทน Markowitz ดั้งเดิมเพราะเหตุใดเป็นสำคัญ?",
+            options: [
+              "แก้ปัญหา Corner Solution (การเทน้ำหนักสุดโต่ง) โดยผสานดุลยภาพตลาด (Prior) เข้ากับมุมมองนักลงทุน (Views)",
+              "เพราะคำนวณด้วยคอมพิวเตอร์ไม่ได้ ต้องใช้สมองกลเท่านั้น",
+              "เพื่อตัดความเสี่ยงของพอร์ตให้เหลือ 0% เสมอ",
+              "เพื่อบังคับให้ทุกหุ้นในตลาดมีสัดส่วนเท่ากันเป๊ะ 100%"
+            ],
+            correct: 0,
+            explanation: "ถูกต้อง! โมเดล Markowitz แบบดั้งเดิมมีความอ่อนไหวสูงมากต่อค่าเฉลี่ยผลตอบแทน ส่งผลให้เกิด Corner Solution (เทเงินไปหุ้นตัวเดียว 100%) Black-Litterman จึงใช้ Bayesian Updating ผสาน Market Prior (Π) เข้ากับ Investor Views (Q) เพื่อให้พอร์ตกระจายตัวอย่างสมเหตุสมผล"
+          },
+          {
+            speaker: "🧙‍♂️ ARCHMAGE BLACK-LITTERMAN",
+            question: "ในไฟล์ core_optimizer.py ค่าสัมประสิทธิ์ความหลีกเลี่ยงความเสี่ยงตลาด (Risk Aversion: δ) และค่าสเกลาร์ความไม่แน่นอน (τ) ถูกกำหนดไว้ที่เท่าใดตามงานวิจัย?",
+            options: [
+              "δ = 2.5 และ τ = 0.05",
+              "δ = 10.0 และ τ = 1.0",
+              "δ = 0.5 และ τ = 0.001",
+              "δ = 1.0 และ τ = 0.5"
+            ],
+            correct: 0,
+            explanation: "ถูกต้องตามเป๊ะ! ในโค้ด BlackLittermanEngine.calculate_posterior() กำหนดค่า Risk Aversion δ = 2.5 สำหรับคำนวณดุลยภาพตลาด Π = 2.5 * S * w_mkt และใช้ค่า τ = 0.05 ซึ่งผ่านการทดสอบ Sensitivity Analysis ในระเบียบวิธีวิจัยแล้ว"
+          }
+        ]
+      },
+      {
+        id: 3,
+        name: "DUNGEON 4: GENETIC ALGORITHM COLOSSEUM",
+        bossName: "🧬 CYBER CHIMERA (DEAP BEAST)",
+        specialty: "Layer: Evolutionary Algorithm",
+        bossHp: 100,
+        questions: [
+          {
+            speaker: "🧬 CYBER CHIMERA",
+            question: "ทำไมใน GeneticPortfolioOptimizer จึงต้องกำหนด Random Seed = 42?",
+            options: [
+              "เพื่อให้ผลลัพธ์ Reproducible (เมื่อส่งเงื่อนไขเดิม จะได้ผลลัพธ์พอร์ตเดิมตรงกัน 100% เสมอ)",
+              "เป็นเลขนำโชคของตลาดหลักทรัพย์แห่งประเทศไทย",
+              "เพื่อให้ระบบรันเร็วกว่าเดิม 42 เท่า",
+              "เป็นข้อบังคับของไลบรารี DEAP หากไม่ใส่จะ Compile ไม่ผ่าน"
+            ],
+            correct: 0,
+            explanation: "ถูกต้อง! ในงานวิจัย การทดลองต้องสามารถพิสูจน์ซ้ำและตรวจสอบได้ (Reproducibility) การฟิกซ์ random.seed(42) และ np.random.seed(42) ทำให้ผู้ใช้หรือกรรมการที่ทดสอบระบบด้วยพารามิเตอร์ชุดเดิมได้รับพอร์ตการลงทุนที่เหมือนกันทุกประการเสมอ"
+          },
+          {
+            speaker: "🧬 CYBER CHIMERA",
+            question: "ใน Fitness Function ของ Genetic Algorithm มีบทลงโทษ (Penalty) อะไรบ้าง?",
+            options: [
+              "ผลรวมน้ำหนักต้องเท่ากับ 100%, ค่า Beta ต้องตรงเป้าหมาย, และน้ำหนักหุ้นเดี่ยวต้องไม่เกินที่กำหนด (Max Weight)",
+              "บทลงโทษเมื่อหุ้นมีราคาตกต่ำกว่า IPO เท่านั้น",
+              "บทลงโทษเมื่อเปิดพอร์ตในวันหยุดเสาร์-อาทิตย์",
+              "บทลงโทษเฉพาะกรณีที่ผู้ใช้เลือกหุ้นน้อยกว่า 10 ตัว"
+            ],
+            correct: 0,
+            explanation: "ถูกต้อง! ใน evaluate() ของ GA มี Penalty 3 ส่วนหลักคือ: (1) Weight Penalty: 1000 * (sum(w) - 1)^2, (2) Beta Penalty: 10 * |beta_p - target_beta|, และ (3) Max Weight Penalty: 50 * max(0, max(w) - max_weight_limit)"
+          },
+          {
+            speaker: "🧬 CYBER CHIMERA",
+            question: "พารามิเตอร์ Population, Generations, Crossover, และ Mutation ในระบบถูกกำหนดไว้เท่าใด?",
+            options: [
+              "ประชากร 100 พอร์ต, วิวัฒนาการ 50 รุ่น, Crossover 80% (0.8), Mutation 10% (0.1)",
+              "ประชากร 1,000 พอร์ต, วิวัฒนาการ 500 รุ่น, Crossover 50%, Mutation 50%",
+              "ประชากร 10 พอร์ต, วิวัฒนาการ 5 รุ่น, Crossover 100%, Mutation 0%",
+              "ประชากร 50 พอร์ต, วิวัฒนาการ 100 รุ่น, Crossover 20%, Mutation 80%"
+            ],
+            correct: 0,
+            explanation: "ถูกต้อง! ในไฟล์ core_optimizer.py กำหนด: pop = toolbox.population(n=100), ngen = 50, cxpb = 0.8 (Blend Crossover alpha=0.5), และ mutpb = 0.1 (Gaussian Mutation mu=0, sigma=0.2)"
+          }
+        ]
+      },
+      {
+        id: 4,
+        name: "DUNGEON 5: THE PROPHECY & BACKTEST CHAMBER",
+        bossName: "🔮 CHRONOMANCER OF THE ORACLE",
+        specialty: "Layer: Backtest & GBM",
+        bossHp: 100,
+        questions: [
+          {
+            speaker: "🔮 CHRONOMANCER",
+            question: "ในการทดสอบย้อนหลัง (BacktestEngine) ระบบใช้ Asset ใดเป็นเกณฑ์มาตรฐาน (Benchmark) ในการเปรียบเทียบ?",
+            options: [
+              "TDEX.BK (ETF อ้างอิงดัชนี SET50)",
+              "Bitcoin (BTC-USD)",
+              "ดัชนี Dow Jones Industrial Average",
+              "ราคาทองคำแท่งเยาวราช"
+            ],
+            correct: 0,
+            explanation: "ถูกต้อง! ใน backtester.py ระบบเลือกใช้ 'TDEX.BK' ซึ่งเป็นกองทุน ETF ที่สะท้อนผลตอบแทนดัชนี SET50 จริงในตลาดไทย แทนการดึง ^SET.BK ตรงๆ เนื่องจากข้อมูลดัชนีตลาดใน Yahoo Finance มักมี Missing Data และมีบั๊กบ่อยครั้ง"
+          },
+          {
+            speaker: "🔮 CHRONOMANCER",
+            question: "การคำนวณ Success Probability (โอกาสที่เงินจะถึงเป้าหมาย) ใน backend/main.py อาศัยสูตรและทฤษฎีใด?",
+            options: [
+              "แบบจำลองเรขาคณิตบราวเนียน (Geometric Brownian Motion / Log-Normal CDF ผ่าน Error Function erf)",
+              "การทอยลูกเต๋า 100 ครั้งแล้วนับแต้มสูง",
+              "ทฤษฎีเกมดุลยภาพของแนช (Nash Equilibrium)",
+              "การคูณผลตอบแทนแบบทบต้นตรงๆ โดยไม่คิดค่าความเสี่ยง"
+            ],
+            correct: 0,
+            explanation: "ถูกต้องอย่างสมบูรณ์แบบ! ฟังก์ชัน calculate_success_probability() ใช้แบบจำลอง Geometric Brownian Motion (GBM) โดยคำนวณ Drift (mu - 0.5*sigma^2)*t และ Diffusion sigma*sqrt(t) แล้วแปลงผ่านคณิตศาสตร์ math.erf() (Error Function) เพื่อหาความน่าจะเป็นแบบสะสมที่มูลค่าเงินจะถึงเป้าหมาย!"
+          }
+        ]
+      }
+    ];
+
+    /* ==========================================================================
+       3. GAME STATE MANAGEMENT
+       ========================================================================== */
+    let currentStageIndex = 0;
+    let currentQuestionIndex = 0;
+    let playerHp = 100;
+    let playerMaxHp = 100;
+    let playerXp = 0;
+    let playerLevel = 1;
+    let playerGold = 0;
+    let bossHp = 100;
+    let answeredCurrent = false;
+
+    function initGame() {
+      currentStageIndex = 0;
+      currentQuestionIndex = 0;
+      playerHp = 100;
+      playerXp = 0;
+      playerLevel = 1;
+      playerGold = 0;
+      updateHudUI();
+      loadStage(0);
+    }
+
+    function loadStage(stageIdx) {
+      currentStageIndex = stageIdx;
+      currentQuestionIndex = 0;
+      const stage = stagesData[stageIdx];
+      bossHp = stage.bossHp;
+      
+      document.getElementById('stageNameDisplay').textContent = stage.name;
+      document.getElementById('bossNameTitle').textContent = stage.bossName;
+      document.getElementById('bossSpecialtyText').textContent = stage.specialty;
+      document.getElementById('dialogueSpeakerName').textContent = stage.bossName;
+      
+      // Update stage dots
+      for (let i = 0; i < 5; i++) {
+        const dot = document.getElementById(`dot${i}`);
+        dot.className = 'stage-dot';
+        if (i < stageIdx) dot.classList.add('completed');
+        else if (i === stageIdx) dot.classList.add('current');
+      }
+
+      loadQuestion(0);
+    }
+
+    function loadQuestion(qIdx) {
+      currentQuestionIndex = qIdx;
+      answeredCurrent = false;
+      const stage = stagesData[currentStageIndex];
+      const q = stage.questions[qIdx];
+      
+      document.getElementById('questionText').textContent = q.question;
+      document.getElementById('explanationBanner').style.display = 'none';
+
+      // Render 4 options
+      const grid = document.getElementById('optionsGrid');
+      grid.innerHTML = '';
+      const letters = ['A', 'B', 'C', 'D'];
+
+      q.options.forEach((opt, idx) => {
+        const btn = document.createElement('button');
+        btn.className = 'quiz-option-btn';
+        btn.innerHTML = `<span class="option-key">${letters[idx]}</span> <span>${opt}</span>`;
+        btn.onclick = () => handleAnswerSelect(idx, btn);
+        grid.appendChild(btn);
+      });
+
+      updateBossHpUI();
+    }
+
+    function handleAnswerSelect(selectedIdx, btnElement) {
+      if (answeredCurrent) return;
+      answeredCurrent = true;
+
+      const stage = stagesData[currentStageIndex];
+      const q = stage.questions[currentQuestionIndex];
+      const isCorrect = (selectedIdx === q.correct);
+      const allButtons = document.querySelectorAll('.quiz-option-btn');
+
+      // Highlight correct/wrong
+      allButtons.forEach((b, idx) => {
+        b.disabled = true;
+        if (idx === q.correct) {
+          b.classList.add('correct');
+        } else if (idx === selectedIdx && !isCorrect) {
+          b.classList.add('wrong');
+        }
+      });
+
+      const heroSprite = document.getElementById('heroSprite');
+      const bossSprite = document.getElementById('bossSprite');
+
+      if (isCorrect) {
+        // Player Attacks Boss
+        playSfx('correct');
+        heroSprite.classList.add('attack-anim');
+        setTimeout(() => heroSprite.classList.remove('attack-anim'), 300);
+
+        bossSprite.classList.add('shake-anim');
+        setTimeout(() => bossSprite.classList.remove('shake-anim'), 400);
+
+        // Damage Boss
+        const dmg = Math.ceil(100 / stage.questions.length);
+        bossHp = Math.max(0, bossHp - dmg);
+        updateBossHpUI();
+
+        // Gain XP & Gold
+        playerXp += 35;
+        playerGold += 50;
+        checkLevelUp();
+      } else {
+        // Boss Attacks Player
+        playSfx('wrong');
+        bossSprite.classList.add('attack-anim');
+        setTimeout(() => bossSprite.classList.remove('attack-anim'), 300);
+
+        heroSprite.classList.add('shake-anim');
+        setTimeout(() => heroSprite.classList.remove('shake-anim'), 400);
+
+        // Player Takes Damage
+        playerHp = Math.max(10, playerHp - 20); // Don't let die completely in study mode
+      }
+
+      updateHudUI();
+
+      // Show Explanation Banner
+      const banner = document.getElementById('explanationBanner');
+      const explanationText = document.getElementById('explanationContent');
+      explanationText.innerHTML = (isCorrect ? '<strong style="color:var(--pixel-green);">✅ ตอบถูกต้อง! โจมตีบอสสำเร็จ!</strong><br>' : '<strong style="color:var(--pixel-red);">❌ พลาดท่า! แต่เรียนรู้จากความผิดพลาดได้:</strong><br>') + q.explanation;
+      banner.style.display = 'block';
+    }
+
+    function nextQuestion() {
+      const stage = stagesData[currentStageIndex];
+      if (currentQuestionIndex + 1 < stage.questions.length) {
+        loadQuestion(currentQuestionIndex + 1);
+      } else {
+        // Stage Complete! Move to next Dungeon
+        if (currentStageIndex + 1 < stagesData.length) {
+          playSfx('levelup');
+          alert(`🎉 ยอดเยี่ยม! พิชิต ${stage.name} สำเร็จ! กำลังเข้าสู่ดันเจี้ยนถัดไป...`);
+          loadStage(currentStageIndex + 1);
+        } else {
+          // Completed all 5 stages!
+          playSfx('levelup');
+          showVictoryModal();
+        }
+      }
+    }
+
+    function checkLevelUp() {
+      const neededXp = playerLevel * 60;
+      if (playerXp >= neededXp) {
+        playerLevel++;
+        playerXp = playerXp - neededXp;
+        playerHp = playerMaxHp; // heal
+        playSfx('levelup');
+        document.getElementById('playerClassTitle').textContent = `Level ${playerLevel} Quant Mage`;
+      }
+    }
+
+    function updateHudUI() {
+      document.getElementById('hudHpBar').style.width = `${(playerHp / playerMaxHp) * 100}%`;
+      document.getElementById('hudHpText').textContent = `${playerHp}/${playerMaxHp}`;
+      document.getElementById('battleHpText').textContent = `${playerHp}/${playerMaxHp}`;
+      
+      const neededXp = playerLevel * 60;
+      document.getElementById('hudXpBar').style.width = `${Math.min(100, (playerXp / neededXp) * 100)}%`;
+      document.getElementById('hudLvlText').textContent = `LV. ${playerLevel}`;
+      document.getElementById('hudGoldText').textContent = `${playerGold} G`;
+    }
+
+    function updateBossHpUI() {
+      document.getElementById('bossHpText').textContent = `BOSS HP: ${bossHp}/100`;
+    }
+
+    function showVictoryModal() {
+      document.getElementById('victoryModal').style.display = 'flex';
+    }
+
+    function closeModal() {
+      document.getElementById('victoryModal').style.display = 'none';
+    }
+
+    function restartGame() {
+      closeModal();
+      initGame();
+    }
+
+    /* ==========================================================================
+       4. CODEX KNOWLEDGE BASE (คัมภีร์สถาปัตยกรรมทั้ง 6 บท)
+       ========================================================================== */
+    const codexChapters = {
+      1: {
+        badge: "LAYER 1: GATEWAY & ARCHITECTURE",
+        title: "1. ภาพรวมสถาปัตยกรรม & การแยกสิทธิ์ Admin",
+        subtitle: "Next.js 14 Client · Clerk Authentication · PostgreSQL Sync · Admin Isolation Guard",
+        content: `
+          <div class="step-chain">
+            <div class="step-card">
+              <div class="step-num-badge">01</div>
+              <div class="step-body">
+                <h4>🖥️ Frontend Client Layer (Next.js 14 App Router)</h4>
+                <p>หน้าเว็บถูกพัฒนาด้วย Next.js 14 แบ่งเส้นทางหลักเป็น: <code>/</code> (Landing Page), <code>/plan</code> (หน้าสร้างพอร์ต), <code>/dashboard</code> (แดชบอร์ดดูพอร์ต), และ <code>/admin</code> (หน้าผู้ดูแลระบบ)</p>
+              </div>
+            </div>
+            <div class="step-card">
+              <div class="step-num-badge">02</div>
+              <div class="step-body">
+                <h4>🔐 ระบบพิสูจน์ตัวตน & User Synchronization</h4>
+                <p>เมื่อผู้ใช้ล็อกอินผ่าน Clerk สำเร็จ คอมโพเนนต์ <code>UserSync.tsx</code> ใน <code>layout.tsx</code> จะยิง HTTP POST ไปที่ <code>/api/users/sync</code> ของ FastAPI ทันที เพื่อนำข้อมูลบัญชี (clerk_id, email, full_name, role) บันทึกลงในตาราง <code>users</code> ของ PostgreSQL</p>
+              </div>
+            </div>
+            <div class="step-card">
+              <div class="step-num-badge">03</div>
+              <div class="step-body">
+                <h4>🛡️ กฎเหล็ก Admin Isolation (ตามที่อาจารย์สั่ง)</h4>
+                <p>สร้าง <code>AdminGuard.tsx</code> และปรับแต่ง <code>Navbar.tsx</code>: ผู้ใช้ที่มี Role = <strong>admin</strong> จะใช้งานได้เฉพาะหน้า <code>/admin</code> เท่านั้น หากพยายามคลิกหรือเปลี่ยน URL ไปยังหน้าอื่นจะถูกตรวจจับและ Redirect กลับมาที่ <code>/admin</code> ทันที และบน Navbar จะแสดงเพียงแค่คำว่า 'Admin' เท่านั้น</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="secret-scroll">
+            <div class="secret-scroll-title">📜 โค้ดสำคัญใน components/AdminGuard.tsx</div>
+            <div class="pixel-code-box">
+<span class="code-comment">// ตรวจสอบ Role ของผู้ใช้จาก DB ผ่าน API</span>
+<span class="code-keyword">const</span> res = <span class="code-keyword">await</span> <span class="code-fn">fetch</span>(<span class="code-num">\`/api/users/\${user.id}/role\`</span>);
+<span class="code-keyword">const</span> data = <span class="code-keyword">await</span> res.json();
+<span class="code-keyword">if</span> (data.role === <span class="code-num">'admin'</span> && !pathname.startsWith(<span class="code-num">'/admin'</span>)) {
+  <span class="code-comment">// ห้าม Admin เข้าหน้าหลักหรือหน้าทั่วไป -> ดีดกลับ /admin ทันที</span>
+  router.replace(<span class="code-num">'/admin'</span>);
+}
+            </div>
+          </div>
+        `
+      },
+      2: {
+        badge: "LAYER 2: DATA ORACLE & REDIS",
+        title: "2. คลังข้อมูลตลาดหุ้น SET & 24-Hour Redis Cache",
+        subtitle: "data_fetcher.py · yfinance · SET Index Benchmark · Covariance Matrix Calculation",
+        content: `
+          <p>เบื้องหลังการจัดพอร์ตต้องอาศัยข้อมูลเชิงสถิติของราคาหุ้นในตลาดหลักทรัพย์แห่งประเทศไทย (SET) โดยมี 2 องค์ประกอบหลักทำงานร่วมกัน:</p>
+          
+          <div class="step-chain">
+            <div class="step-card">
+              <div class="step-num-badge">SET</div>
+              <div class="step-body">
+                <h4>SETDataFetcher (PostgreSQL)</h4>
+                <p>ดึงรายชื่อหุ้นที่เปิดใช้งาน (<code>is_active = true</code>), อุตสาหกรรม (Sector), และมูลค่าหลักทรัพย์ตามราคาตลาด (Market Capitalization) เพื่อนำไปใช้เป็นน้ำหนักตั้งต้นของตลาดในโมเดล Black-Litterman</p>
+              </div>
+            </div>
+            <div class="step-card">
+              <div class="step-num-badge">YF</div>
+              <div class="step-body">
+                <h4>YahooFinanceFetcher (yfinance API)</h4>
+                <p>ดึงราคาปิดปรับปรุง (Adjusted Close) ย้อนหลัง 5 ปี ความถี่รายสัปดาห์ (Weekly) เพื่อคำนวณหา <strong>Covariance Matrix (เมทริกซ์ความแปรปรวนร่วม)</strong> และคำนวณค่าความเสี่ยง <strong>Beta</strong> รายหุ้นเมื่อเทียบกับดัชนีตลาด <code>^SET.BK</code></p>
+              </div>
+            </div>
+          </div>
+
+          <div class="formula-card">
+            <div style="font-family:var(--font-pixel); font-size:10px; color:var(--pixel-cyan); margin-bottom:6px;">⚡ การปรับ Covariance Matrix ให้เป็นรายปี (Annualized Covariance)</div>
+            <div class="formula-math">
+              &Sigma;<sub>annual</sub> = Cov(R<sub>weekly</sub>) &times; 52
+            </div>
+            <div style="font-size:13px; color:#cbd5e1; text-align:center;">
+              เนื่องจากใช้ข้อมูล Weekly 5 ปี จึงต้องคูณ 52 เพื่อแปลงเป็นผลตอบแทนและความเสี่ยงต่อปีสำหรับเครื่องยนต์คำนวณ
+            </div>
+          </div>
+
+          <div class="secret-scroll">
+            <div class="secret-scroll-title">⚡ ทำไมต้องมี Redis Cache (24-Hour TTL)?</div>
+            <p style="font-size:14px; color:#fde68a;">
+              เพราะ Yahoo Finance มีข้อจำกัดเรื่อง Request Rate Limit และการคำนวณ Covariance ของหุ้น 50 ตัวย้อนหลัง 5 ปีใช้พลังประมวลผลสูง Redis จะเก็บข้อมูลที่คำนวณเสร็จแล้วไว้ 24 ชม. (Key: <code>market_data:set50_v4</code>) ทำให้เมื่อผู้ใช้คนถัดไปกดวางแผน พอร์ตจะคำนวณเสร็จภายในเสี้ยววินาที!
+            </p>
+          </div>
+        `
+      },
+      3: {
+        badge: "LAYER 3: BAYESIAN OPTIMIZATION",
+        title: "3. Black-Litterman Model: การผสานมุมมองนักลงทุน",
+        subtitle: "core_optimizer.py · Market Equilibrium (Π) · Investor Views (Q) · Bayesian Updating",
+        content: `
+          <p>
+            แบบจำลอง <strong>Black-Litterman (BL)</strong> ถูกสร้างขึ้นเพื่อแก้จุดอ่อนร้ายแรงของ Markowitz Mean-Variance ซึ่งมักสร้างผลลัพธ์พอร์ตแบบ "เทน้ำหนักสุดโต่ง" (Extreme Portfolio Weights) โดย BL จะเริ่มต้นจาก <em>"ดุลยภาพของตลาด (Market Equilibrium Prior: Π)"</em> แล้วเปิดโอกาสให้นักลงทุนใส่ <em>"มุมมองส่วนตัว (Investor Views)"</em> เข้าไปผสานผ่านทฤษฎีความน่าจะเป็นแบบเบย์ (Bayesian Probability)
+          </p>
+
+          <div class="formula-card">
+            <div style="font-family:var(--font-pixel); font-size:10px; color:var(--pixel-gold); margin-bottom:6px;">📐 สมการหลักของ Black-Litterman (Bayesian Posterior Expected Returns)</div>
+            <div class="formula-math">
+              E(R) = [(&tau;&Sigma;)<sup>-1</sup> + P<sup>T</sup>&Omega;<sup>-1</sup>P]<sup>-1</sup> [(&tau;&Sigma;)<sup>-1</sup>&Pi; + P<sup>T</sup>&Omega;<sup>-1</sup>Q]
+            </div>
+          </div>
+
+          <div class="step-chain">
+            <div class="step-card">
+              <div class="step-num-badge">&Pi;</div>
+              <div class="step-body">
+                <h4>1. ดุลยภาพตลาด (Market Prior: Π)</h4>
+                <p>คำนวณจาก Reverse Optimization ด้วยสูตร <code>Π = δ × Σ × w_mkt</code> โดยกำหนดค่าสัมประสิทธิ์ความหลีกเลี่ยงความเสี่ยงตลาด <strong>δ (Risk Aversion) = 2.5</strong> ตามระเบียบวิธีวิจัย</p>
+              </div>
+            </div>
+            <div class="step-card">
+              <div class="step-num-badge">Q</div>
+              <div class="step-body">
+                <h4>2. มุมมองนักลงทุน (Investor Views: P, Q, Ω)</h4>
+                <p>หากผู้ใช้กำหนดว่าหุ้น PTT จะมีกำไร 15% ข้อมูลจะถูกจัดลงเมทริกซ์ <code>P</code> (ตัวชี้หุ้น), เวกเตอร์ <code>Q = [0.15]</code>, และเมทริกซ์ความไม่แน่นอน <code>Ω</code> (Variance ค่าเริ่มต้น = 0.02)</p>
+              </div>
+            </div>
+            <div class="step-card">
+              <div class="step-num-badge">&tau;</div>
+              <div class="step-body">
+                <h4>3. สเกลาร์ควบคุมความไม่แน่นอน (τ = 0.05)</h4>
+                <p>ค่า <strong>τ (Tau) = 0.05</strong> ได้รับการพิสูจน์ผ่าน Sensitivity Analysis ในงานวิจัย ช่วยควบคุมน้ำหนักความน่าเชื่อถือระหว่างดุลยภาพตลาดและมุมมองของนักลงทุนให้ออกมาสมดุลที่สุด</p>
+              </div>
+            </div>
+          </div>
+        `
+      },
+      4: {
+        badge: "LAYER 4: EVOLUTIONARY ALGORITHM",
+        title: "4. Genetic Algorithm: การวิวัฒนาการคัดเลือกพอร์ตพันธุ์แกร่ง",
+        subtitle: "DEAP Framework · Seed = 42 · Multi-Objective Penalties · Tournament Selection",
+        content: `
+          <p>
+            ทำไมระบบถึงใช้ <strong>Genetic Algorithm (GA)</strong> ต่อจาก Black-Litterman? เพราะในการจัดพอร์ตจริงมี <em>เงื่อนไขที่ซับซ้อนและไม่ต่อเนื่อง (Non-linear & Discrete Constraints)</em> เช่น: การจำกัดจำนวนหุ้นสูงสุด (3-50 ตัว), การล็อกหุ้นเฉพาะ (Locked Stocks), และการคุมน้ำหนักสูงสุดต่อหุ้น (Max Weight 20%) ซึ่งสมการคณิตศาสตร์เชิงเส้นทั่วไปแก้ไม่ได้!
+          </p>
+
+          <div class="formula-card">
+            <div style="font-family:var(--font-pixel); font-size:10px; color:var(--pixel-green); margin-bottom:6px;">🧬 สูตร Fitness Function ของจริงใน core_optimizer.py</div>
+            <div class="formula-math">
+              Fitness = Sharpe - 1000&times;(&sum;w - 1)<sup>2</sup> - 10&times;|&beta;<sub>port</sub> - &beta;<sub>target</sub>| - 50&times;max(0, w<sub>max</sub> - 0.20)
+            </div>
+          </div>
+
+          <div class="step-chain">
+            <div class="step-card">
+              <div class="step-num-badge">42</div>
+              <div class="step-body">
+                <h4>ความคงเส้นคงวาทางวิทยาศาสตร์ (Random Seed = 42)</h4>
+                <p>กำหนด <code>seed = 42</code> เพื่อให้ผลลัพธ์ Reproducible 100% เมื่อกรรมการหรือผู้ใช้ทดสอบด้วยเงื่อนไขเดิม จะได้สัดส่วนพอร์ตตัวเดิมเสมอ ไม่แกว่งตามการสุ่ม</p>
+              </div>
+            </div>
+            <div class="step-card">
+              <div class="step-num-badge">POP</div>
+              <div class="step-body">
+                <h4>พารามิเตอร์การวิวัฒนาการ (DEAP Parameters)</h4>
+                <p>
+                  • <strong>ประชากร (Population)</strong> = 100 พอร์ต<br>
+                  • <strong>จำนวนรุ่น (Generations)</strong> = 50 รุ่น<br>
+                  • <strong>การผสมพันธุ์ (Crossover: cxBlend, α=0.5)</strong> = 80% (0.8)<br>
+                  • <strong>การกลายพันธุ์ (Mutation: mutGaussian, μ=0, σ=0.2)</strong> = 10% (0.1)<br>
+                  • <strong>การคัดเลือก (Tournament Selection)</strong> = ขนาด 3 ตัว (tournsize=3)
+                </p>
+              </div>
+            </div>
+            <div class="step-card">
+              <div class="step-num-badge">LOCK</div>
+              <div class="step-body">
+                <h4>การบังคับหุ้นล็อก (Locked Stocks) & การปรับสัดส่วนรอบสุดท้าย</h4>
+                <p>ใน Fitness Function หุ้นที่ถูกล็อกจะได้รับแต้มพิเศษ +1000 เพื่อไม่ให้ถูกตัดทิ้ง และในขั้นตอนสุดท้าย หุ้นที่ได้น้ำหนักต่ำกว่า 1% จะถูกตัดทิ้ง หุ้นล็อกจะถูกบังคับให้น้ำหนักอย่างน้อย 3-5% และถูก Normalize ให้ผลรวมทั้งหมดเท่ากับ 100% พอดี</p>
+              </div>
+            </div>
+          </div>
+        `
+      },
+      5: {
+        badge: "LAYER 5: BACKTEST & FORECAST",
+        title: "5. การทดสอบย้อนหลัง & สูตรทำนายโอกาสสำเร็จ (GBM)",
+        subtitle: "analysis/backtester.py · TDEX.BK Benchmark · Geometric Brownian Motion · Log-Normal CDF",
+        content: `
+          <div class="step-chain">
+            <div class="step-card">
+              <div class="step-num-badge">BT</div>
+              <div class="step-body">
+                <h4>Backtest Engine (จำลองผลตอบแทนย้อนหลังจริง)</h4>
+                <p>
+                  ระบบจะดึงราคาหุ้นจริงของพอร์ตที่ AI จัดให้ตั้งแต่วันเริ่มต้นถึงวันปัจจุบัน สมมติเริ่มลงทุนด้วยเงิน <strong>100,000 บาท</strong> คำนวณแบบ Cumulative Daily Returns แล้วเทียบกับ <strong>TDEX.BK (SET50 ETF)</strong> โดยแปลงเป็นข้อมูลรายเดือน (Resample Monthly: ME) ส่งไปแสดงผลเป็นกราฟ AreaChart บนหน้าเว็บ
+                </p>
+              </div>
+            </div>
+            <div class="step-card">
+              <div class="step-num-badge">GBM</div>
+              <div class="step-body">
+                <h4>สูตรความน่าจะเป็นที่เป้าหมายสำเร็จ (Success Probability Formula)</h4>
+                <p>คำนวณผ่านทฤษฎีเรขาคณิตบราวเนียน (Geometric Brownian Motion / Log-Normal Distribution):</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="formula-card">
+            <div class="formula-math">
+              m = ln(Budget) + (&mu; - 0.5&sigma;<sup>2</sup>)t <br>
+              s = &sigma;&radic;t <br>
+              x = (m - ln(Target)) / s <br>
+              P(Success) = 0.5 &times; [1 + erf(x / &radic;2)]
+            </div>
+            <div style="font-size:13px; color:#cbd5e1; text-align:center;">
+              โดย &mu; คือ Expected Return, &sigma; คือ Portfolio Volatility, t คือระยะเวลาปี, และ erf คือ Gauss Error Function
+            </div>
+          </div>
+
+          <div class="secret-scroll">
+            <div class="secret-scroll-title">📊 การคาดการณ์อนาคต (Forecast Range 68% Confidence Interval)</div>
+            <p style="font-size:14px; color:#fde68a;">
+              ฟังก์ชัน <code>calculate_forecast_range()</code> จะคำนวณช่วงมูลค่าเงินในอนาคตที่ 1 Standard Deviation (ช่วงความเชื่อมั่น 68%):<br>
+              • <strong>Lower Bound (กรณีแย่):</strong> exp(m - s)<br>
+              • <strong>Upper Bound (กรณีดี):</strong> exp(m + s)
+            </p>
+          </div>
+        `
+      },
+      6: {
+        badge: "LAYER 6: LIVE FORMULA PLAYGROUND",
+        title: "6. ห้องทดลองคณิตศาสตร์ Black-Litterman & GBM แบบโต้ตอบ",
+        subtitle: "ทดลองปรับแต่งตัวแปรทางคณิตศาสตร์และดูผลลัพธ์การคำนวณแบบ Real-time",
+        content: `
+          <div class="sim-card">
+            <h4 style="font-family:var(--font-pixel); font-size:12px; color:var(--pixel-gold); margin-bottom:14px;">🎛️ เครื่องจำลองความน่าจะเป็นที่เป้าหมายสำเร็จ (GBM Probability Calculator)</h4>
+            
+            <div class="sim-slider-row">
+              <span>เงินลงทุนตั้งต้น (Budget):</span>
+              <div><strong id="simBudgetVal" style="color:var(--pixel-cyan);">100,000</strong> บาท</div>
+              <input type="range" class="pixel-slider" min="10000" max="500000" step="10000" value="100000" oninput="runLiveSim()" id="simBudgetInput">
+            </div>
+
+            <div class="sim-slider-row">
+              <span>เป้าหมายทางการเงิน (Target Amount):</span>
+              <div><strong id="simTargetVal" style="color:var(--pixel-gold);">200,000</strong> บาท</div>
+              <input type="range" class="pixel-slider" min="100000" max="1000000" step="20000" value="200000" oninput="runLiveSim()" id="simTargetInput">
+            </div>
+
+            <div class="sim-slider-row">
+              <span>ระยะเวลาลงทุน (Duration):</span>
+              <div><strong id="simDurationVal" style="color:var(--pixel-green);">5</strong> ปี</div>
+              <input type="range" class="pixel-slider" min="1" max="20" step="1" value="5" oninput="runLiveSim()" id="simDurationInput">
+            </div>
+
+            <div class="sim-slider-row">
+              <span>ผลตอบแทนคาดหวังรายปี (&mu;):</span>
+              <div><strong id="simReturnVal" style="color:var(--pixel-purple);">12.0%</strong> ต่อปี</div>
+              <input type="range" class="pixel-slider" min="3" max="30" step="0.5" value="12" oninput="runLiveSim()" id="simReturnInput">
+            </div>
+
+            <div class="sim-slider-row">
+              <span>ความผันผวนของพอร์ต (&sigma;):</span>
+              <div><strong id="simVolVal" style="color:var(--pixel-red);">15.0%</strong> ต่อปี</div>
+              <input type="range" class="pixel-slider" min="5" max="40" step="0.5" value="15" oninput="runLiveSim()" id="simVolInput">
+            </div>
+
+            <div style="background:#090c14; border:3px solid #000; padding:16px; margin-top:16px; text-align:center;">
+              <div style="font-family:var(--font-pixel); font-size:11px; color:#94a3b8; margin-bottom:6px;">ผลการคำนวณผ่านฟังก์ชัน math.erf() ของระบบ</div>
+              <div style="font-family:var(--font-pixel); font-size:24px; color:var(--pixel-gold);" id="simProbResult">84.2%</div>
+              <div style="font-size:13px; color:#cbd5e1; margin-top:4px;" id="simForecastResult">คาดการณ์มูลค่าเงินในอนาคต (ช่วง 68% CI): 132,450 - 245,600 บาท</div>
+            </div>
+          </div>
+        `
+      }
+    };
+
+    function loadCodexChapter(chapterNum) {
+      // Highlight nav item
+      const navItems = document.querySelectorAll('.codex-nav-item');
+      navItems.forEach((item, idx) => {
+        if (idx === chapterNum - 1) item.classList.add('active');
+        else item.classList.remove('active');
+      });
+
+      const ch = codexChapters[chapterNum];
+      const pane = document.getElementById('codexPane');
+      pane.innerHTML = `
+        <div class="codex-header">
+          <div class="codex-badge">${ch.badge}</div>
+          <h2 class="codex-title">${ch.title}</h2>
+          <div class="codex-subtitle">${ch.subtitle}</div>
+        </div>
+        ${ch.content}
+      `;
+
+      if (chapterNum === 6) {
+        runLiveSim();
+      }
+    }
+
+    // Mathematical Error Function Approximation for GBM Live Sim
+    function mathErf(x) {
+      const a1 =  0.254829592;
+      const a2 = -0.284496736;
+      const a3 =  1.421413741;
+      const a4 = -1.453152027;
+      const a5 =  1.061405429;
+      const p  =  0.3275911;
+
+      const sign = (x < 0) ? -1 : 1;
+      x = Math.abs(x);
+      const t = 1.0 / (1.0 + p * x);
+      const y = 1.0 - (((((a5 * t + a4) * t) + a3) * t + a2) * t + a1) * t * Math.exp(-x * x);
+      return sign * y;
+    }
+
+    function runLiveSim() {
+      const budget = parseFloat(document.getElementById('simBudgetInput').value);
+      const target = parseFloat(document.getElementById('simTargetInput').value);
+      const duration = parseFloat(document.getElementById('simDurationInput').value);
+      const mu = parseFloat(document.getElementById('simReturnInput').value) / 100;
+      const sigma = parseFloat(document.getElementById('simVolInput').value) / 100;
+
+      document.getElementById('simBudgetVal').textContent = budget.toLocaleString();
+      document.getElementById('simTargetVal').textContent = target.toLocaleString();
+      document.getElementById('simDurationVal').textContent = duration;
+      document.getElementById('simReturnVal').textContent = (mu * 100).toFixed(1) + '%';
+      document.getElementById('simVolVal').textContent = (sigma * 100).toFixed(1) + '%';
+
+      // GBM Formula exact mirror of main.py:
+      let prob = 1.0;
+      if (target > budget) {
+        const m = Math.log(budget) + (mu - 0.5 * (sigma * sigma)) * duration;
+        const s = sigma * Math.sqrt(duration);
+        const x = (m - Math.log(target)) / s;
+        prob = 0.5 * (1.0 + mathErf(x / Math.sqrt(2.0)));
+        prob = Math.min(Math.max(prob, 0.0), 1.0);
+
+        // 68% CI
+        const lower = Math.round(Math.exp(m - s));
+        const upper = Math.round(Math.exp(m + s));
+        document.getElementById('simForecastResult').textContent = `คาดการณ์มูลค่าเงินในอนาคต (ช่วง 68% CI): ${lower.toLocaleString()} ถึง ${upper.toLocaleString()} บาท`;
+      } else {
+        document.getElementById('simForecastResult').textContent = `เงินลงทุนเริ่มต้นบรรลุเป้าหมายเรียบร้อยแล้ว`;
+      }
+
+      document.getElementById('simProbResult').textContent = (prob * 100).toFixed(1) + '%';
+    }
+
+    /* ==========================================================================
+       5. MAIN TAB NAVIGATION
+       ========================================================================== */
+    function switchMainTab(tab) {
+      const gameSec = document.getElementById('sectionGame');
+      const codexSec = document.getElementById('sectionCodex');
+      const btnGame = document.getElementById('tabBtnGame');
+      const btnCodex = document.getElementById('tabBtnCodex');
+
+      if (tab === 'game') {
+        gameSec.style.display = 'block';
+        codexSec.style.display = 'none';
+        btnGame.classList.add('active');
+        btnCodex.classList.remove('active');
+      } else {
+        gameSec.style.display = 'none';
+        codexSec.style.display = 'block';
+        btnGame.classList.remove('active');
+        btnCodex.classList.add('active');
+        loadCodexChapter(1);
+      }
+    }
+
+    // Initialize on load
+    window.onload = () => {
+      initGame();
+    };
+  </script>
+</body>
+</html>
