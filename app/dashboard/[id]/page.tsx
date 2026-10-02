@@ -100,7 +100,8 @@ export default function PortfolioDetailPage() {
               name: stock.Ticker.replace('.BK', ''),
               value: Number((stock.Weight * 100).toFixed(2)),
               amount: Math.round(stock.Weight * initialBudget),
-              color: COLORS[index % COLORS.length]
+              color: COLORS[index % COLORS.length],
+              is_locked: !!stock.is_locked
             }));
             setAllocationData(mappedAllocation);
           }
@@ -182,7 +183,19 @@ export default function PortfolioDetailPage() {
     );
   }
 
+interface AssetRecord {
+  Ticker: string;
+  Weight: number;
+  Beta?: number;
+  is_locked?: boolean;
+}
+
   const meta = portfolioData.metadata;
+  const portfolioAssets: AssetRecord[] = portfolioData.portfolio || [];
+  const lockedStocksParam = portfolioAssets
+    .filter(s => s.is_locked)
+    .map(s => s.Ticker.replace('.BK', ''))
+    .join(',');
 
   return (
     <main className="min-h-screen bg-[#FAFAF8] dark:bg-[#111110] py-12 px-4 sm:px-6 lg:px-8 font-sans">
@@ -202,7 +215,9 @@ export default function PortfolioDetailPage() {
           </div>
           <div className="flex gap-2">
             <Link
-              href={`/plan?edit=true&name=${encodeURIComponent(meta.name || '')}&budget=${meta.budget}&target=${meta.target_amount || ''}&duration=${meta.duration_years}&beta=${meta.target_beta}&stocks=${portfolioData.portfolio?.length || 5}`}
+              href={`/plan?edit=true&name=${encodeURIComponent(meta.name || '')}&budget=${meta.budget}&target=${meta.target_amount || ''}&duration=${meta.duration_years}&beta=${meta.target_beta}&stocks=${portfolioAssets.length || 5}${
+                lockedStocksParam ? `&locked=${encodeURIComponent(lockedStocksParam)}` : ''
+              }`}
               className="px-4 py-2 bg-stone-900 dark:bg-white border border-stone-900 dark:border-white rounded-lg text-sm font-semibold text-white dark:text-stone-900 hover:bg-stone-800 dark:hover:bg-stone-200 transition-colors flex items-center"
             >
               <Edit className="w-4 h-4 mr-2" /> แก้ไขพอร์ต
@@ -299,6 +314,11 @@ export default function PortfolioDetailPage() {
                             <p className="font-bold text-stone-900 dark:text-stone-100 mb-1 flex items-center gap-2">
                               <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: data.color }}></span>
                               {data.name}
+                              {data.is_locked && (
+                                <span className="text-[10px] px-1.5 py-0.5 bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300 rounded font-medium">
+                                  🔒 ล็อก
+                                </span>
+                              )}
                             </p>
                             <div className="grid grid-cols-2 gap-x-4 gap-y-1 mt-2 text-[12px]">
                               <p className="text-stone-500 dark:text-stone-400">สัดส่วน</p>

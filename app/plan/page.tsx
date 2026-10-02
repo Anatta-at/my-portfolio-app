@@ -39,6 +39,36 @@ export default function PlanPage() {
   const [stockSearch, setStockSearch] = useState('');
   const [selectedSectors, setSelectedSectors] = useState<string[]>([]);
 
+  // 🌟 State สำหรับมุมมองของนักลงทุน (Investor Views - Black-Litterman)
+  const [investorViews, setInvestorViews] = useState<Record<string, number>>({});
+  const [viewStock, setViewStock] = useState('');
+  const [viewReturn, setViewReturn] = useState('');
+
+  const handleAddView = () => {
+    if (!viewStock) {
+      setToast({ message: 'กรุณาเลือกหุ้นที่ต้องการกำหนดมุมมอง', type: 'error' });
+      return;
+    }
+    const retNum = parseFloat(viewReturn);
+    if (isNaN(retNum)) {
+      setToast({ message: 'กรุณากรอกผลตอบแทนคาดหวังเป็นตัวเลข เช่น 15 หรือ -5', type: 'error' });
+      return;
+    }
+    setInvestorViews(prev => ({ ...prev, [viewStock]: retNum }));
+    setViewStock('');
+    setViewReturn('');
+    setToast({ message: `เพิ่มมุมมอง ${viewStock}: ${retNum > 0 ? '+' : ''}${retNum}% สำเร็จ`, type: 'success' });
+    setTimeout(() => setToast(null), 2500);
+  };
+
+  const handleRemoveView = (stock: string) => {
+    setInvestorViews(prev => {
+      const next = { ...prev };
+      delete next[stock];
+      return next;
+    });
+  };
+
   const availableSectors = [
     { id: 'Energy', label: 'พลังงาน' },
     { id: 'Financial Services', label: 'ธนาคาร/การเงิน' },
@@ -70,15 +100,23 @@ export default function PlanPage() {
   };
 
   useEffect(() => {
-    fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/admin/assets`)
-      .then(res => res.json())
+    fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/assets`)
+      .then(res => {
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        return res.json();
+      })
       .then(data => {
-        if (data.status === 'success') {
+        if (data.status === 'success' && Array.isArray(data.data) && data.data.length > 0) {
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           setAvailableStocks(data.data.filter((a: any) => a.is_active).map((a: any) => a.ticker.replace('.BK', '')));
+        } else {
+          setAvailableStocks(Object.keys(stockSectors));
         }
       })
-      .catch(err => console.error("Failed to fetch assets", err));
+      .catch(err => {
+        console.warn("Failed to fetch assets from DB, using fallback SET50:", err);
+        setAvailableStocks(Object.keys(stockSectors));
+      });
   }, []);
 
   const [formData, setFormData] = useState({
@@ -102,6 +140,13 @@ export default function PlanPage() {
           duration: params.get('duration') || prev.duration,
         }));
         if (params.get('stocks')) setNumStocks(params.get('stocks') as string);
+        if (params.get('locked')) {
+          const lockedParam = params.get('locked');
+          if (lockedParam) {
+            const parsedLocked = lockedParam.split(',').map(s => s.trim().toUpperCase()).filter(Boolean);
+            setLockedStocks(parsedLocked);
+          }
+        }
         
         // Also show a toast indicating we are in edit mode
         setToast({ message: 'โหลดข้อมูลพอร์ตเดิมเรียบร้อยแล้ว', type: 'success' });
@@ -153,8 +198,17 @@ export default function PlanPage() {
         newErrors.targetAmount = 'กรุณาระบุเป้าหมายเงินเก็บ'; isValid = false;
       }
     }
+    if (calcMode === 'find_duration') {
+      const p = Number(getRawNumber(formData.initialAmount || '0'));
+      const t = Number(getRawNumber(formData.targetAmount || '0'));
+      if (p > 0 && t <= p) {
+        newErrors.targetAmount = 'เป้าหมายต้องมากกว่าเงินลงทุนเริ่มต้น'; isValid = false;
+      }
+    }
     if (!numStocks || Number(numStocks) < 3) {
       newErrors.numStocks = 'ต้องระบุอย่างน้อย 3 ตัว'; isValid = false;
+    } else if (Number(numStocks) > 50) {
+      newErrors.numStocks = 'ระบุได้สูงสุด 50 ตัว'; isValid = false;
     } else if (lockedStocks.length > Number(numStocks)) {
       newErrors.numStocks = `ล็อกหุ้นได้ไม่เกิน ${numStocks} ตัว`; isValid = false;
     }
@@ -199,8 +253,10 @@ export default function PlanPage() {
     if (validateForm()) {
       setIsLoading(true);
       setLoadingStep(0);
-      const finalDuration = Number(getCalculatedDuration() || 0);
-      const finalBudget = Number(getRawNumber(String(getCalculatedBudget() || '0')));
+      const calcDuration = getCalculatedDuration();
+      const finalDuration = Math.max(1, Number(calcDuration || 1));
+      const calcBudget = getCalculatedBudget();
+      const finalBudget = Math.max(1, Number(getRawNumber(String(calcBudget || '100000'))));
       const finalTarget = formData.targetAmount ? Number(getRawNumber(formData.targetAmount)) : null;
       const cleanData = { ...formData, initialAmount: finalBudget, targetAmount: finalTarget, duration: finalDuration, numStocks: Number(numStocks) };
       let targetBeta = 1.0;
@@ -223,26 +279,29 @@ export default function PlanPage() {
             max_weight_per_asset: maxWeight / 100,
             start_date: startDate.toISOString().split('T')[0], end_date: endDate.toISOString().split('T')[0],
             locked_stocks: lockedStocks, budget: finalBudget, target_amount: finalTarget, duration_years: finalDuration,
-            sectors: selectedSectors.length > 0 ? selectedSectors : undefined
+            sectors: selectedSectors.length > 0 ? selectedSectors : undefined,
+            user_custom_views: Object.keys(investorViews).length > 0 ? investorViews : undefined
           })
         });
         setLoadingStep(3); // Backtest
-        if (!response.ok) throw new Error('การตอบสนองจากเซิร์ฟเวอร์ผิดพลาด');
-        const data = await response.json();
+        const data = await response.json().catch(() => null);
+        if (!response.ok) {
+          const errDetail = data?.message || (typeof data?.detail === 'string' ? data.detail : null) || 'การตอบสนองจากเซิร์ฟเวอร์ผิดพลาด';
+          throw new Error(errDetail);
+        }
         setLoadingStep(4); // Saving
         await new Promise(r => setTimeout(r, 400));
-        if (data.status === 'success') {
+        if (data && data.status === 'success') {
           localStorage.setItem('userPlan', JSON.stringify(cleanData));
           localStorage.setItem('portfolioResult', JSON.stringify(data));
           router.push(`/dashboard/${data.portfolio_id}`);
         } else {
-          // ✅ แก้ไข: เปลี่ยนจาก alert() เป็น Toast
-          setToast({ message: 'เกิดข้อผิดพลาด: ' + (data.detail || data.message || 'Unknown error'), type: 'error' });
+          setToast({ message: 'เกิดข้อผิดพลาด: ' + (data?.detail || data?.message || 'Unknown error'), type: 'error' });
         }
-      } catch (error) {
+      } catch (error: unknown) {
         console.error("API Error:", error);
-        // ✅ แก้ไข: เปลี่ยนจาก alert() เป็น Toast
-        setToast({ message: 'ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์ประมวลผลได้', type: 'error' });
+        const msg = error instanceof Error ? error.message : 'ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์ประมวลผลได้';
+        setToast({ message: msg, type: 'error' });
       } finally {
         setIsLoading(false);
         setLoadingStep(0);
@@ -363,16 +422,20 @@ export default function PlanPage() {
           portfolio_data: template.stocks
         })
       });
-      if (!response.ok) throw new Error('การตอบสนองจากเซิร์ฟเวอร์ผิดพลาด');
-      const data = await response.json();
-      if (data.status === 'success') {
+      const data = await response.json().catch(() => null);
+      if (!response.ok) {
+        const errDetail = data?.message || (typeof data?.detail === 'string' ? data.detail : null) || 'การตอบสนองจากเซิร์ฟเวอร์ผิดพลาด';
+        throw new Error(errDetail);
+      }
+      if (data && data.status === 'success') {
         router.push(`/dashboard/${data.portfolio_id}`);
       } else {
-        setToast({ message: 'เกิดข้อผิดพลาดในการบันทึก: ' + (data.detail || data.message), type: 'error' });
+        setToast({ message: 'เกิดข้อผิดพลาดในการบันทึก: ' + (data?.detail || data?.message || 'Unknown error'), type: 'error' });
       }
-    } catch (error) {
+    } catch (error: unknown) {
       console.error("API Error:", error);
-      setToast({ message: 'ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์ประมวลผลได้', type: 'error' });
+      const msg = error instanceof Error ? error.message : 'ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์ประมวลผลได้';
+      setToast({ message: msg, type: 'error' });
     } finally {
       setIsLoading(false);
     }
@@ -809,6 +872,77 @@ export default function PlanPage() {
                           )}
                         </div>
                       )}
+                    </div>
+                  </div>
+
+                  {/* 4. กำหนดมุมมองของนักลงทุน (Investor Views - Black-Litterman) */}
+                  <div className="pt-4 border-t border-stone-100 dark:border-stone-800">
+                    <div className="flex items-center justify-between mb-1.5">
+                      <label className="block text-sm font-semibold text-stone-700 dark:text-stone-300">
+                        มุมมองนักลงทุนต่อหุ้นรายตัว <span className="text-stone-400 font-normal">(Black-Litterman Views, ไม่บังคับ)</span>
+                      </label>
+                      <span className="text-[11px] px-2 py-0.5 rounded-full bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 font-medium">
+                        Bayesian Model
+                      </span>
+                    </div>
+                    <p className="text-xs text-stone-500 dark:text-stone-400 mb-3 leading-relaxed">
+                      กำหนดผลตอบแทนรายปีที่คุณคาดหวังต่อหุ้นเฉพาะตัว ระบบ Black-Litterman จะผสานมุมมองของคุณเข้ากับดุลยภาพตลาดอย่างเป็นวิทยาศาสตร์
+                    </p>
+
+                    {/* แสดงรายการมุมมองที่กำหนดไว้ */}
+                    {Object.keys(investorViews).length > 0 && (
+                      <div className="flex flex-wrap gap-2 mb-3">
+                        {Object.entries(investorViews).map(([stock, ret]) => (
+                          <span key={stock} className="inline-flex items-center gap-1.5 px-3 py-1 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 font-semibold rounded-lg text-xs border border-blue-200 dark:border-blue-800 shadow-sm">
+                            <span>{stock}:</span>
+                            <span className={ret >= 0 ? "text-emerald-600 dark:text-emerald-400 font-bold" : "text-rose-600 dark:text-rose-400 font-bold"}>
+                              {ret > 0 ? `+${ret}%` : `${ret}%`}
+                            </span>
+                            <button type="button" onClick={() => handleRemoveView(stock)} className="hover:bg-blue-100 dark:hover:bg-blue-800 rounded p-0.5 text-blue-600 dark:text-blue-300 transition-colors">
+                              <X className="w-3 h-3" />
+                            </button>
+                          </span>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* แถวสำหรับเพิ่มมุมมองใหม่ */}
+                    <div className="grid grid-cols-1 sm:grid-cols-12 gap-2 p-3 bg-stone-50 dark:bg-[#151514] rounded-xl border border-stone-200 dark:border-stone-800">
+                      <div className="sm:col-span-5">
+                        <select
+                          value={viewStock}
+                          onChange={(e) => setViewStock(e.target.value)}
+                          disabled={isLoading}
+                          className="w-full px-3 py-2 text-xs rounded-lg border border-stone-200 dark:border-stone-700 bg-white dark:bg-[#1A1A19] text-stone-800 dark:text-stone-200 outline-none focus:border-blue-500"
+                        >
+                          <option value="">-- เลือกหุ้นเพื่อกำหนดมุมมอง --</option>
+                          {availableStocks.map(s => (
+                            <option key={s} value={s}>{s}</option>
+                          ))}
+                        </select>
+                      </div>
+                      <div className="sm:col-span-4 relative">
+                        <input
+                          type="number"
+                          step="0.5"
+                          placeholder="คาดหวังกำไร เช่น 15"
+                          value={viewReturn}
+                          onChange={(e) => setViewReturn(e.target.value)}
+                          disabled={isLoading}
+                          className="w-full pl-3 pr-7 py-2 text-xs rounded-lg border border-stone-200 dark:border-stone-700 bg-white dark:bg-[#1A1A19] text-stone-800 dark:text-stone-200 outline-none focus:border-blue-500"
+                        />
+                        <span className="absolute right-2.5 top-2 text-xs text-stone-400 font-bold">%</span>
+                      </div>
+                      <div className="sm:col-span-3">
+                        <button
+                          type="button"
+                          onClick={handleAddView}
+                          disabled={isLoading || !viewStock || !viewReturn}
+                          className="w-full py-2 px-3 bg-blue-600 hover:bg-blue-700 disabled:opacity-40 disabled:cursor-not-allowed text-white text-xs font-semibold rounded-lg transition-colors flex items-center justify-center gap-1 shadow-sm"
+                        >
+                          + เพิ่มมุมมอง
+                        </button>
+                      </div>
                     </div>
                   </div>
 

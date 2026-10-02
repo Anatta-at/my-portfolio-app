@@ -1,0 +1,65 @@
+CREATE TABLE IF NOT EXISTS assets (
+    ticker VARCHAR(20) PRIMARY KEY,
+    market_cap BIGINT NOT NULL,
+    sector VARCHAR(100),
+    is_active BOOLEAN DEFAULT TRUE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- ✅ แก้ไข: เพิ่มข้อมูล sector ให้ครบทุกตัวตั้งแต่แรก
+-- ก่อน: INSERT ไม่มี sector ทำให้คอลัมน์ sector เป็น NULL ทั้งหมด ต้องไปแก้ code Python แทน
+-- หลัง: มีข้อมูล sector ติดมาตั้งแต่ Seed ทำให้ระบบ Dynamic 100% ไม่มี Hardcode ใน Python
+INSERT INTO assets (ticker, market_cap, sector) VALUES
+    ('ADVANC', 850000,  'Communication Services'),
+    ('AOT',    900000,  'Industrials'),
+    ('AWC',    100000,  'Consumer Cyclical'),
+    ('BANPU',  100000,  'Energy'),
+    ('BBL',    340000,  'Financial Services'),
+    ('BDMS',   450000,  'Healthcare'),
+    ('BEM',    100000,  'Industrials'),
+    ('BH',     100000,  'Healthcare'),
+    ('BJC',    100000,  'Industrials'),
+    ('BTS',    100000,  'Industrials'),
+    ('CBG',    100000,  'Consumer Defensive'),
+    ('CCET',   45000,   'Technology'),
+    ('CENTEL', 60000,   'Consumer Cyclical'),
+    ('COM7',   100000,  'Consumer Cyclical'),
+    ('CPALL',  600000,  'Consumer Defensive'),
+    ('CPF',    100000,  'Consumer Defensive'),
+    ('CPN',    280000,  'Real Estate'),
+    ('CRC',    100000,  'Consumer Cyclical'),
+    ('DELTA',  1800000, 'Industrials'),
+    ('EGCO',   100000,  'Utilities'),
+    ('GPSC',   100000,  'Utilities'),
+    ('GULF',   800000,  'Utilities'),
+    ('HMPRO',  100000,  'Consumer Cyclical'),
+    ('IVL',    100000,  'Basic Materials'),
+    ('KBANK',  350000,  'Financial Services'),
+    ('KKP',    100000,  'Financial Services'),
+    ('KTB',    100000,  'Financial Services'),
+    ('KTC',    100000,  'Financial Services'),
+    ('LH',     100000,  'Real Estate'),
+    ('MINT',   180000,  'Consumer Cyclical'),
+    ('MTC',    100000,  'Financial Services'),
+    ('OR',     100000,  'Energy'),
+    ('OSP',    100000,  'Consumer Defensive'),
+    ('PTT',    1000000, 'Energy'),
+    ('PTTEP',  500000,  'Energy'),
+    ('PTTGC',  100000,  'Basic Materials'),
+    ('RATCH',  100000,  'Utilities'),
+    ('SAWAD',  50000,   'Financial Services'),
+    ('SCB',    380000,  'Financial Services'),
+    ('SCC',    300000,  'Industrials'),
+    ('SCGP',   100000,  'Consumer Cyclical'),
+    ('TCAP',   100000,  'Financial Services'),
+    ('TIDLOR', 100000,  'Financial Services'),
+    ('TISCO',  100000,  'Financial Services'),
+    ('TLI',    100000,  'Financial Services'),
+    ('TOP',    100000,  'Energy'),
+    ('TRUE',   250000,  'Communication Services'),
+    ('TTB',    100000,  'Financial Services'),
+    ('TU',     100000,  'Consumer Defensive'),
+    ('WHA',    100000,  'Real Estate')
+ON CONFLICT (ticker) DO UPDATE SET
+    sector = EXCLUDED.sector;
+

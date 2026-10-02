@@ -44,11 +44,26 @@ def get_db_connection():
         port=os.getenv("DB_PORT", "5432")
     )
 
+from fastapi.exceptions import RequestValidationError
+from fastapi.responses import JSONResponse
+
 app = FastAPI(
     title="Intelliportfolio Pro (Core Engine)", 
     description="Portfolio Optimization API (Auth managed by Clerk)",
     version="8.0"
 )
+
+@app.exception_handler(RequestValidationError)
+async def validation_exception_handler(request, exc):
+    errors = exc.errors()
+    print(f"❌ Pydantic Validation Error on {request.url.path}: {errors}")
+    err_msgs = [f"{'.'.join(str(l) for l in err.get('loc', [])[1:])}: {err.get('msg')}" for err in errors]
+    detailed_msg = "ข้อมูลไม่ถูกต้อง: " + ", ".join(err_msgs)
+    return JSONResponse(
+        status_code=422,
+        content={"status": "error", "detail": errors, "message": detailed_msg}
+    )
+
 
 # ✅ แก้ไข: จำกัด CORS origins เฉพาะ domain ที่อนุญาต
 # ก่อน: allow_origins=["*"] ยอมให้ทุก domain เรียก API ได้ เสี่ยง CSRF attack
@@ -69,22 +84,20 @@ app.add_middleware(
 class OptimizeRequest(BaseModel):
     user_id: Optional[str] = None  # รหัสจาก Clerk
     portfolio_name: Optional[str] = "My Portfolio"
-    user_custom_views: Optional[Dict[str, float]] = None 
-    # ✅ แก้ไข: เพิ่ม Field validation เพื่อป้องกัน invalid input
-    # ก่อน: target_beta ไม่มี validation ผู้ใช้ส่ง -100 หรือ 999 ได้
-    # หลัง: จำกัดช่วงที่สมเหตุสมผล (0.1 ถึง 3.0)
+    user_custom_views: Optional[Dict[str, Any]] = None 
+    # ✅ ปรับช่วง Validation ให้ยืดหยุ่นและรองรับหุ้นได้ถึง 50 ตัว (SET50)
     target_beta: float = Field(default=1.0, ge=0.1, le=3.0)
-    max_stocks: int = Field(default=5, ge=3, le=25) 
-    max_weight_per_asset: Optional[float] = Field(default=0.40, ge=0.05, le=1.0)
+    max_stocks: int = Field(default=5, ge=3, le=50) 
+    max_weight_per_asset: Optional[float] = Field(default=0.40, ge=0.01, le=1.0)
     start_date: str = "2024-01-01"
     end_date: str = "2024-12-01"
     
-    # 🌟 เพิ่มตัวแปรมารับค่าเพื่อเก็บลง Database
     budget: Optional[float] = Field(default=100000.0, ge=1.0)
     target_amount: Optional[float] = None
-    duration_years: Optional[int] = Field(default=5, ge=1, le=50)
+    duration_years: Optional[int] = Field(default=5, ge=1, le=100)
     locked_stocks: Optional[List[str]] = []
     sectors: Optional[List[str]] = []
+
 
 class TemplateRequest(BaseModel):
     user_id: str
@@ -96,6 +109,7 @@ class TemplateRequest(BaseModel):
     expected_return: float
     portfolio_volatility: float
     portfolio_data: list
+    locked_stocks: Optional[List[str]] = []
 
 class DeletePortfoliosRequest(BaseModel):
     portfolio_ids: List[int]
@@ -155,7 +169,7 @@ def calculate_forecast_range(budget: float, duration_years: int, expected_return
 
 # 🌟 ฟังก์ชันบันทึกข้อมูลลง PostgreSQL 🌟
 # ==========================================
-def save_portfolio_to_db(clerk_id: str, name: str, beta: float, budget: float, target_amount: Optional[float], duration: int, portfolio_data: list, exp_ret: float, port_vol: float):
+def save_portfolio_to_db(clerk_id: str, name: str, beta: float, budget: float, target_amount: Optional[float], duration: int, portfolio_data: list, exp_ret: float, port_vol: float, locked_stocks: Optional[List[str]] = None):
     # ถ้าไม่มี user_id (ผู้ใช้ไม่ได้ล็อกอิน) ให้ข้ามการบันทึกไป
     if not clerk_id:
         print("⚠️ ข้ามการบันทึก: ไม่พบ Clerk ID")
@@ -187,19 +201,23 @@ def save_portfolio_to_db(clerk_id: str, name: str, beta: float, budget: float, t
         result = cursor.fetchone()
         portfolio_id = result[0] if result else None
 
-        # 3. บันทึกข้อมูลหุ้นรายตัวในพอร์ต (portfolio_assets)
+        # 3. บันทึกข้อมูลหุ้นรายตัวในพอร์ต (portfolio_assets) พร้อมสถานะการล็อก
+        clean_locked = [t.replace(".BK", "").strip().upper() for t in (locked_stocks or [])]
         asset_query = """
-            INSERT INTO portfolio_assets (portfolio_id, ticker, weight, beta)
-            VALUES (%s, %s, %s, %s)
+            INSERT INTO portfolio_assets (portfolio_id, ticker, weight, beta, is_locked)
+            VALUES (%s, %s, %s, %s, %s)
         """
         for asset in portfolio_data:
+            clean_ticker = asset['Ticker'].replace(".BK", "").strip().upper()
+            is_locked = clean_ticker in clean_locked
             cursor.execute(asset_query, (
                 portfolio_id,
                 asset['Ticker'],
                 float(asset['Weight']),
-                float(asset.get('Beta', 1.0))
+                float(asset.get('Beta', 1.0)),
+                is_locked
             ))
-        
+
         conn.commit()
         cursor.close()
         conn.close()
@@ -250,11 +268,18 @@ def optimize_portfolio(req: OptimizeRequest):
         tickers = SETDataFetcher.get_set50_tickers()
         
         # 1.5 กรองหุ้นตาม Sector (ถ้ามีส่งมา)
+        clean_locked = [t.replace(".BK", "").strip().upper() for t in (req.locked_stocks or [])]
         if req.sectors:
             tickers = SETDataFetcher.filter_by_sector(tickers, req.sectors)
+            # สำคัญ: ผนวกหุ้นที่ถูกเลือกล็อกกลับเข้ามาด้วยเสมอ ไม่ให้ตัวกรอง Sector ตัดหุ้นที่ต้องการล็อกทิ้ง
+            if clean_locked:
+                tickers = list(dict.fromkeys(tickers + clean_locked))
             # ถ้ากรองแล้วเหลือน้อยกว่า max_stocks ให้ปรับ max_stocks ลงมา
             if len(tickers) < req.max_stocks:
                 req.max_stocks = max(3, len(tickers))
+        elif clean_locked:
+            # มั่นใจว่าหุ้นที่เลือกล็อกมีอยู่ในรายการ candidate tickers
+            tickers = list(dict.fromkeys(tickers + clean_locked))
         
         # 2. ดึงข้อมูลราคาจาก Yahoo Finance และคำนวณ Beta/Covariance
         cov_matrix, calc_betas = YahooFinanceFetcher.get_market_data_with_beta(tickers)
@@ -265,14 +290,18 @@ def optimize_portfolio(req: OptimizeRequest):
         # 3. จัดการค่า Beta รายตัว
         actual_betas_series = pd.Series({t: round(calc_betas.get(t, 1.0), 2) for t in valid_tickers})
 
-        # 4. เตรียมมุมมองนักวิเคราะห์ (Views)
+        # 4. เตรียมมุมมองนักวิเคราะห์ (Investor Views)
         views_data = {}
-
         if req.user_custom_views:
             for symbol, val in req.user_custom_views.items():
-                t = f"{symbol}.BK"
-                if t in valid_tickers: # เปลี่ยนจากการเช็คใน views_data เป็นเช็คว่ามีหุ้นนี้ในตลาดหรือไม่
-                    views_data[t] = {"return_view": val, "variance": 0.01}
+                clean_sym = symbol.replace(".BK", "").strip().upper()
+                if clean_sym in valid_tickers:
+                    try:
+                        f_val = float(val)
+                        return_view = f_val / 100.0 if abs(f_val) > 1.0 else f_val
+                        views_data[clean_sym] = {"return_view": return_view, "variance": 0.05}
+                    except (ValueError, TypeError):
+                        pass
         
         # 5. ประมวลผล Black-Litterman
         bl_engine = BlackLittermanEngine()
@@ -293,7 +322,8 @@ def optimize_portfolio(req: OptimizeRequest):
         )
         
         # 7. กรองหุ้นและแปลงเป็น List Dictionary
-        final_portfolio = portfolio_df[portfolio_df['Weight'] > 0.01].copy().fillna(0.0)
+        # คงหุ้นที่มีสัดส่วน > 1% หรือหุ้นที่ถูกล็อกไว้เสมอ (ไม่ให้หุ้นล็อกถูกทิ้ง)
+        final_portfolio = portfolio_df[(portfolio_df['Weight'] > 0.01) | (portfolio_df['Ticker'].isin(clean_locked))].copy().fillna(0.0)
         weights_dict = dict(zip(final_portfolio['Ticker'], final_portfolio['Weight']))
         portfolio_records = final_portfolio.to_dict(orient="records") # type: ignore
 
@@ -318,7 +348,8 @@ def optimize_portfolio(req: OptimizeRequest):
             duration=req.duration_years or 5,
             portfolio_data=portfolio_records,
             exp_ret=final_ret,
-            port_vol=final_vol
+            port_vol=final_vol,
+            locked_stocks=req.locked_stocks
         )
         
         # 9. ส่งผลลัพธ์กลับไปให้หน้า Dashboard
@@ -336,7 +367,8 @@ def optimize_portfolio(req: OptimizeRequest):
                 "forecast_upper": forecast_range["upper"],
                 "max_stocks_set": req.max_stocks,
                 "view_source": "PostgreSQL Database",
-                "backtest_period": f"{req.start_date} to {req.end_date}"
+                "backtest_period": f"{req.start_date} to {req.end_date}",
+                "investor_views": req.user_custom_views or {}
             },
             "portfolio": portfolio_records,
             "backtest": bt_results
@@ -367,7 +399,8 @@ def create_template_portfolio(req: TemplateRequest):
             duration=req.duration_years,
             portfolio_data=req.portfolio_data,
             exp_ret=req.expected_return,
-            port_vol=req.portfolio_volatility
+            port_vol=req.portfolio_volatility,
+            locked_stocks=req.locked_stocks
         )
         if port_id:
             return {"status": "success", "portfolio_id": port_id}
@@ -519,18 +552,24 @@ def get_portfolio_details(portfolio_id: int, clerk_id: str = Query(...)):
         
         # 2. ดึงสัดส่วนหุ้น
         cursor.execute("""
-            SELECT ticker, weight, beta
+            SELECT ticker, weight, beta, is_locked
             FROM portfolio_assets
             WHERE portfolio_id = %s;
         """, (portfolio_id,))
         asset_rows = cursor.fetchall()
         assets = []
         weights_dict = {}
+        locked_list = []
         for r in asset_rows:
+            is_locked = bool(r[3]) if len(r) > 3 and r[3] is not None else False
+            clean_ticker = r[0].replace(".BK", "")
+            if is_locked:
+                locked_list.append(clean_ticker)
             assets.append({
                 "Ticker": r[0],
                 "Weight": float(r[1]),
-                "Beta": float(r[2]) if r[2] is not None else 1.0
+                "Beta": float(r[2]) if r[2] is not None else 1.0,
+                "is_locked": is_locked
             })
             weights_dict[r[0]] = float(r[1])
             
@@ -564,7 +603,8 @@ def get_portfolio_details(portfolio_id: int, clerk_id: str = Query(...)):
                 "success_probability": p_meta["success_probability"],
                 "forecast_lower": p_meta["forecast_lower"],
                 "forecast_upper": p_meta["forecast_upper"],
-                "name": p_meta.get("name", "My Portfolio")
+                "name": p_meta.get("name", "My Portfolio"),
+                "locked_stocks": locked_list
             },
             "portfolio": assets,
             "backtest": bt_results
@@ -700,6 +740,34 @@ def update_user_role(target_clerk_id: str, req: RoleUpdateRequest):
         return {"status": "success", "message": f"Role updated to {req.new_role}"}
     except Exception as e:
         return {"status": "error", "message": str(e)}
+
+# ==========================================
+# 🌟 API สาธารณะสำหรับดึงข้อมูลหุ้นที่เปิดใช้งาน (Public Assets) 🌟
+# ==========================================
+@app.get("/api/assets")
+def get_public_assets():
+    """
+    ดึงรายชื่อหุ้นที่เปิดใช้งาน (is_active = TRUE) จาก Database
+    สำหรับหน้าสร้างพอร์ต (/plan) เพื่อให้เลือกล็อกหุ้นได้โดยไม่ต้องใช้สิทธิ์ Admin
+    """
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute("SELECT ticker, market_cap, sector, is_active FROM assets WHERE is_active = TRUE ORDER BY ticker ASC")
+        assets = []
+        for row in cursor.fetchall():
+            assets.append({
+                "ticker": row[0],
+                "market_cap": row[1],
+                "sector": row[2],
+                "is_active": row[3]
+            })
+        cursor.close()
+        conn.close()
+        return {"status": "success", "data": assets}
+    except Exception as e:
+        print(f"⚠️ Error fetching public assets: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/api/admin/assets")
 def get_admin_assets(admin_clerk_id: str = Query(...)):
