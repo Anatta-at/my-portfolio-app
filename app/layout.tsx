@@ -6,6 +6,7 @@ import "./globals.css";
 import Navbar from "@/components/Navbar";
 import NextTopLoader from 'nextjs-toploader';
 import AuthRedirectWatcher from "@/components/AuthRedirectWatcher";
+import AdminGuard from "@/components/AdminGuard";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import UserSync from "@/components/UserSync";
 
@@ -41,6 +42,8 @@ export default function RootLayout({
             {/* ส่วนประกอบสำหรับจัดการการเปลี่ยนหน้าอัตโนมัติหลัง Log-in [cite: 86, 107] */}
             <AuthRedirectWatcher /> 
             <UserSync />
+            {/* ✅ ตามที่อาจารย์สั่ง: บล็อก Admin จากการเข้าถึงหน้าปกติ */}
+            <AdminGuard />
 
             {/* แถบโหลดด้านบนเพื่อความสวยงามและ User Experience ที่ดี [cite: 26] */}
             <NextTopLoader 

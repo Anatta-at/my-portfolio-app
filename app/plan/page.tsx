@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@clerk/nextjs';
-import { AlertCircle, X, ArrowRight, Sliders, DollarSign, Clock, CheckCircle2 } from 'lucide-react';
+import { AlertCircle, X, ArrowRight, Sliders, DollarSign, Clock, CheckCircle2, Database, Calculator, Cpu, LineChart, Save } from 'lucide-react';
 
 export default function PlanPage() {
   const router = useRouter();
@@ -19,11 +19,11 @@ export default function PlanPage() {
   // หลัง: แสดงขั้นตอนที่ระบบกำลังทำ (ดึงข้อมูล, BL, GA, Backtest)
   const [loadingStep, setLoadingStep] = useState(0);
   const loadingSteps = [
-    '📡 กำลังดึงข้อมูลหุ้น SET50...',
-    '🧮 Black-Litterman กำลังคำนวณผลตอบแทน...',
-    '🧬 Genetic Algorithm กำลังหาพอร์ตที่ดีที่สุด...',
-    '📊 Backtesting เปรียบเทียบกับ SET50...',
-    '💾 กำลังบันทึกผลลัพธ์...',
+    { label: 'กำลังดึงข้อมูลหุ้น SET50...', icon: Database },
+    { label: 'Black-Litterman กำลังคำนวณผลตอบแทน...', icon: Calculator },
+    { label: 'Genetic Algorithm กำลังหาพอร์ตที่ดีที่สุด...', icon: Cpu },
+    { label: 'Backtesting เปรียบเทียบกับ SET50...', icon: LineChart },
+    { label: 'กำลังบันทึกผลลัพธ์...', icon: Save },
   ];
 
   const [mainTab, setMainTab] = useState<'template' | 'custom'>('template');
@@ -38,6 +38,36 @@ export default function PlanPage() {
   const [lockedStocks, setLockedStocks] = useState<string[]>([]);
   const [stockSearch, setStockSearch] = useState('');
   const [selectedSectors, setSelectedSectors] = useState<string[]>([]);
+
+  // 🌟 State สำหรับมุมมองของนักลงทุน (Investor Views - Black-Litterman)
+  const [investorViews, setInvestorViews] = useState<Record<string, number>>({});
+  const [viewStock, setViewStock] = useState('');
+  const [viewReturn, setViewReturn] = useState('');
+
+  const handleAddView = () => {
+    if (!viewStock) {
+      setToast({ message: 'กรุณาเลือกหุ้นที่ต้องการกำหนดมุมมอง', type: 'error' });
+      return;
+    }
+    const retNum = parseFloat(viewReturn);
+    if (isNaN(retNum)) {
+      setToast({ message: 'กรุณากรอกผลตอบแทนคาดหวังเป็นตัวเลข เช่น 15 หรือ -5', type: 'error' });
+      return;
+    }
+    setInvestorViews(prev => ({ ...prev, [viewStock]: retNum }));
+    setViewStock('');
+    setViewReturn('');
+    setToast({ message: `เพิ่มมุมมอง ${viewStock}: ${retNum > 0 ? '+' : ''}${retNum}% สำเร็จ`, type: 'success' });
+    setTimeout(() => setToast(null), 2500);
+  };
+
+  const handleRemoveView = (stock: string) => {
+    setInvestorViews(prev => {
+      const next = { ...prev };
+      delete next[stock];
+      return next;
+    });
+  };
 
   const availableSectors = [
     { id: 'Energy', label: 'พลังงาน' },
@@ -70,15 +100,23 @@ export default function PlanPage() {
   };
 
   useEffect(() => {
-    fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/admin/assets`)
-      .then(res => res.json())
+    fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/assets`)
+      .then(res => {
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        return res.json();
+      })
       .then(data => {
-        if (data.status === 'success') {
+        if (data.status === 'success' && Array.isArray(data.data) && data.data.length > 0) {
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           setAvailableStocks(data.data.filter((a: any) => a.is_active).map((a: any) => a.ticker.replace('.BK', '')));
+        } else {
+          setAvailableStocks(Object.keys(stockSectors));
         }
       })
-      .catch(err => console.error("Failed to fetch assets", err));
+      .catch(err => {
+        console.warn("Failed to fetch assets from DB, using fallback SET50:", err);
+        setAvailableStocks(Object.keys(stockSectors));
+      });
   }, []);
 
   const [formData, setFormData] = useState({
@@ -88,6 +126,34 @@ export default function PlanPage() {
     duration: '',
     riskLevel: 'medium',
   });
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get('edit') === 'true') {
+        setMainTab('custom');
+        setFormData(prev => ({
+          ...prev,
+          portfolioName: params.get('name') || prev.portfolioName,
+          initialAmount: params.get('budget') || prev.initialAmount,
+          targetAmount: params.get('target') || prev.targetAmount,
+          duration: params.get('duration') || prev.duration,
+        }));
+        if (params.get('stocks')) setNumStocks(params.get('stocks') as string);
+        if (params.get('locked')) {
+          const lockedParam = params.get('locked');
+          if (lockedParam) {
+            const parsedLocked = lockedParam.split(',').map(s => s.trim().toUpperCase()).filter(Boolean);
+            setLockedStocks(parsedLocked);
+          }
+        }
+        
+        // Also show a toast indicating we are in edit mode
+        setToast({ message: 'โหลดข้อมูลพอร์ตเดิมเรียบร้อยแล้ว', type: 'success' });
+        setTimeout(() => setToast(null), 3000);
+      }
+    }
+  }, []);
 
   const [errors, setErrors] = useState({
     portfolioName: '',
@@ -132,8 +198,17 @@ export default function PlanPage() {
         newErrors.targetAmount = 'กรุณาระบุเป้าหมายเงินเก็บ'; isValid = false;
       }
     }
+    if (calcMode === 'find_duration') {
+      const p = Number(getRawNumber(formData.initialAmount || '0'));
+      const t = Number(getRawNumber(formData.targetAmount || '0'));
+      if (p > 0 && t <= p) {
+        newErrors.targetAmount = 'เป้าหมายต้องมากกว่าเงินลงทุนเริ่มต้น'; isValid = false;
+      }
+    }
     if (!numStocks || Number(numStocks) < 3) {
       newErrors.numStocks = 'ต้องระบุอย่างน้อย 3 ตัว'; isValid = false;
+    } else if (Number(numStocks) > 50) {
+      newErrors.numStocks = 'ระบุได้สูงสุด 50 ตัว'; isValid = false;
     } else if (lockedStocks.length > Number(numStocks)) {
       newErrors.numStocks = `ล็อกหุ้นได้ไม่เกิน ${numStocks} ตัว`; isValid = false;
     }
@@ -178,8 +253,10 @@ export default function PlanPage() {
     if (validateForm()) {
       setIsLoading(true);
       setLoadingStep(0);
-      const finalDuration = Number(getCalculatedDuration() || 0);
-      const finalBudget = Number(getRawNumber(String(getCalculatedBudget() || '0')));
+      const calcDuration = getCalculatedDuration();
+      const finalDuration = Math.max(1, Number(calcDuration || 1));
+      const calcBudget = getCalculatedBudget();
+      const finalBudget = Math.max(1, Number(getRawNumber(String(calcBudget || '100000'))));
       const finalTarget = formData.targetAmount ? Number(getRawNumber(formData.targetAmount)) : null;
       const cleanData = { ...formData, initialAmount: finalBudget, targetAmount: finalTarget, duration: finalDuration, numStocks: Number(numStocks) };
       let targetBeta = 1.0;
@@ -188,12 +265,16 @@ export default function PlanPage() {
       if (formData.riskLevel === 'high') targetBeta = 1.2;
       const endDate = new Date();
       const startDate = new Date();
-      startDate.setFullYear(endDate.getFullYear() - finalDuration);
+      // จำกัดช่วงเวลา Historical Backtest สูงสุดไม่เกิน 5 ปี เพื่อความแม่นยำของข้อมูลและไม่เกิด Visual Distortion
+      const backtestYears = Math.min(Math.max(finalDuration, 1), 5);
+      startDate.setFullYear(endDate.getFullYear() - backtestYears);
       try {
-        // ✅ เดิน Progress Steps
-        setLoadingStep(1); // BL
-        await new Promise(r => setTimeout(r, 800));
-        setLoadingStep(2); // GA
+        // ✅ เดิน Progress Steps อย่างต่อเนื่องและนุ่มนวล
+        setLoadingStep(1);
+        const progressTimer = setInterval(() => {
+          setLoadingStep(prev => (prev < 4 ? prev + 1 : prev));
+        }, 1200);
+
         const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/optimize`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -202,26 +283,31 @@ export default function PlanPage() {
             max_weight_per_asset: maxWeight / 100,
             start_date: startDate.toISOString().split('T')[0], end_date: endDate.toISOString().split('T')[0],
             locked_stocks: lockedStocks, budget: finalBudget, target_amount: finalTarget, duration_years: finalDuration,
-            sectors: selectedSectors.length > 0 ? selectedSectors : undefined
+            sectors: selectedSectors.length > 0 ? selectedSectors : undefined,
+            user_custom_views: Object.keys(investorViews).length > 0 ? investorViews : undefined
           })
         });
-        setLoadingStep(3); // Backtest
-        if (!response.ok) throw new Error('การตอบสนองจากเซิร์ฟเวอร์ผิดพลาด');
-        const data = await response.json();
-        setLoadingStep(4); // Saving
+        clearInterval(progressTimer);
+        setLoadingStep(4);
+        const data = await response.json().catch(() => null);
+        if (!response.ok) {
+          const errDetail = data?.message || (typeof data?.detail === 'string' ? data.detail : null) || 'การตอบสนองจากเซิร์ฟเวอร์ผิดพลาด';
+          throw new Error(errDetail);
+        }
+        setLoadingStep(5);
         await new Promise(r => setTimeout(r, 400));
-        if (data.status === 'success') {
+        if (data && data.status === 'success') {
           localStorage.setItem('userPlan', JSON.stringify(cleanData));
           localStorage.setItem('portfolioResult', JSON.stringify(data));
-          router.push(`/dashboard/${data.portfolio_id}`);
+          window.location.href = `/dashboard/${data.portfolio_id}`;
+          return;
         } else {
-          // ✅ แก้ไข: เปลี่ยนจาก alert() เป็น Toast
-          setToast({ message: 'เกิดข้อผิดพลาด: ' + (data.detail || data.message || 'Unknown error'), type: 'error' });
+          setToast({ message: 'เกิดข้อผิดพลาด: ' + (data?.detail || data?.message || 'Unknown error'), type: 'error' });
         }
-      } catch (error) {
+      } catch (error: unknown) {
         console.error("API Error:", error);
-        // ✅ แก้ไข: เปลี่ยนจาก alert() เป็น Toast
-        setToast({ message: 'ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์ประมวลผลได้', type: 'error' });
+        const msg = error instanceof Error ? error.message : 'ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์ประมวลผลได้';
+        setToast({ message: msg, type: 'error' });
       } finally {
         setIsLoading(false);
         setLoadingStep(0);
@@ -342,16 +428,20 @@ export default function PlanPage() {
           portfolio_data: template.stocks
         })
       });
-      if (!response.ok) throw new Error('การตอบสนองจากเซิร์ฟเวอร์ผิดพลาด');
-      const data = await response.json();
-      if (data.status === 'success') {
+      const data = await response.json().catch(() => null);
+      if (!response.ok) {
+        const errDetail = data?.message || (typeof data?.detail === 'string' ? data.detail : null) || 'การตอบสนองจากเซิร์ฟเวอร์ผิดพลาด';
+        throw new Error(errDetail);
+      }
+      if (data && data.status === 'success') {
         router.push(`/dashboard/${data.portfolio_id}`);
       } else {
-        setToast({ message: 'เกิดข้อผิดพลาดในการบันทึก: ' + (data.detail || data.message), type: 'error' });
+        setToast({ message: 'เกิดข้อผิดพลาดในการบันทึก: ' + (data?.detail || data?.message || 'Unknown error'), type: 'error' });
       }
-    } catch (error) {
+    } catch (error: unknown) {
       console.error("API Error:", error);
-      setToast({ message: 'ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์ประมวลผลได้', type: 'error' });
+      const msg = error instanceof Error ? error.message : 'ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์ประมวลผลได้';
+      setToast({ message: msg, type: 'error' });
     } finally {
       setIsLoading(false);
     }
@@ -386,7 +476,9 @@ export default function PlanPage() {
                 <p className="text-sm text-stone-500 dark:text-stone-400 mt-1">อาจใช้เวลา 30-90 วินาที</p>
               </div>
               <div className="space-y-2">
-                {loadingSteps.map((step, index) => (
+                {loadingSteps.map((step, index) => {
+                  const Icon = step.icon;
+                  return (
                   <div key={index} className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-all ${
                     index + 1 < loadingStep ? 'text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-950/30' :
                     index + 1 === loadingStep ? 'text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/30 font-medium' :
@@ -395,9 +487,12 @@ export default function PlanPage() {
                     {index + 1 < loadingStep ? <CheckCircle2 className="w-4 h-4 flex-shrink-0" /> :
                      index + 1 === loadingStep ? <div className="w-4 h-4 border-2 border-amber-500 border-t-transparent rounded-full animate-spin flex-shrink-0" /> :
                      <div className="w-4 h-4 rounded-full border-2 border-stone-300 dark:border-stone-700 flex-shrink-0" />}
-                    {step}
+                    <div className="flex items-center gap-2">
+                      <Icon className="w-4 h-4" />
+                      {step.label}
+                    </div>
                   </div>
-                ))}
+                )})}
               </div>
             </div>
           </div>
@@ -786,6 +881,77 @@ export default function PlanPage() {
                     </div>
                   </div>
 
+                  {/* 4. กำหนดมุมมองของนักลงทุน (Investor Views - Black-Litterman) */}
+                  <div className="pt-4 border-t border-stone-100 dark:border-stone-800">
+                    <div className="flex items-center justify-between mb-1.5">
+                      <label className="block text-sm font-semibold text-stone-700 dark:text-stone-300">
+                        มุมมองนักลงทุนต่อหุ้นรายตัว <span className="text-stone-400 font-normal">(Black-Litterman Views, ไม่บังคับ)</span>
+                      </label>
+                      <span className="text-[11px] px-2 py-0.5 rounded-full bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 font-medium">
+                        Bayesian Model
+                      </span>
+                    </div>
+                    <p className="text-xs text-stone-500 dark:text-stone-400 mb-3 leading-relaxed">
+                      กำหนดผลตอบแทนรายปีที่คุณคาดหวังต่อหุ้นเฉพาะตัว ระบบ Black-Litterman จะผสานมุมมองของคุณเข้ากับดุลยภาพตลาดอย่างเป็นวิทยาศาสตร์
+                    </p>
+
+                    {/* แสดงรายการมุมมองที่กำหนดไว้ */}
+                    {Object.keys(investorViews).length > 0 && (
+                      <div className="flex flex-wrap gap-2 mb-3">
+                        {Object.entries(investorViews).map(([stock, ret]) => (
+                          <span key={stock} className="inline-flex items-center gap-1.5 px-3 py-1 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 font-semibold rounded-lg text-xs border border-blue-200 dark:border-blue-800 shadow-sm">
+                            <span>{stock}:</span>
+                            <span className={ret >= 0 ? "text-emerald-600 dark:text-emerald-400 font-bold" : "text-rose-600 dark:text-rose-400 font-bold"}>
+                              {ret > 0 ? `+${ret}%` : `${ret}%`}
+                            </span>
+                            <button type="button" onClick={() => handleRemoveView(stock)} className="hover:bg-blue-100 dark:hover:bg-blue-800 rounded p-0.5 text-blue-600 dark:text-blue-300 transition-colors">
+                              <X className="w-3 h-3" />
+                            </button>
+                          </span>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* แถวสำหรับเพิ่มมุมมองใหม่ */}
+                    <div className="grid grid-cols-1 sm:grid-cols-12 gap-2 p-3 bg-stone-50 dark:bg-[#151514] rounded-xl border border-stone-200 dark:border-stone-800">
+                      <div className="sm:col-span-5">
+                        <select
+                          value={viewStock}
+                          onChange={(e) => setViewStock(e.target.value)}
+                          disabled={isLoading}
+                          className="w-full px-3 py-2 text-xs rounded-lg border border-stone-200 dark:border-stone-700 bg-white dark:bg-[#1A1A19] text-stone-800 dark:text-stone-200 outline-none focus:border-blue-500"
+                        >
+                          <option value="">-- เลือกหุ้นเพื่อกำหนดมุมมอง --</option>
+                          {availableStocks.map(s => (
+                            <option key={s} value={s}>{s}</option>
+                          ))}
+                        </select>
+                      </div>
+                      <div className="sm:col-span-4 relative">
+                        <input
+                          type="number"
+                          step="0.5"
+                          placeholder="คาดหวังกำไร เช่น 15"
+                          value={viewReturn}
+                          onChange={(e) => setViewReturn(e.target.value)}
+                          disabled={isLoading}
+                          className="w-full pl-3 pr-7 py-2 text-xs rounded-lg border border-stone-200 dark:border-stone-700 bg-white dark:bg-[#1A1A19] text-stone-800 dark:text-stone-200 outline-none focus:border-blue-500"
+                        />
+                        <span className="absolute right-2.5 top-2 text-xs text-stone-400 font-bold">%</span>
+                      </div>
+                      <div className="sm:col-span-3">
+                        <button
+                          type="button"
+                          onClick={handleAddView}
+                          disabled={isLoading || !viewStock || !viewReturn}
+                          className="w-full py-2 px-3 bg-blue-600 hover:bg-blue-700 disabled:opacity-40 disabled:cursor-not-allowed text-white text-xs font-semibold rounded-lg transition-colors flex items-center justify-center gap-1 shadow-sm"
+                        >
+                          + เพิ่มมุมมอง
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
                   {/* Risk Level — Horizontal Radio */}
                   <div className="pt-4 border-t border-stone-100 dark:border-stone-800">
                     <label className="block text-sm font-semibold text-stone-700 dark:text-stone-300 mb-3">ระดับความเสี่ยง</label>
@@ -831,20 +997,6 @@ export default function PlanPage() {
 
       </div>
 
-      {isLoading && (
-        <div className="fixed inset-0 z-50 bg-white/50 backdrop-blur-sm flex items-center justify-center">
-          <div className="bg-white dark:bg-[#1A1A19] p-6 rounded-2xl shadow-xl border border-stone-100 dark:border-stone-800 flex flex-col items-center max-w-sm w-full mx-4">
-            <div className="relative w-16 h-16 mb-4">
-              <svg className="animate-spin w-full h-full text-amber-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-              </svg>
-            </div>
-            <h3 className="text-lg font-black text-stone-900 dark:text-stone-100 mb-1">กำลังประมวลผล...</h3>
-            <p className="text-stone-500 dark:text-stone-400 text-sm text-center">รอสักครู่ ระบบกำลังจัดการข้อมูลพอร์ตของคุณ</p>
-          </div>
-        </div>
-      )}
     </main>
   );
 }

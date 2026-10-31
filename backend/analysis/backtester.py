@@ -56,21 +56,23 @@ class BacktestEngine:
             if np.isnan(port_volatility):
                 port_volatility = 0.0
             
-            # 3. ดึงและคำนวณ Benchmark (^SET.BK) เพื่อเทียบกับตลาด
-            bm_data = yf.download("^SET.BK", start=start_date, end=end_date, progress=False)
+            # 3. ดึงและคำนวณ Benchmark (ใช้ TDEX.BK ซึ่งเป็นกองทุน ETF อ้างอิง SET50 แทน ^SET.BK ที่ข้อมูลบั๊กบ่อยใน Yahoo Finance)
+            bm_data = yf.download("TDEX.BK", start=start_date, end=end_date, progress=False)
             bm_cum_returns = pd.Series(100000, index=port_cum_returns.index)
             bm_total_return = 0.0
             
             if bm_data is not None and not getattr(bm_data, 'empty', True): # type: ignore
                 bm_price = bm_data['Adj Close'] if 'Adj Close' in bm_data.columns else bm_data['Close'] # type: ignore
                 if isinstance(bm_price, pd.DataFrame): bm_price = bm_price.iloc[:, 0]
+                bm_price = bm_price.dropna()
                 
-                bm_returns = bm_price.pct_change().dropna()
-                bm_cum_returns = (1 + bm_returns).cumprod() * 100000
-                raw_return = (bm_price.iloc[-1] / bm_price.iloc[0]) - 1
-                bm_total_return = float(raw_return.iloc[0]) if hasattr(raw_return, "iloc") else float(raw_return) # type: ignore
-                if np.isnan(bm_total_return):
-                    bm_total_return = 0.0
+                if not bm_price.empty and len(bm_price) > 1:
+                    bm_returns = bm_price.pct_change().dropna()
+                    bm_cum_returns = (1 + bm_returns).cumprod() * 100000
+                    raw_return = (bm_price.iloc[-1] / bm_price.iloc[0]) - 1
+                    bm_total_return = float(raw_return.iloc[0]) if hasattr(raw_return, "iloc") else float(raw_return) # type: ignore
+                    if np.isnan(bm_total_return):
+                        bm_total_return = 0.0
 
             # 4. 🔥 สร้างข้อมูลรายเดือน สำหรับส่งให้กราฟ (AreaChart) บนเว็บ
             port_monthly = port_cum_returns.resample('ME').last()

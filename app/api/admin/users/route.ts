@@ -14,7 +14,7 @@ export async function GET(req: Request) {
 
   try {
     // 1. Fetch DB users from FastAPI Backend
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/admin/users`, { cache: 'no-store' });
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/admin/users?admin_clerk_id=${userId}`, { cache: 'no-store' });
     const dbData = await res.json();
     
     if (dbData.status !== 'success') {
@@ -57,7 +57,7 @@ export async function GET(req: Request) {
     
     // 3. Background Sync to FastAPI Database
     try {
-      fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/admin/users/sync`, {
+      fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/admin/users/sync?admin_clerk_id=${userId}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ users: mergedUsers }),

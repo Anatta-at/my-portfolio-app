@@ -4,6 +4,7 @@ import pandas as pd
 import numpy as np
 from typing import List, Dict, Tuple
 import warnings
+from dotenv import load_dotenv
 import os
 import redis
 import pickle
@@ -11,7 +12,12 @@ import hashlib
 
 warnings.filterwarnings("ignore")
 
+# โหลดค่าคอนฟิกจาก .env
+dotenv_path = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), '.env')
+load_dotenv(dotenv_path)
+
 def get_redis_client():
+
     host = os.getenv("REDIS_HOST", "localhost")
     try:
         client = redis.Redis(host=host, port=6379, db=0, socket_timeout=2)
@@ -39,21 +45,6 @@ def get_db_connection():
     )
 
 class SETDataFetcher:
-    SET50_SECTORS = {
-        'AOT': 'Industrials', 'AWC': 'Consumer Cyclical', 'BANPU': 'Energy', 'BBL': 'Financial Services', 
-        'BDMS': 'Healthcare', 'BEM': 'Industrials', 'BH': 'Healthcare', 'BJC': 'Industrials', 
-        'BTS': 'Industrials', 'CBG': 'Consumer Defensive', 'CCET': 'Technology', 'CENTEL': 'Consumer Cyclical', 
-        'COM7': 'Consumer Cyclical', 'CPALL': 'Consumer Defensive', 'CPF': 'Consumer Defensive', 
-        'CPN': 'Real Estate', 'CRC': 'Consumer Cyclical', 'DELTA': 'Industrials', 'EGCO': 'Utilities', 
-        'GPSC': 'Utilities', 'GULF': 'Utilities', 'HMPRO': 'Consumer Cyclical', 'IVL': 'Basic Materials', 
-        'KBANK': 'Financial Services', 'KKP': 'Financial Services', 'KTB': 'Financial Services', 
-        'KTC': 'Financial Services', 'LH': 'Real Estate', 'MINT': 'Consumer Cyclical', 'MTC': 'Financial Services', 
-        'OR': 'Energy', 'OSP': 'Consumer Defensive', 'PTT': 'Energy', 'PTTEP': 'Energy', 
-        'PTTGC': 'Basic Materials', 'RATCH': 'Utilities', 'SAWAD': 'Financial Services', 'SCB': 'Financial Services', 
-        'SCC': 'Industrials', 'SCGP': 'Consumer Cyclical', 'TCAP': 'Financial Services', 'TIDLOR': 'Financial Services', 
-        'TISCO': 'Financial Services', 'TLI': 'Financial Services', 'TOP': 'Energy', 'TRUE': 'Communication Services', 
-        'TTB': 'Financial Services', 'TU': 'Consumer Defensive', 'WHA': 'Real Estate', 'ADVANC': 'Communication Services'
-    }
 
     @staticmethod
     def get_set50_tickers() -> List[str]:
@@ -76,17 +67,31 @@ class SETDataFetcher:
     def filter_by_sector(tickers: List[str], preferred_sectors: List[str]) -> List[str]:
         """
         กรองหุ้นเฉพาะที่อยู่ในหมวดหมู่ที่ต้องการ
+        ✅ แก้ไข: เปลี่ยนจาก Hardcode Dictionary → ดึง sector จาก Database โดยตรง
+        ก่อน: SET50_SECTORS ถูก hardcode ไว้ใน Python เมื่อเพิ่มหุ้นใหม่ต้องแก้โค้ด
+        หลัง: ดึงจากตาราง assets ทำให้ Admin เพิ่ม/แก้ไข sector ผ่าน API ได้เลย
         """
         if not preferred_sectors:
             return tickers
-            
-        filtered = []
-        for t in tickers:
-            base_t = t.replace(".BK", "")
-            sector = SETDataFetcher.SET50_SECTORS.get(base_t)
-            if sector in preferred_sectors:
-                filtered.append(t)
-        return filtered if len(filtered) >= 3 else tickers  # ขั้นต่ำต้องมีอย่างน้อย 3 ตัวตามข้อกำหนดพอร์ต
+
+        try:
+            conn = get_db_connection()
+            cursor = conn.cursor()
+            # ดึง sector mapping ของทุกหุ้นจาก Database ครั้งเดียว
+            cursor.execute("SELECT ticker, sector FROM assets WHERE sector IS NOT NULL")
+            sector_map: Dict[str, str] = {row[0]: row[1] for row in cursor.fetchall()}
+            cursor.close()
+            conn.close()
+        except Exception as e:
+            print(f"⚠️ Database Error in filter_by_sector: {e}")
+            return tickers  # ถ้า DB error ให้คืนรายการหุ้นทั้งหมดแทน
+
+        filtered = [
+            t for t in tickers
+            if sector_map.get(t.replace(".BK", "")) in preferred_sectors
+        ]
+        # ขั้นต่ำต้องมีอย่างน้อย 3 ตัวตามข้อกำหนดพอร์ต
+        return filtered if len(filtered) >= 3 else tickers
 
     @staticmethod
     def get_market_caps(tickers: List[str]) -> pd.Series:
@@ -113,22 +118,32 @@ class SETDataFetcher:
 
 
 
+_IN_MEMORY_CACHE = {}
+
 class YahooFinanceFetcher:
     @staticmethod
-    def get_market_data_with_beta(tickers: List[str], period: str = "2y") -> Tuple[pd.DataFrame, Dict[str, float]]:
+    def get_market_data_with_beta(tickers: List[str], period: str = "5y") -> Tuple[pd.DataFrame, Dict[str, float]]:
         """
-        ดึงราคาหุ้นและคำนวณ Covariance Matrix พร้อมค่า Beta (Weekly 2Y)
-        พร้อมใช้งาน Redis Caching (อายุแคช 24 ชั่วโมง)
+        ดึงราคาหุ้นและคำนวณ Covariance Matrix พร้อมค่า Beta (Weekly 5Y ตามงานวิจัย)
+        พร้อมใช้งาน In-Memory และ Redis Caching (อายุแคช 24 ชั่วโมง)
         """
         tickers_str = ",".join(sorted(tickers))
         cache_key = f"market_data:{hashlib.md5(tickers_str.encode()).hexdigest()}:{period}"
         
+        # 1. ตรวจสอบ In-Memory Cache ก่อน (เร็วที่สุด < 1ms)
+        if cache_key in _IN_MEMORY_CACHE:
+            print("⚡ ข้อมูลราคาหุ้นถูกดึงมาจาก In-Memory Cache (ไม่ต้องรอโหลด API)")
+            return _IN_MEMORY_CACHE[cache_key]
+
+        # 2. ตรวจสอบ Redis Cache
         r = get_redis_client()
         if r:
             cached_data = r.get(cache_key)  # type: ignore
             if cached_data:
                 print("⚡ ข้อมูลราคาหุ้นถูกดึงมาจาก Redis Cache (ไม่ต้องรอโหลด API)")
-                return pickle.loads(cached_data)  # type: ignore
+                res = pickle.loads(cached_data)  # type: ignore
+                _IN_MEMORY_CACHE[cache_key] = res
+                return res
 
         # เพิ่ม .BK สำหรับหุ้นไทย และดึงดัชนีตลาด (^SET.BK)
         yf_tickers = [f"{t}.BK" for t in tickers]
@@ -169,6 +184,7 @@ class YahooFinanceFetcher:
         else:
             betas = {t: 1.0 for t in cov_matrix.columns}
             
+        _IN_MEMORY_CACHE[cache_key] = (cov_matrix, betas)
         if r:
             try:
                 r.setex(cache_key, 86400, pickle.dumps((cov_matrix, betas))) # เก็บ 24 ชม.

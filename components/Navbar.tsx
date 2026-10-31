@@ -55,19 +55,23 @@ export default function Navbar() {
             </Link>
           </div>
           
-          {/* Desktop Menu */}
+          {/* Desktop Menu — Admin เห็นแค่ลิงก์ Admin เท่านั้น */}
           <div className="hidden md:flex items-center space-x-6">
-            <Link href="/" className="text-[13px] font-medium text-stone-500 hover:text-stone-900 dark:text-stone-400 dark:hover:text-stone-100 transition-colors">
-              หน้าแรก
-            </Link>
-            <SignedIn>
-              <Link href="/plan" className="text-[13px] font-medium text-stone-500 hover:text-stone-900 dark:text-stone-400 dark:hover:text-stone-100 transition-colors">
-                วางแผนลงทุน
-              </Link>
-              <Link href="/dashboard" className="text-[13px] font-medium text-stone-500 hover:text-stone-900 dark:text-stone-400 dark:hover:text-stone-100 transition-colors">
-                แดชบอร์ด
-              </Link>
-            </SignedIn>
+            {!isAdmin && (
+              <>
+                <Link href="/" className="text-[13px] font-medium text-stone-500 hover:text-stone-900 dark:text-stone-400 dark:hover:text-stone-100 transition-colors">
+                  หน้าแรก
+                </Link>
+                <SignedIn>
+                  <Link href="/plan" className="text-[13px] font-medium text-stone-500 hover:text-stone-900 dark:text-stone-400 dark:hover:text-stone-100 transition-colors">
+                    วางแผนลงทุน
+                  </Link>
+                  <Link href="/dashboard" className="text-[13px] font-medium text-stone-500 hover:text-stone-900 dark:text-stone-400 dark:hover:text-stone-100 transition-colors">
+                    แดชบอร์ด
+                  </Link>
+                </SignedIn>
+              </>
+            )}
             {isAdmin && (
               <Link href="/admin" className="text-[13px] font-bold text-red-600 dark:text-red-400 hover:text-red-700 transition-colors">
                 Admin
@@ -109,33 +113,37 @@ export default function Navbar() {
         </div>
       </div>
 
-      {/* ✅ Mobile Dropdown Menu */}
+      {/* ✅ Mobile Dropdown Menu — Admin เห็นแค่ลิงก์ Admin เท่านั้น */}
       {isMobileMenuOpen && (
         <div className="md:hidden border-t border-stone-200 dark:border-stone-800 bg-[#FAFAF8]/95 dark:bg-[#111110]/95 backdrop-blur-md">
           <div className="max-w-6xl mx-auto px-4 py-3 flex flex-col space-y-1">
-            <Link
-              href="/"
-              className="px-3 py-2 rounded-md text-sm font-medium text-stone-600 hover:text-stone-900 dark:text-stone-400 dark:hover:text-stone-100 hover:bg-stone-100 dark:hover:bg-stone-800 transition-colors"
-              onClick={() => setIsMobileMenuOpen(false)}
-            >
-              หน้าแรก
-            </Link>
-            <SignedIn>
-              <Link
-                href="/plan"
-                className="px-3 py-2 rounded-md text-sm font-medium text-stone-600 hover:text-stone-900 dark:text-stone-400 dark:hover:text-stone-100 hover:bg-stone-100 dark:hover:bg-stone-800 transition-colors"
-                onClick={() => setIsMobileMenuOpen(false)}
-              >
-                วางแผนลงทุน
-              </Link>
-              <Link
-                href="/dashboard"
-                className="px-3 py-2 rounded-md text-sm font-medium text-stone-600 hover:text-stone-900 dark:text-stone-400 dark:hover:text-stone-100 hover:bg-stone-100 dark:hover:bg-stone-800 transition-colors"
-                onClick={() => setIsMobileMenuOpen(false)}
-              >
-                แดชบอร์ด
-              </Link>
-            </SignedIn>
+            {!isAdmin && (
+              <>
+                <Link
+                  href="/"
+                  className="px-3 py-2 rounded-md text-sm font-medium text-stone-600 hover:text-stone-900 dark:text-stone-400 dark:hover:text-stone-100 hover:bg-stone-100 dark:hover:bg-stone-800 transition-colors"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  หน้าแรก
+                </Link>
+                <SignedIn>
+                  <Link
+                    href="/plan"
+                    className="px-3 py-2 rounded-md text-sm font-medium text-stone-600 hover:text-stone-900 dark:text-stone-400 dark:hover:text-stone-100 hover:bg-stone-100 dark:hover:bg-stone-800 transition-colors"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    วางแผนลงทุน
+                  </Link>
+                  <Link
+                    href="/dashboard"
+                    className="px-3 py-2 rounded-md text-sm font-medium text-stone-600 hover:text-stone-900 dark:text-stone-400 dark:hover:text-stone-100 hover:bg-stone-100 dark:hover:bg-stone-800 transition-colors"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    แดชบอร์ด
+                  </Link>
+                </SignedIn>
+              </>
+            )}
             {isAdmin && (
               <Link
                 href="/admin"
