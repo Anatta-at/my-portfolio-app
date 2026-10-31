@@ -140,7 +140,7 @@ class GeneticPortfolioOptimizer:
             if w_sum <= 0:
                 return -999.0,
             
-            # คำนวณผลตอบแทนและความผันผวนของพอร์ต (เราไม่ได้ normalize ในระดับ ind เพื่อให้ penalty ทำงาน)
+            # Normalize น้ำหนักให้รวมกันได้ 100% (1.0) เสมอ
             w_normalized = w / w_sum
             p_ret = np.dot(w_normalized, bl_returns)
             p_vol = np.sqrt(np.dot(w_normalized.T, np.dot(cov, w_normalized)))  # type: ignore
@@ -150,20 +150,16 @@ class GeneticPortfolioOptimizer:
             # Sharpe Ratio: วัดความคุ้มค่าของผลตอบแทนต่อความเสี่ยง
             sharpe = (p_ret - self.rf) / p_vol
             
-            # Penalty: บทลงโทษค่าน้ำหนัก (ให้รวมกันได้ 100%) ตามเอกสารข้อ 2.1.6.2
-            weight_penalty = 1000.0 * ((w_sum - 1.0) ** 2)
-            
             # Penalty: บทลงโทษหากค่า Beta เบี่ยงเบนจากเป้าหมาย
-            beta_penalty = abs(np.dot(w_normalized, asset_betas) - target_beta) * 10  # type: ignore
+            beta_penalty = abs(np.dot(w_normalized, asset_betas) - target_beta) * 2.0  # type: ignore
             
             # Penalty: บทลงโทษหากมีหุ้นตัวใดตัวหนึ่งมีน้ำหนักเกินกำหนด (Max Weight Limit)
             max_weight_penalty = 0.0
             if np.max(w_normalized) > max_weight_per_asset:
-                # ลงโทษรุนแรงตามส่วนที่เกินมา
-                max_weight_penalty = 50.0 * (np.max(w_normalized) - max_weight_per_asset)
+                max_weight_penalty = 20.0 * (np.max(w_normalized) - max_weight_per_asset)
 
-            # Fitness_penalized
-            return (sharpe - weight_penalty - beta_penalty - max_weight_penalty),
+            # Fitness = Sharpe Ratio ลบค่าปรับ Beta และ Max Weight (ตัด weight_penalty ที่ทำให้เกิดบั๊กออก)
+            return (sharpe - beta_penalty - max_weight_penalty),
 
         toolbox.register("evaluate", evaluate)
         toolbox.register("mate", tools.cxBlend, alpha=0.5)
@@ -173,10 +169,10 @@ class GeneticPortfolioOptimizer:
         # =========================================================================
         # ⭐⭐⭐ ตรงนี้คือการตั้งค่า พารามิเตอร์ ของ GA (ประชากร, รุ่น, โอกาสผสมพันธุ์) ⭐⭐⭐
         # =========================================================================
-        pop = toolbox.population(n=100)  # จำนวนประชากรพอร์ต (Population) = 100
+        pop = toolbox.population(n=200)  # จำนวนประชากรพอร์ต (Population) = 200
         hof = tools.HallOfFame(1)
-        ngen = 50 # จำนวนรุ่นในการวิวัฒนาการ (Generations) = 50 รุ่น
-        cxpb, mutpb = 0.8, 0.1 # โอกาสผสมพันธุ์ (Crossover) 80%, โอกาสกลายพันธุ์ (Mutation) 10%
+        ngen = 80 # จำนวนรุ่นในการวิวัฒนาการ (Generations) = 80 รุ่น
+        cxpb, mutpb = 0.8, 0.2 # โอกาสผสมพันธุ์ (Crossover) 80%, โอกาสกลายพันธุ์ (Mutation) 20%
 
         print(f"\n🚀 เริ่มต้น GA (จำนวนหุ้นสูงสุด: {max_stocks}, เป้าหมาย Beta: {target_beta})")
         print("-" * 65)

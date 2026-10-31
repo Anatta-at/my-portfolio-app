@@ -332,8 +332,18 @@ def optimize_portfolio(req: OptimizeRequest):
         # หลัง: Backtest ก่อน ถ้าสำเร็จค่อยบันทึก ป้องกัน data inconsistency
         
         # 8. ทดสอบย้อนหลัง (Backtest) — ย้ายมาทำก่อนบันทึก DB
+        # จำกัดช่วงเวลา Historical Backtest สูงสุดไม่เกิน 5 ปีย้อนหลัง ป้องกันข้อมูลหุ้นขาดช่วงและกราฟหลุดสเกล
+        from datetime import datetime, timedelta
+        bt_start = req.start_date
+        try:
+            s_dt = datetime.strptime(req.start_date, "%Y-%m-%d")
+            e_dt = datetime.strptime(req.end_date, "%Y-%m-%d")
+            if (e_dt - s_dt).days > 5 * 365 + 30:
+                bt_start = (e_dt - timedelta(days=5 * 365)).strftime("%Y-%m-%d")
+        except Exception:
+            pass
         bt_engine = BacktestEngine()
-        bt_results = bt_engine.run_backtest(weights_dict, req.start_date, req.end_date)
+        bt_results = bt_engine.run_backtest(weights_dict, bt_start, req.end_date)
         
         success_prob = calculate_success_probability(req.budget or 100000.0, req.target_amount, req.duration_years or 5, final_ret, final_vol)
         forecast_range = calculate_forecast_range(req.budget or 100000.0, req.duration_years or 5, final_ret, final_vol)
@@ -576,11 +586,12 @@ def get_portfolio_details(portfolio_id: int, clerk_id: str = Query(...)):
         cursor.close()
         conn.close()
         
-        # 3. รัน Backtest
+        # 3. รัน Backtest (จำกัดย้อนหลังสูงสุดไม่เกิน 5 ปี เพื่อความแม่นยำของข้อมูล)
         duration_num = p_meta["duration_years"] if p_meta["duration_years"] else 5
+        duration_backtest = min(max(duration_num, 1), 5)
         import datetime
         end_date = datetime.date.today()
-        start_date = end_date - datetime.timedelta(days=duration_num * 365)
+        start_date = end_date - datetime.timedelta(days=duration_backtest * 365)
         
         bt_engine = BacktestEngine()
         bt_results = bt_engine.run_backtest(

@@ -265,12 +265,16 @@ export default function PlanPage() {
       if (formData.riskLevel === 'high') targetBeta = 1.2;
       const endDate = new Date();
       const startDate = new Date();
-      startDate.setFullYear(endDate.getFullYear() - finalDuration);
+      // จำกัดช่วงเวลา Historical Backtest สูงสุดไม่เกิน 5 ปี เพื่อความแม่นยำของข้อมูลและไม่เกิด Visual Distortion
+      const backtestYears = Math.min(Math.max(finalDuration, 1), 5);
+      startDate.setFullYear(endDate.getFullYear() - backtestYears);
       try {
-        // ✅ เดิน Progress Steps
-        setLoadingStep(1); // BL
-        await new Promise(r => setTimeout(r, 800));
-        setLoadingStep(2); // GA
+        // ✅ เดิน Progress Steps อย่างต่อเนื่องและนุ่มนวล
+        setLoadingStep(1);
+        const progressTimer = setInterval(() => {
+          setLoadingStep(prev => (prev < 4 ? prev + 1 : prev));
+        }, 1200);
+
         const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/optimize`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -283,18 +287,20 @@ export default function PlanPage() {
             user_custom_views: Object.keys(investorViews).length > 0 ? investorViews : undefined
           })
         });
-        setLoadingStep(3); // Backtest
+        clearInterval(progressTimer);
+        setLoadingStep(4);
         const data = await response.json().catch(() => null);
         if (!response.ok) {
           const errDetail = data?.message || (typeof data?.detail === 'string' ? data.detail : null) || 'การตอบสนองจากเซิร์ฟเวอร์ผิดพลาด';
           throw new Error(errDetail);
         }
-        setLoadingStep(4); // Saving
+        setLoadingStep(5);
         await new Promise(r => setTimeout(r, 400));
         if (data && data.status === 'success') {
           localStorage.setItem('userPlan', JSON.stringify(cleanData));
           localStorage.setItem('portfolioResult', JSON.stringify(data));
-          router.push(`/dashboard/${data.portfolio_id}`);
+          window.location.href = `/dashboard/${data.portfolio_id}`;
+          return;
         } else {
           setToast({ message: 'เกิดข้อผิดพลาด: ' + (data?.detail || data?.message || 'Unknown error'), type: 'error' });
         }

@@ -118,22 +118,32 @@ class SETDataFetcher:
 
 
 
+_IN_MEMORY_CACHE = {}
+
 class YahooFinanceFetcher:
     @staticmethod
     def get_market_data_with_beta(tickers: List[str], period: str = "5y") -> Tuple[pd.DataFrame, Dict[str, float]]:
         """
         ดึงราคาหุ้นและคำนวณ Covariance Matrix พร้อมค่า Beta (Weekly 5Y ตามงานวิจัย)
-        พร้อมใช้งาน Redis Caching (อายุแคช 24 ชั่วโมง)
+        พร้อมใช้งาน In-Memory และ Redis Caching (อายุแคช 24 ชั่วโมง)
         """
         tickers_str = ",".join(sorted(tickers))
         cache_key = f"market_data:{hashlib.md5(tickers_str.encode()).hexdigest()}:{period}"
         
+        # 1. ตรวจสอบ In-Memory Cache ก่อน (เร็วที่สุด < 1ms)
+        if cache_key in _IN_MEMORY_CACHE:
+            print("⚡ ข้อมูลราคาหุ้นถูกดึงมาจาก In-Memory Cache (ไม่ต้องรอโหลด API)")
+            return _IN_MEMORY_CACHE[cache_key]
+
+        # 2. ตรวจสอบ Redis Cache
         r = get_redis_client()
         if r:
             cached_data = r.get(cache_key)  # type: ignore
             if cached_data:
                 print("⚡ ข้อมูลราคาหุ้นถูกดึงมาจาก Redis Cache (ไม่ต้องรอโหลด API)")
-                return pickle.loads(cached_data)  # type: ignore
+                res = pickle.loads(cached_data)  # type: ignore
+                _IN_MEMORY_CACHE[cache_key] = res
+                return res
 
         # เพิ่ม .BK สำหรับหุ้นไทย และดึงดัชนีตลาด (^SET.BK)
         yf_tickers = [f"{t}.BK" for t in tickers]
@@ -174,6 +184,7 @@ class YahooFinanceFetcher:
         else:
             betas = {t: 1.0 for t in cov_matrix.columns}
             
+        _IN_MEMORY_CACHE[cache_key] = (cov_matrix, betas)
         if r:
             try:
                 r.setex(cache_key, 86400, pickle.dumps((cov_matrix, betas))) # เก็บ 24 ชม.
